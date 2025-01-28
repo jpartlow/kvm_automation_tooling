@@ -1,0 +1,17 @@
+#cloud-config
+# ^^^ warning, this magic comment is necessary for cloud-init to recognize and process this file...
+# https://cloudinit.readthedocs.io/en/latest/explanation/about-cloud-config.html#how-do-i-create-a-cloud-config-file
+#
+# Users and Groups Module
+users:
+  - name: ubuntu
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAMHyS4+apUHAhkSsehKwN3UNyb+35lwcBZVwSTBfc0y jpartlow@archimedes 
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    groups: sudo
+    shell: /bin/bash
+    # # Uncomment for debugging
+    # plain_text_passwd: "ubuntu"
+    # lock-passwd: false
+# Set Passwords Module
+chpasswd: { expire: False }
