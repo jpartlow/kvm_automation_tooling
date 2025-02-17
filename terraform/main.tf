@@ -7,11 +7,6 @@ terraform {
   }
 }
 
-locals {
-  # The path to the cloud-init configuration file
-  cloud_init_path = "${path.module}/../cloud-init/ubuntu-2404-amd64"
-}
-
 provider "libvirt" {
   uri = "qemu:///system"
 }
@@ -33,16 +28,29 @@ resource "libvirt_volume" "ubuntu-qcow2" {
   format = "qcow2"
 }
 
-data "template_file" "user_data" {
-  template = file("${local.cloud_init_path}/user-data.yaml")
-}
-
-data "template_file" "network_config" {
-  template = file("${local.cloud_init_path}/network-config.yaml")
-}
-
-data "template_file" "meta_data" {
-  template = file("${local.cloud_init_path}/meta-data.yaml")
+locals {
+  # The path to the cloud-init configuration templates
+  cloud_init_path = "${path.module}/../cloud-init"
+  user_data = templatefile(
+    "${local.cloud_init_path}/user-data.yaml.tftpl",
+    {
+      ssh_authorized_key = file(var.ssh_public_key_path),
+      user_password      = var.user_password,
+    }
+  )
+  network_config = templatefile(
+    "${local.cloud_init_path}/network-config.yaml.tftpl",
+    {
+      bridge_ip = var.bridge_ip,
+    }
+  )
+  meta_data = templatefile(
+    "${local.cloud_init_path}/meta-data.yaml.tftpl",
+    {
+      instance_id = var.instance_id,
+      hostname = var.hostname,
+    }
+  )
 }
 
 # for more info about parameters check this out
@@ -51,9 +59,9 @@ data "template_file" "meta_data" {
 # you can add also meta_data field
 resource "libvirt_cloudinit_disk" "commoninit" {
   name           = "commoninit.iso"
-  user_data      = data.template_file.user_data.rendered
-  network_config = data.template_file.network_config.rendered
-  meta_data      = data.template_file.meta_data.rendered
+  user_data      = locals.user_data
+  network_config = locals.network_config
+  meta_data      = locals.meta_data
   pool           = libvirt_pool.ubuntu.name
 }
 

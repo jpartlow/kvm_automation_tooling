@@ -12,7 +12,7 @@ network:
         name: en*
       dhcp4: yes
       nameservers:
-           addresses: [192.168.122.1]
+           addresses: [${bridge_ip}]
       routes:
       - to: 0.0.0.0/0
-        via: 192.168.122.1
+        via: ${bridge_ip}

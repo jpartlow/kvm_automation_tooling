@@ -6,12 +6,14 @@
 users:
   - name: ubuntu
     ssh_authorized_keys:
-      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAMHyS4+apUHAhkSsehKwN3UNyb+35lwcBZVwSTBfc0y jpartlow@archimedes 
+      - ${ssh_authorized_key}
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     groups: sudo
     shell: /bin/bash
-    # # Uncomment for debugging
-    # plain_text_passwd: "ubuntu"
-    # lock-passwd: false
+%{ if user_password != "" ~}
+    # for debugging
+    plain_text_passwd: ${user_password}
+    lock-passwd: false
+%{ endif ~}
 # Set Passwords Module
 chpasswd: { expire: False }
