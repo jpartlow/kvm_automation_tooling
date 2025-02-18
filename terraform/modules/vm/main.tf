@@ -21,20 +21,20 @@ resource "libvirt_pool" "ubuntu" {
 
 # We fetch the latest ubuntu release image from their mirrors
 resource "libvirt_volume" "ubuntu-qcow2" {
-  name = "ubuntu-qcow2"
-#  pool = "default"
+  name   = "ubuntu-qcow2"
   pool   = libvirt_pool.ubuntu.name
   source = "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
   format = "qcow2"
+  size   = var.disk_size
 }
 
 locals {
   # The path to the cloud-init configuration templates
-  cloud_init_path = "${path.module}/../cloud-init"
+  cloud_init_path = "${path.module}/../../../cloud-init"
   user_data = templatefile(
     "${local.cloud_init_path}/user-data.yaml.tftpl",
     {
-      ssh_authorized_key = file(var.ssh_public_key_path),
+      ssh_authorized_key = var.ssh_public_key,
       user_password      = var.user_password,
     }
   )
@@ -47,7 +47,6 @@ locals {
   meta_data = templatefile(
     "${local.cloud_init_path}/meta-data.yaml.tftpl",
     {
-      instance_id = var.instance_id,
       hostname = var.hostname,
     }
   )
@@ -68,8 +67,8 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 # Create the machine
 resource "libvirt_domain" "domain-ubuntu" {
   name   = "ubuntu-terraform-2"
-  memory = "2048"
-  vcpu   = 2
+  memory = var.memory
+  vcpu   = var.cpus
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
