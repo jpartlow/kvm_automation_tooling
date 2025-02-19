@@ -1,3 +1,18 @@
+variable "cluster" {
+  description = "An identifier for the cluster, used along with platform as part of each vm hostname."
+  type = string
+  default = "dev"
+}
+
+variable "platform" {
+  description = "The operating system platform to use for the VMs. This is a constrained key of os name, version and architecture."
+  type = string
+  validation {
+    condition = contains(local.allowed_platforms, var.platform)
+    error_message = "The platform must be one of ${join(", ", local.allowed_platforms)}."
+  }
+}
+
 variable "ssh_public_key_path" {
   description = "The path to an SSH public key file to be added to the ssh authorized_keys file on generate vm hosts."
   type = string
@@ -14,12 +29,7 @@ variable "bridge_ip" {
   type = string
 }
 
-variable "cluster_id" {
-  description = "A distinct identifier for the cluster, used as part of each vm id and hostname."
-  type = string
-}
-
-####################################################################################################
+################################################################################
 # Primary node variables
 
 variable "primary_cpus" {
@@ -40,7 +50,7 @@ variable "primary_disk_size" {
   default = 20
 }
 
-####################################################################################################
+################################################################################
 # Agent node variables
 
 variable "agent_count" {

@@ -63,7 +63,10 @@ Using `terraform apply`, I'm running into a few snags.
 First using the "dmacvicar/libvirt" provider, there's the basic problem that
 the libvirt_pool resource, which is a directory pool tied to a specific
 /var/lib/libvirt/images directory fails if the directory already exists.
-Working around this requires a manual `terraform import` first.
+(Actually, I think it's not the existence of the physical directory, but rather
+a leftover libvirt pool configuration that's the problem. `virsh pool-list
+--all` will show even inactive pools, and `virsh pool-undefine <pool-name>`
+will remove it). Working around this requires a manual `terraform import` first.
 
 But if I ensure that the directory doesn't exist, then the provider creates it
 and the domain file, but with root:root 711 permissions that then can't be
