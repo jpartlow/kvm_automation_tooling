@@ -3,6 +3,7 @@
 # https://cloudinit.readthedocs.io/en/latest/explanation/about-cloud-config.html#how-do-i-create-a-cloud-config-file
 #
 # Users and Groups Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#users-and-groups
 users:
   - name: ubuntu
     ssh_authorized_keys:
@@ -16,4 +17,15 @@ users:
     lock-passwd: false
 %{ endif ~}
 # Set Passwords Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#set-passwords
+# Do not require password change on first login.
 chpasswd: { expire: False }
+# Package Update Upgrade Install Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#package-update-upgrade-install
+# Ensure qemu agent is installed so that terraform-provider-libvirt can retrieve IP address.
+packages: qemu-guest-agent
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd
+runcmd:
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, qemu-guest-agent.service ]
+  - [ systemctl, start, --no-block, qemu-guest-agent.service ]

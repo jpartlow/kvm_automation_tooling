@@ -8,7 +8,7 @@ terraform {
 }
 
 # We fetch the latest ubuntu release image from their mirrors
-resource "libvirt_volume" "volume-qcow2" {
+resource "libvirt_volume" "volume_qcow2" {
   name   = "vm-image.${var.hostname}.qcow2"
   pool   = var.pool_name
   base_volume_name = var.base_volume_name
@@ -59,13 +59,14 @@ resource "libvirt_domain" "domain" {
   name   = "vm.${var.hostname}"
   memory = var.memory
   vcpu   = var.cpus
+  qemu_agent = true
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
   network_interface {
      bridge = "virbr0"
      # Should test with this enabled
-     # wait_for_lease = true
+     wait_for_lease = true
   }
 
   # IMPORTANT: this is a known bug on cloud images, since they expect a console
@@ -84,7 +85,7 @@ resource "libvirt_domain" "domain" {
   }
 
   disk {
-    volume_id = libvirt_volume.volume-qcow2.id
+    volume_id = libvirt_volume.volume_qcow2.id
   }
 
   #  graphics {
@@ -92,4 +93,9 @@ resource "libvirt_domain" "domain" {
   #    listen_type = "address"
   #    autoport    = true
   #  }
+}
+
+output "ip_address" {
+  description = "The IP address of the vm."
+  value = libvirt_domain.domain.network_interface.0.addresses[0]
 }
