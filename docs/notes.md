@@ -2,7 +2,7 @@
 
 Source qcow2
 Grabbed 2025-01-22
-https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd65.img
+https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
 
 Only has a root account, no password.
 
@@ -117,3 +117,38 @@ and bind more generally to any virtio named interface (via "match"
 https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v2.html#match-mapping).
 
 A `terraform apply` now starts up a vm that I can ssh into as ubuntu with my id_vms key.
+
+## networking
+
+The bridge is created by libvirt, and the interface to it is visible in `ip a` as virbr0.
+
+Name resolution from the host to the guests can be setup simply using libnss-libvirt.
+
+```bash
+sudo apt install libnss-libvirt
+```
+
+Need to manually update /etc/nsswitch.conf to include libvirt and libvirt_guest in the hosts line.
+On ubuntu 24.04, I ended up with:
+
+```bash
+hosts: files mdns4_minimal libvirt libvirt_guest [NOTFOUND=return] dns mymachines
+```
+
+Name resolution between guests can be added to the libvirt network definition. For the default network, for example, can add (via `virsh net-edit`):
+
+```xml
+  <domain name='vm' localOnly='yes'/>
+```
+
+Need to restart the network for the changes to take effect. (via `virsh net-destroy default` and `virsh net-start default`).
+
+### machine-id
+
+Beware /etc/machine-id. The base image shouldn't have one, so that it can
+be generated automatically during bootstrap. But if you have accidentally
+started up a vm using the base image alone, then it will already have a
+machine-id, and new vms using that image for a base will end up with the
+same base-id which will destroy networking. The dhcpd dnsmasq daemon will
+assign the same ip to multiple vms based on the machine-id. Which doesn't
+work well.
