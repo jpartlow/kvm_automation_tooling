@@ -1,0 +1,14 @@
+{
+  "description": "Idempotently creates a new directory image pool in libvirt. The new pool is created locally within the default storage pool directory.",
+  "input_method": "stdin",
+  "files": [
+    "kvm_automation_tooling/lib/kvm_automation_tooling/libvirt_wrapper.rb",
+    "ruby_task_helper/files/task_helper.rb"
+  ],
+  "parameters": {
+    "name": {
+      "type": "String",
+      "description": "The name of the pool to create."
+    }
+  }
+}
