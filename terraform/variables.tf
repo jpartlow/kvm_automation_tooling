@@ -1,20 +1,36 @@
-variable "cluster" {
-  description = "An identifier for the cluster, used along with platform as part of each vm hostname."
+variable "cluster_id" {
+  description = "An identifier for the cluster, used as part of each vm hostname."
   type = string
   default = "dev"
 }
 
-variable "platform" {
-  description = "The operating system platform to use for the VMs. This is a constrained key of os name, version and architecture."
+variable "pool_name" {
+  description = "Identifier for the libvirt image pool to use for the VM images."
   type = string
-  validation {
-    condition = contains(local.allowed_platforms, var.platform)
-    error_message = "The platform must be one of ${join(", ", local.allowed_platforms)}."
-  }
+}
+
+variable "base_volume_name" {
+  description = "The name of the libvirt volume to use as the base image for the VM images."
+  type = string
+}
+
+variable "user_name" {
+  description = "The name of the user account to create for ssh login on generated vm hosts."
+  type = string
 }
 
 variable "ssh_public_key_path" {
-  description = "The path to an SSH public key file to be added to the ssh authorized_keys file on generate vm hosts."
+  description = "The path to an SSH public key file to be added to the ssh authorized_keys file on generated vm hosts."
+  type = string
+}
+
+variable "network_addresses" {
+  description = "The network address range in CIDR notation to use for the generated libvirt network. The gateway address will be 'A.B.C.1'."
+  type = string
+}
+
+variable "domain_name" {
+  description = "The domain name to use for the generated libvirt network."
   type = string
 }
 
@@ -24,12 +40,7 @@ variable "user_password" {
   default = ""
 }
 
-variable "bridge_ip" {
-  description = "The IP address of the bridge interface to use for the VM network."
-  type = string
-}
-
-################################################################################
+########################################################################
 # Primary node variables
 
 variable "primary_cpus" {
@@ -50,7 +61,7 @@ variable "primary_disk_size" {
   default = 20
 }
 
-################################################################################
+########################################################################
 # Agent node variables
 
 variable "agent_count" {

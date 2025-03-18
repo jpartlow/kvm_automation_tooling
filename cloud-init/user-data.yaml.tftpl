@@ -5,7 +5,7 @@
 # Users and Groups Module
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#users-and-groups
 users:
-  - name: ubuntu
+  - name: ${user_name}
     ssh_authorized_keys:
       - ${ssh_authorized_key}
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]

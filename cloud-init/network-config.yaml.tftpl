@@ -12,7 +12,7 @@ network:
         name: en*
       dhcp4: yes
       nameservers:
-           addresses: [${bridge_ip}]
+        addresses: [${gateway_ip}]
       routes:
       - to: 0.0.0.0/0
-        via: ${bridge_ip}
+        via: ${gateway_ip}
