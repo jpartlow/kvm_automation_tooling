@@ -128,4 +128,11 @@ plan kvm_automation_tooling::standup_cluster(
   out::message("Agent targets: ${agent_targets}")
 
   $all_targets = [$primary_target] + $agent_targets
+
+  run_plan('kvm_automation_tooling::subplans::install_puppet',
+    'targets' => $all_targets,
+    'puppetserver_target' => $primary_target,
+    'puppetdb_target' => $primary_target,
+    'postgresql_target' => $primary_target,
+  )
 }

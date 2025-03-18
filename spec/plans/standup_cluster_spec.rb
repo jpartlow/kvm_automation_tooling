@@ -42,6 +42,7 @@ describe 'plan: standup_cluster' do
         'state'         => "#{tempdir}/#{cluster_id}.tfstate",
         'return_output' => true,
       )
+    allow_apply_prep
 
     result = run_plan('kvm_automation_tooling::standup_cluster', params)
     expect(result.ok?).to(eq(true), result.value)
