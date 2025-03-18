@@ -1,0 +1,37 @@
+<%- | String $tfstate_dir,
+      String $tfstate_file_name,
+      String $ssh_user_name,
+      String $domain_name,
+| -%>
+groups:
+  - name: puppet
+    vars:
+      domain_name: <%= $domain_name %>
+    targets:
+      _plugin: terraform
+      dir: <%= $tfstate_dir %>
+      state: <%= $tfstate_file_name %>
+      # The resource type is actually a concatenation of the terraform
+      # resource type and name, set by:
+      # https://github.com/puppetlabs/puppetlabs-terraform/blob/0.7.1/tasks/resolve_reference.rb#L88
+      # The resource name is a string literal, and since all the domains
+      # are generated from the terraform/modules/vm module, they all end up
+      # with the same resource_type of 'libvirt_domain.domain'. There is a
+      # module attribute in the terraform resources state, which, if the
+      # puppetlabs-terraform module task referenced would give us
+      # resource_types like 'module.primary.libvirt_domain.domain' that
+      # would allow us to separate different inventory groups based on the
+      # role. But without this, we're stuck either not using terraform
+      # modules and creating a lot of redundant resources in the
+      # terraform/main.tf, or grabbing all domain targets in an all group
+      # and filtering on name when generating bolt targets from them, which
+      # is what I've opted for at the moment.
+      resource_type: libvirt_domain.domain
+      target_mapping:
+        name: network_interface.0.hostname
+        uri: network_interface.0.addresses.0
+config:
+  ssh:
+    user: <%= $ssh_user_name %>
+    run-as: root
+    host-key-check: false
