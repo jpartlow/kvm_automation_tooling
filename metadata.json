@@ -1,0 +1,18 @@
+{
+  "name": "jpartlow-kvm_automation_tooling",
+  "version": "0.1.0",
+  "summary": "KVM virtual machine management",
+  "description": "A bolt project and supporting puppet code for automating KVM virtual machine management for OpenVox development work",
+  "author": "Josh Partlow",
+  "license": "GPL-3.0",
+  "source": "https://github.com/jpartlow/kvm_automation_tooling",
+  "project_page": "https://github.com/jpartlow/kvm_automation_tooling",
+  "issues_url": "https://github.com/jpartlow/kvm_automation_tooling/issues",
+  "dependencies": [],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 7.0.0 < 9.0.0"
+    }
+  ]
+}
