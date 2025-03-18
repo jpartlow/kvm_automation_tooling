@@ -26,3 +26,26 @@ RSpec.configure do |c|
   c.manifest        = File.join(KatRspec.fixture_path, 'manifests', 'site.pp')
   c.environmentpath = File.join(Dir.pwd, 'spec', 'environments')
 end
+
+require 'bolt_spec/plans'
+
+RSpec.shared_context 'plan_init' do
+  include BoltSpec::Plans
+
+  # This should still execute before the before(:all)
+  # See: https://rspec.info/features/3-12/rspec-core/hooks/around-hooks/
+  around(:example) do |example|
+    old_modpath = RSpec.configuration.module_path
+    # This bit of insanity is due to the fact that rspec-puppet can only
+    # deal with a module:path, while BoltSpec can only deal with a
+    # [module, path]...
+    RSpec.configuration.module_path = KatRspec.modulepath
+    example.run
+  ensure
+    RSpec.configuration.module_path = old_modpath
+  end
+
+  before(:all) do
+    BoltSpec::Plans.init
+  end
+end
