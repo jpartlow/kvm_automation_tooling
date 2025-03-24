@@ -32,5 +32,5 @@ spec/fixtures/modulepath/kvm_automation_tooling symlink is managed by
 rspec-puppet itself.
 
 ```
-bolt rspec spec
+bundle exec rspec spec
 ```
