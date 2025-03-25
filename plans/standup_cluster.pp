@@ -94,11 +94,11 @@ plan kvm_automation_tooling::standup_cluster(
     'user_password'       => $user_password.unwrap,
     'agent_count'         => $agents,
     'primary_cpus'        => $primary_cpus,
-    'primary_mem_mb'      => $primary_mem_mb,
-    'primary_disk_gb'     => $primary_disk_gb,
+    'primary_memory'      => $primary_mem_mb,
+    'primary_disk_size'   => $primary_disk_gb,
     'agent_cpus'          => $agent_cpus,
-    'agent_mem_mb'        => $agent_mem_mb,
-    'agent_disk_gb'       => $agent_disk_gb,
+    'agent_memory'        => $agent_mem_mb,
+    'agent_disk_size'     => $agent_disk_gb,
   }))
 
   # Ensure terraform dependencies are installed.
