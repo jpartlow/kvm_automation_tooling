@@ -11,6 +11,6 @@ spec/fixtures/modules/kvm_automation_tooling
 
 # terraform
 .terraform*
-*.tfvars*
-*.tfstate
-*.tfstate.*
+terraform/**/*.tfvars*
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
