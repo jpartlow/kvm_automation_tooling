@@ -60,7 +60,7 @@ plan kvm_automation_tooling::standup_cluster(
   String $terraform_state_dir = 'kvm_automation_tooling/../terraform/instances',
   String $user = system::env('USER'),
   String $ssh_public_key_path = "${system::env('HOME')}/.ssh/id_rsa.pub",
-  Optional[Sensitive[String]] $user_password = undef,
+  Optional[String] $user_password = undef,
 ) {
   $terraform_dir = './terraform'
   $platform = kvm_automation_tooling::platform($os, $os_version, $os_arch)
@@ -91,7 +91,7 @@ plan kvm_automation_tooling::standup_cluster(
     'domain_name'         => $domain_name,
     'user_name'           => $user,
     'ssh_public_key_path' => $ssh_public_key_path,
-    'user_password'       => $user_password.unwrap,
+    'user_password'       => $user_password,
     'agent_count'         => $agents,
     'primary_cpus'        => $primary_cpus,
     'primary_memory'      => $primary_mem_mb,
