@@ -1,0 +1,73 @@
+---
+name: 'Plan Tests'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  standup-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Terraform
+        run: |-
+          # From https://developer.hashicorp.com/terraform/install
+          wget -O - https://apt.releases.hashicorp.com/gpg | \
+            sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+            sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install terraform
+      - name: Install Libvirt
+        run: |-
+          sudo apt install libvirt-daemon-system libvirt-dev genisoimage
+          # Even if we add the runner user to the libvirt group, we can't
+          # restart the session to take advantage of that, and using
+          # something like newgrp requests a password, while su -l also
+          # fails to provide a shell with the new group membership. So I'm
+          # just opening up permissions instead.
+          sudo chmod o+rw /var/run/libvirt/libvirt-sock
+          # Turn off the qemu security driver to avoid SELinux issues reading
+          # the base image file
+          sudo sed -i -e 's/^#security_driver =.*$/security_driver = "none"/' '/etc/libvirt/qemu.conf'
+          sudo systemctl restart libvirtd
+          # Create the default directory storage pool
+          sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - name: Install module dependencies
+        run: bundle exec bolt module install
+      - name: Generate an SSH key to use for the cluster
+        run: ssh-keygen -t ed25519 -f "${HOME}/.ssh/ssh-id-test" -N '' -q
+      - name: Write standup_cluster params
+        run: |-
+          cat > standup_cluster_params.json <<EOF
+          {
+            "cluster_name": "test",
+            "network_addresses": "192.168.100.0/24",
+            "ssh_public_key_path": "${HOME}/.ssh/ssh-id-test.pub",
+            "os": "ubuntu",
+            "os_version": "2404",
+            "os_arch": "x86_64",
+            "architecture": "singular",
+            "agents": 1,
+            "primary_cpus": 2,
+            "primary_mem_mb": 4096,
+            "primary_disk_gb": 5,
+            "agent_cpus": 1,
+            "agent_mem_mb": 512,
+            "agent_disk_gb": 5
+          }
+          EOF
+      - name: Run standup_cluster plan
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
+      - name: Run teardown_cluster plan
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id=test-singular-ubuntu-2404-amd64
