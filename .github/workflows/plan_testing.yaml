@@ -1,0 +1,39 @@
+---
+name: 'Plan Tests'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  standup-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Terraform and Libvirt
+        run: sudo apt-get install terraform libvirt libvirt-dev
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+      - name: Install module dependencies
+        run: bundle exec bolt module install
+      - name: Write standup_cluster params
+        run: |-
+          cat > standup_cluster_params.json <<EOF
+          {
+            "cluster_name": "test",
+            "network_addresses": "192.168.100.0/24",
+            "ssh_public_key_path": "/some/path/to/ssh/id_for_vms.pub",
+            "os": "ubuntu",
+            "os_version": "2404",
+            "os_arch": "x86_64",
+            "architecture": "singular",
+            "agents": 1,
+          }
+          EOF
+      - name: Run standup_cluster plan
+        run: bundle exec bolt plan run standup_cluster --params @standup_cluster_params.json
