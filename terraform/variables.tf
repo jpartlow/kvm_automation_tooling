@@ -38,6 +38,7 @@ variable "user_password" {
   description = "Optional password to set for the default user account on vm hosts (can be used for debugging ssh connectivity issues)."
   type = string
   default = ""
+  nullable = false
 }
 
 ########################################################################
