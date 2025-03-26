@@ -51,4 +51,4 @@ jobs:
           }
           EOF
       - name: Run standup_cluster plan
-        run: bundle exec bolt plan run standup_cluster --params @standup_cluster_params.json
+        run: bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
