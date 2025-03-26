@@ -6,6 +6,8 @@ plan kvm_automation_tooling::subplans::manage_base_image_volume(
   String $image_download_dir,
 ) {
 
+  run_command("mkdir -p ${image_download_dir}", 'localhost')
+
   # Download and import base image.
   $base_image_url = kvm_automation_tooling::get_image_url($platform)
   $base_image_name = $base_image_url.split('/')[-1]
