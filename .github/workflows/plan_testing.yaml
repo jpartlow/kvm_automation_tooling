@@ -25,7 +25,16 @@ jobs:
       - name: Install Libvirt
         run: |-
           sudo apt install libvirt-daemon-system libvirt-dev
-          sudo adduser $USER libvirt
+          sudo grep -E 'runner|libvirt' /etc/group
+          sudo usermod -a -G libvirt $USER
+          sudo grep -E 'runner|libvirt' /etc/group
+          ls -l /var/run/libvirt/libvirt-sock
+          sudo chmod o+rw /var/run/libvirt/libvirt-sock
+          sudo chmod 777 /var/lib/libvirt/images
+          sudo apt install tree
+          sudo tree -ugp /var/lib/libvirt
+          sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
+          virsh pool-list --details
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
@@ -53,4 +62,8 @@ jobs:
           }
           EOF
       - name: Run standup_cluster plan
-        run: bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
+        run: |-
+          sudo tree -ugp /var/lib/libvirt
+          virsh pool-list --details
+          bundle exec ruby -e 'require "libvirt"; lv = Libvirt::open("qemu:///system"); puts "storage pools: #{lv.list_all_storage_pools}"'
+          bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
