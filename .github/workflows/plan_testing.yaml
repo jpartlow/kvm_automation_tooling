@@ -23,7 +23,9 @@ jobs:
             sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update && sudo apt install terraform
       - name: Install Libvirt
-        run: sudo apt install libvirt-daemon-system libvirt-dev
+        run: |-
+          sudo apt install libvirt-daemon-system libvirt-dev
+          sudo adduser $USER libvirt
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
