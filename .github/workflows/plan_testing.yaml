@@ -25,16 +25,9 @@ jobs:
       - name: Install Libvirt
         run: |-
           sudo apt install libvirt-daemon-system libvirt-dev
-          sudo grep -E 'runner|libvirt' /etc/group
-          sudo usermod -a -G libvirt $USER
-          sudo grep -E 'runner|libvirt' /etc/group
-          ls -l /var/run/libvirt/libvirt-sock
           sudo chmod o+rw /var/run/libvirt/libvirt-sock
           sudo chmod 777 /var/lib/libvirt/images
-          sudo apt install tree
-          sudo tree -ugp /var/lib/libvirt
           sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
-          virsh pool-list --details
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
@@ -43,11 +36,12 @@ jobs:
         run: bundle exec bolt module install
       - name: Write standup_cluster params
         run: |-
+          ssh-keygen -t ed25519 -f "${HOME}/.ssh/ssh-id-test" -N '' -q
           cat > standup_cluster_params.json <<EOF
           {
             "cluster_name": "test",
             "network_addresses": "192.168.100.0/24",
-            "ssh_public_key_path": "/some/path/to/ssh/id_for_vms.pub",
+            "ssh_public_key_path": "${HOME}/.ssh/ssh-id-test.pub",
             "os": "ubuntu",
             "os_version": "2404",
             "os_arch": "x86_64",
@@ -63,7 +57,4 @@ jobs:
           EOF
       - name: Run standup_cluster plan
         run: |-
-          sudo tree -ugp /var/lib/libvirt
-          virsh pool-list --details
-          bundle exec ruby -e 'require "libvirt"; lv = Libvirt::open("qemu:///system"); puts "storage pools: #{lv.list_all_storage_pools}"'
           bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
