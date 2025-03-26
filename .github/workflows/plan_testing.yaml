@@ -24,7 +24,7 @@ jobs:
           sudo apt update && sudo apt install terraform
       - name: Install Libvirt
         run: |-
-          sudo apt install libvirt-daemon-system libvirt-dev
+          sudo apt install libvirt-daemon-system libvirt-dev genisoimage
           sudo chmod o+rw /var/run/libvirt/libvirt-sock
           sudo chmod 777 /var/lib/libvirt/images
           sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
