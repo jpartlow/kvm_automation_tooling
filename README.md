@@ -12,6 +12,7 @@ These are the versions I was using when I built this module.
 * Terraform 1.10+
 * [libvirt](https://libvirt.org/) 10.0.0
 * libvirt-dev (for the ruby bindings using ruby-libvirt from the Gemfile)
+* genisoimage (for creating the cloud-init iso)
 
 ## Usage
 
@@ -24,7 +25,7 @@ If you are using an rbenv ruby, setup will look something like:
 
 ```bash
 # Pre-requisites (Ubuntu/Debian)
-sudo apt install build-essential libvirt-dev
+sudo apt install build-essential libvirt-dev genisoimage
 ```
 
 ```bash
@@ -35,7 +36,7 @@ bolt module install
 If you are using a system ruby, setup will look something like:
 
 ```bash
-sudo apt install build-essential ruby-dev libvirt-dev
+sudo apt install build-essential ruby-dev libvirt-dev genisoimage
 bundle install --path .bundle # or sudo bundle install if you prefer
 bundle exec bolt module install
 ```
