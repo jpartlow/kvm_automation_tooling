@@ -14,8 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Terraform and Libvirt
-        run: sudo apt-get install terraform libvirt libvirt-dev
+      - name: Install Terraform
+        run: |-
+          # From https://developer.hashicorp.com/terraform/install
+          wget -O - https://apt.releases.hashicorp.com/gpg | \
+            sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+            sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install terraform
+      - name: Install Libvirt
+        run: sudo apt-get install libvirt-daemon-system libvirt-dev
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: '3.2'
