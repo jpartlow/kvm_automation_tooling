@@ -28,6 +28,8 @@
 #   agent vm.
 # @param agent_disk_gb The amount of disk space in GB to allocate to
 #   each agent vm.
+# @param cpu_mode The CPU mode to use for the vm domains. Set this to
+#   'host-passthrough' to enable nested virtualization.
 # @param image_download_dir The directory where base os images are
 #   downloaded to. This should be an absolute path.
 # @param terraform_state_dir The directory where terraform state files,
@@ -56,6 +58,7 @@ plan kvm_automation_tooling::standup_cluster(
   Integer $agent_cpus = 1,
   Integer $agent_mem_mb = 512,
   Integer $agent_disk_gb = 10,
+  Optional[String] $cpu_mode = undef,
   String $image_download_dir = "${system::env('HOME')}/images",
   String $terraform_state_dir = 'kvm_automation_tooling/../terraform/instances',
   String $user = system::env('USER'),
@@ -99,6 +102,7 @@ plan kvm_automation_tooling::standup_cluster(
     'agent_cpus'          => $agent_cpus,
     'agent_memory'        => $agent_mem_mb,
     'agent_disk_size'     => $agent_disk_gb,
+    'cpu_mode'            => $cpu_mode,
   }))
 
   # Ensure terraform dependencies are installed.

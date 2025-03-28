@@ -41,6 +41,11 @@ variable "user_password" {
   nullable = false
 }
 
+variable "cpu_mode" {
+  description = "The CPU mode to use for the VMs."
+  type = string
+}
+
 ########################################################################
 # Primary node variables
 
