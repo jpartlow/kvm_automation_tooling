@@ -83,7 +83,7 @@ describe KvmAutomationTooling::LibvirtWrapper, if: LibvirtTest.libvirt_available
 
       it 'creates a pool' do
         expect(client.pool_exist?(test_pool_name)).to eq(false)
-        expect(client.create_pool(test_pool_name)).to eq(true)
+        expect(client.create_pool(test_pool_name, "/var/lib/libvirt/images/#{test_pool_name}")).to eq(true)
         expect(client.pool_exist?(test_pool_name)).to eq(true)
         pool = libvirt.lookup_storage_pool_by_name(test_pool_name)
         expect(pool.active?).to eq(true)

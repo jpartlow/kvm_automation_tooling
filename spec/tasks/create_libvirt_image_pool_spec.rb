@@ -15,7 +15,7 @@ describe 'task: create_libvirt_image_pool' do
 
   it 'creates a pool' do
     expect(client).to receive(:pool_exist?).with('a-new-pool').and_return(false)
-    expect(client).to receive(:create_pool).with('a-new-pool')
+    expect(client).to receive(:create_pool).with('a-new-pool', '/var/lib/libvirt/images/a-new-pool')
 
     expect(task.task(name: 'a-new-pool')).to include(created: true)
   end
