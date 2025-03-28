@@ -1,5 +1,5 @@
 # This is a dev plan used to test kvm_automation_tooling in a clean
-# environment. It goes one turtle down and sets up libvirt within a VM,
+# environment. It goes one turtle down and nests libvirt within a VM,
 # then sets up the ruby and terraform tooling needed to run module plans
 # and checks out the module code.
 #
@@ -13,6 +13,13 @@
 #
 # ATM, intended for Ubuntu. Tested on Ubuntu 24.04:
 # https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+#
+# NOTE: For nested virtualization to work, the host must have the
+# kvm_intel or kvm_amd kernel module loaded. This is not done by the plan.
+# Running `cat /sys/module/kvm_intel/parameters/nested` should return "Y".
+# In addition, the VM domain must have cpu mode set to host-passthrough.
+# (If you are using the standup_cluster plan to create a vm to test with,
+# the mode can be set using the cpu_mode parameter.)
 #
 # @param $dev_vm The target spec for the VM to be used for testing.
 # @param $kvm_module_url The URL to the kvm_automation_tooling git
