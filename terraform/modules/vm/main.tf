@@ -38,6 +38,14 @@ resource "libvirt_domain" "domain" {
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
+  # Only generate a cpu block if cpu_mode is non-null.
+  dynamic "cpu" {
+    for_each = compact([var.cpu_mode])
+    content {
+      mode = cpu.value
+    }
+  }
+
   network_interface {
     network_id = var.network_id
     hostname = var.hostname

@@ -31,6 +31,7 @@ module "primary" {
   hostname = "primary"
   pool_name = var.pool_name
   base_volume_name = var.base_volume_name
+  cpu_mode = var.cpu_mode
   cpus = var.primary_cpus
   memory = var.primary_memory
   disk_size = var.primary_disk_size
@@ -50,6 +51,7 @@ module "agent" {
   hostname = "agent-${count.index}"
   pool_name = var.pool_name
   base_volume_name = var.base_volume_name
+  cpu_mode = var.cpu_mode
   cpus = var.agent_cpus
   memory = var.agent_memory
   disk_size = var.agent_disk_size

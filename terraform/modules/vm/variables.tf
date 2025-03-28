@@ -18,6 +18,11 @@ variable "base_volume_name" {
   type = string
 }
 
+variable "cpu_mode" {
+  description = "The CPU mode to use for the VM."
+  type = string
+}
+
 variable "cpus" {
   description = "The number of CPUs to allocate to the VM."
   type = number
