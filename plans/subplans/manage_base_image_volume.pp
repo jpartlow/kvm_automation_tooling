@@ -23,14 +23,17 @@ plan kvm_automation_tooling::subplans::manage_base_image_volume(
 
   # Ensure platform image pool exists.
   $pool_name = "${platform}.pool"
+  $pool_path = $platform
   run_task('kvm_automation_tooling::create_libvirt_image_pool', 'localhost',
     'name' => $pool_name,
+    'path' => $pool_path,
   )
 
   $result = {
     'base_image_url'   => $base_image_url,
     'base_volume_name' => $base_image_name,
     'pool_name'        => $pool_name,
+    'pool_path'        => $pool_path,
   }
   return $result
 }
