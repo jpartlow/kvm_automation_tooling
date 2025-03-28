@@ -1,4 +1,4 @@
-require 'etc'
+require 'nokogiri'
 require 'libvirt'
 
 module KvmAutomationTooling
@@ -90,25 +90,24 @@ module KvmAutomationTooling
       # @param uid [Integer] The owner uid of the pool directory.
       # @param gid [Integer] The group id of the pool directory. Defaults
       # to libvirt if the group exists, otherwise root.
-      def create_pool(pool_name, default_pool_path: "/var/lib/libvirt/images", mode: '0750', uid: 0, gid: nil)
-        if gid.nil?
-          group = Etc.getgrnam('libvirt')
-          gid = !group.nil? ? group.gid : 0
+      def create_pool(pool_name, default_pool_path: "/var/lib/libvirt/images", mode: nil, uid: nil, gid: nil)
+        builder = Nokogiri::XML::Builder.new do |xml|
+          xml.pool(type: "dir") {
+            xml.name pool_name
+            xml.target {
+              xml.path "#{default_pool_path}/#{pool_name}"
+              if mode || uid || gid
+                xml.permissions {
+                  xml.mode mode if mode
+                  xml.owner uid if uid
+                  xml.group gid if gid
+                }
+              end
+            }
+          }
         end
 
-        pool = lv.define_storage_pool_xml(<<~EOF)
-          <pool type='dir'>
-            <name>#{pool_name}</name>
-            <target>
-              <path>#{default_pool_path}/#{pool_name}</path>
-              <permissions>
-                <mode>#{mode}</mode>
-                <owner>#{uid}</owner>
-                <group>#{gid}</group>
-              </permissions>
-            </target>
-          </pool>
-        EOF
+        pool = lv.define_storage_pool_xml(builder.doc.child.to_xml)
         pool.build
         pool.create
         pool.autostart = true
