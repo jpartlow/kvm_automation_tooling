@@ -39,7 +39,7 @@ describe KvmAutomationTooling::LibvirtWrapper, if: LibvirtTest.libvirt_available
 
       it 'uploads a volume' do
         expect(client.volume_exist?(test_volume_name)).to eq(false)
-        expect(client.upload_volume(test_image, test_volume_name)).to eq(true)
+        expect(client.upload_volume(test_volume_name, file_path: test_image)).to eq(true)
         expect(client.volume_exist?(test_volume_name)).to eq(true)
       end
     end
