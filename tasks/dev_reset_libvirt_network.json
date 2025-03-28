@@ -1,0 +1,17 @@
+{
+  "description": "Recreates an existing libvirt network with a different address. This script is a hack used by the kvm_automation_tooling::dev::prep_vm_for_module_testing plan to manually reset the default virbr0 network in the VM so as not to overlap the host's virbr0 address space.",
+  "parameters": {
+    "name": {
+      "type": "String",
+      "description": "The name of the network to reset."
+    },
+    "original_network_prefix": {
+      "type": "String",
+      "description": "The original network prefix of the network to reset."
+    },
+    "new_network_prefix": {
+      "type": "String",
+      "description": "The new network prefix of the network to reset."
+    }
+  }
+}
