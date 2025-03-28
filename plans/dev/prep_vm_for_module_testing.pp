@@ -100,7 +100,8 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
   run_command(@(EOS), $dev_vm)
     set -e
     cd kvm_automation_tooling
-    bundle exec bolt task run kvm_automation_tooling::create_libvirt_image_pool --targets=localhost name=default
+    bundle exec bolt task run kvm_automation_tooling::create_libvirt_image_pool \
+      --targets=localhost name=default path='/var/lib/libvirt/images'
     | EOS
 
   $ssh_key_file="\${HOME}/.ssh/ssh-id-test"

@@ -5,6 +5,9 @@ module KvmAutomationTooling
   # Library for interacting with libvirt through the ruby-libvert gem.
   module LibvirtWrapper
 
+    # Default path for the libvirt default storage pool.
+    DEFAULT_POOL_PATH = "/var/lib/libvirt/images"
+
     def self.connection
       @connection ||= new_connection
     end
@@ -80,22 +83,21 @@ module KvmAutomationTooling
         pool.list_volumes.include?(volume_name)
       end
 
-      # Define and create a persistent directory storage pool as a
-      # subdirectory of the default storage pool.
+      # Define and create a persistent directory storage pool.
       #
       # @param pool_name [String] The name of the pool to create.
-      # @param default_pool_path [String] The path to the default storage
-      # pool.
-      # @param mode [Integer] The permissions mode for the pool directory.
+      # @param pool_path [String] The absolute path to the directory
+      #   backing the storage pool.
+      # @param mode [Integer] The permissions mode for the pool
+      #   directory.
       # @param uid [Integer] The owner uid of the pool directory.
-      # @param gid [Integer] The group id of the pool directory. Defaults
-      # to libvirt if the group exists, otherwise root.
-      def create_pool(pool_name, default_pool_path: "/var/lib/libvirt/images", mode: nil, uid: nil, gid: nil)
+      # @param gid [Integer] The group id of the pool directory.
+      def create_pool(pool_name, pool_path, mode: nil, uid: nil, gid: nil)
         builder = Nokogiri::XML::Builder.new do |xml|
           xml.pool(type: "dir") {
             xml.name pool_name
             xml.target {
-              xml.path "#{default_pool_path}/#{pool_name}"
+              xml.path pool_path
               if mode || uid || gid
                 xml.permissions {
                   xml.mode mode if mode
