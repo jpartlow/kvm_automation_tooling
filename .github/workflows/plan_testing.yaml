@@ -25,8 +25,14 @@ jobs:
       - name: Install Libvirt
         run: |-
           sudo apt install libvirt-daemon-system libvirt-dev genisoimage
+          # Even if we add the runner user to the libvirt group, we can't
+          # restart the session to take advantage of that, and using
+          # something like newgrp requests a password, while su -l also
+          # fails to provide a shell with the new group membership. So I'm
+          # just opening up permissions instead.
           sudo chmod o+rw /var/run/libvirt/libvirt-sock
           sudo chmod 777 /var/lib/libvirt/images
+          # Create the default directory storage pool
           sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
       - uses: ruby/setup-ruby@v1
         with:
