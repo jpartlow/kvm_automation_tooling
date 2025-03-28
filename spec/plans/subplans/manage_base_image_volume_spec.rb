@@ -29,6 +29,7 @@ describe 'plan: subplans::manage_base_image_volume' do
       .with_targets('localhost')
       .with_params(
         'name' => 'ubuntu-2404-amd64.pool',
+        'path' => 'ubuntu-2404-amd64',
       )
 
     result = run_plan('kvm_automation_tooling::subplans::manage_base_image_volume', params)
