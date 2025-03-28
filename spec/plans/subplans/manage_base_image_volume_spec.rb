@@ -11,6 +11,8 @@ describe 'plan: subplans::manage_base_image_volume' do
   end
 
   it 'should run successfully' do
+    expect_command("mkdir -p /dev/null")
+      .with_targets('localhost')
     expect_task('kvm_automation_tooling::download_image')
       .with_targets('localhost')
       .with_params(
