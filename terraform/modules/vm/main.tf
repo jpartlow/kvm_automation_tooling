@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-# We fetch the latest ubuntu release image from their mirrors
 resource "libvirt_volume" "volume_qcow2" {
   name   = "vm-image.${local.identifier}.qcow2"
   pool   = var.pool_name
