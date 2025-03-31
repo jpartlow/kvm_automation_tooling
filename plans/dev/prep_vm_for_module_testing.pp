@@ -44,6 +44,10 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
     sudo apt update
     sudo apt install -y libvirt-daemon-system genisoimage
     sudo usermod -a -G libvirt "${USER}"
+    # Even though selinux is disabled, this interferes with accessing the base image volume.
+    # Probably this should be set to apparmor, but aa-complained shows nothing for /usr/sbin/libvirtd,
+    # and there are no denials in /var/log/syslog, so I'm entirely sure what's going on.
+    sudo sed -i -e 's/^#security_driver =.*$/security_driver = "none"/' '/etc/libvirt/qemu.conf'
     | EOS
 
   out::message('Rebooting the VM to apply group changes.')
