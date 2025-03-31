@@ -1,6 +1,7 @@
 <%- | String $tfstate_dir,
       String $tfstate_file_name,
       String $ssh_user_name,
+      String $ssh_key_file,
       String $domain_name,
 | -%>
 groups:
@@ -35,3 +36,4 @@ config:
     user: <%= $ssh_user_name %>
     run-as: root
     host-key-check: false
+    private-key: <%= $ssh_key_file %>

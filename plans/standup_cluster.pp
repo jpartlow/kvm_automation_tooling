@@ -42,6 +42,9 @@
 #   the Bolt inventory file.
 # @param ssh_public_key_path The path to the public key to add to the
 #   guest's login user ~/.ssh/authorized_keys, allowing ssh access.
+# @param ssh_private_key_path The path to the private key to use for
+#   ssh access to the vms. (This will be set in the generated inventory
+#   file.)
 # @param user_password The password to set for the login user on the vms.
 #   This is optional and should only be used for debugging.
 plan kvm_automation_tooling::standup_cluster(
@@ -63,6 +66,7 @@ plan kvm_automation_tooling::standup_cluster(
   String $terraform_state_dir = 'kvm_automation_tooling/../terraform/instances',
   String $user = system::env('USER'),
   String $ssh_public_key_path = "${system::env('HOME')}/.ssh/id_rsa.pub",
+  String $ssh_private_key_path = regsubst($ssh_public_key_path, '(.*).pub', '\\1'),
   Optional[String] $user_password = undef,
 ) {
   $terraform_dir = './terraform'
@@ -122,6 +126,7 @@ plan kvm_automation_tooling::standup_cluster(
     'tfstate_dir'       => $_terraform_state_dir,
     'tfstate_file_name' => $tfstate_file_name,
     'ssh_user_name'     => $user,
+    'ssh_key_file'      => $ssh_private_key_path,
     'domain_name'       => $domain_name,
   }))
 
