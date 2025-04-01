@@ -1,3 +1,9 @@
+variable "libvirt_uri" {
+  description = "The URI of the libvirt connection to use for creating VMs."
+  type = string
+  default = "qemu:///system"
+}
+
 variable "cluster_id" {
   description = "An identifier for the cluster, used as part of each vm hostname."
   type = string

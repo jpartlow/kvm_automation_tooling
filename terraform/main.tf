@@ -7,7 +7,7 @@ terraform {
 }
 
 provider "libvirt" {
-  uri = "qemu:///system"
+  uri = var.libvirt_uri
 }
 
 resource "libvirt_network" "network" {
