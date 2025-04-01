@@ -1,0 +1,25 @@
+<%- | Array[Target] $agents | -%>
+---
+HOSTS:
+<%- $agents.each |$agent| {-%>
+  <%= $agent.name %>:
+    vmhostname: '<%= "${agent.name}.vm" %>'
+    roles:
+      - agent
+    platform: '<%= $agent.vars['platform'] %>'
+    # Setting the hypervisor to none is paradoxically still important.
+    # It corresponds to a sort of default Beaker::Hypervisor, and it's
+    # configure() method is still important, as it calls the included
+    # beaker/lib/beaker/host_prebuilt_steps.rb set_env() method which
+    # in turn sets up each agent's .ssh/environment file with a PATH
+    # variable and loosens the sshd configuration to allow that file
+    # to be evaluated for each ssh call. In and of itself, this is not
+    # sufficient for root ssh commands to find the puppet binaries in
+    # the path. A Beaker test must also run the beaker-puppet
+    # configure_type_defaults_on() method for all hosts to add the
+    # /opt/puppetlabs/bin to that environment PATH variable.
+    # It's all a bit rediculous.
+    hypervisor: none
+<%- } -%>
+CONFIG:
+  forge_host:
