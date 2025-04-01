@@ -68,6 +68,7 @@ plan kvm_automation_tooling::standup_cluster(
   String $ssh_public_key_path = "${system::env('HOME')}/.ssh/id_rsa.pub",
   String $ssh_private_key_path = regsubst($ssh_public_key_path, '(.*).pub', '\\1'),
   Optional[String] $user_password = undef,
+  Boolean $install_openvox = true,
 ) {
   $terraform_dir = './terraform'
   $platform = kvm_automation_tooling::platform($os, $os_version, $os_arch)
@@ -138,10 +139,12 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = [$primary_target] + $agent_targets
 
-  run_plan('kvm_automation_tooling::subplans::install_puppet',
-    'targets' => $all_targets,
-    'puppetserver_target' => $primary_target,
-    'puppetdb_target' => $primary_target,
-    'postgresql_target' => $primary_target,
-  )
+  if $install_openvox {
+    run_plan('kvm_automation_tooling::subplans::install_openvox',
+      'targets' => $all_targets,
+      'puppetserver_target' => $primary_target,
+      'puppetdb_target' => $primary_target,
+      'postgresql_target' => $primary_target,
+    )
+  }
 }

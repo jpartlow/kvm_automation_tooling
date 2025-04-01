@@ -29,25 +29,37 @@ describe 'plan: standup_cluster' do
     FileUtils.cp(File.join(KatRspec.fixture_path, '/terraform/spec.tfstate'), "#{tempdir}/#{cluster_id}.tfstate")
   end
 
-  it 'should run successfully' do
-    allow_any_out_message
+  context 'successfully runs' do
 
-    expect_command("mkdir -p /dev/null")
-      .with_targets('localhost')
-    expect_task('kvm_automation_tooling::download_image')
-    expect_task('kvm_automation_tooling::import_libvirt_volume')
-    expect_task('kvm_automation_tooling::create_libvirt_image_pool')
-    expect_task('terraform::initialize')
-    expect_plan('terraform::apply')
-      .with_params(
-        'dir'           => './terraform',
-        'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
-        'state'         => "#{tempdir}/#{cluster_id}.tfstate",
-        'return_output' => true,
-      )
-    allow_apply_prep
+    before(:each) do
+      allow_any_out_message
 
-    result = run_plan('kvm_automation_tooling::standup_cluster', params)
-    expect(result.ok?).to(eq(true), result.value)
+      expect_command("mkdir -p /dev/null")
+        .with_targets('localhost')
+      expect_task('kvm_automation_tooling::download_image')
+      expect_task('kvm_automation_tooling::import_libvirt_volume')
+      expect_task('kvm_automation_tooling::create_libvirt_image_pool')
+      expect_task('terraform::initialize')
+      expect_plan('terraform::apply')
+        .with_params(
+          'dir'           => './terraform',
+          'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
+          'state'         => "#{tempdir}/#{cluster_id}.tfstate",
+          'return_output' => true,
+        )
+    end
+
+    it 'terraforms and installs openvox' do
+      allow_apply_prep
+
+      result = run_plan('kvm_automation_tooling::standup_cluster', params)
+      expect(result.ok?).to(eq(true), result.value)
+    end
+
+    it 'just terraforms when install_openvox is false' do
+      params['install_openvox'] = false
+      result = run_plan('kvm_automation_tooling::standup_cluster', params)
+      expect(result.ok?).to(eq(true), result.value)
+    end
   end
 end
