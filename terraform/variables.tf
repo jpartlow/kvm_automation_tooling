@@ -49,6 +49,16 @@ variable "cpu_mode" {
 ########################################################################
 # Primary node variables
 
+variable "primary_count" {
+  description = "The number of primary nodes to create in the cluster."
+  type = number
+  default = 1
+  validation {
+    condition     = var.primary_count >= 0 && var.primary_count <= 1
+    error_message = "The primary_count may be 0 or 1."
+  }
+}
+
 variable "primary_cpus" {
   description = "The number of CPUs to allocate to the primary node."
   type = number

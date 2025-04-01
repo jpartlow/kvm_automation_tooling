@@ -1,6 +1,6 @@
 output "primary_ip_address" {
   description = "The IP address of the primary vm."
-  value = module.primary.ip_address
+  value = module.primary[*].ip_address
 }
 
 output "agent_ip_addresses" {

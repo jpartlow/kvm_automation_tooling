@@ -16,13 +16,15 @@
 #   the cluster.
 # @param network_addresses The network address range to use for the
 #   cluster. This should be a /24 CIDR block.
-# @param agents The number of Puppet agent vms to stand up in the
-#   cluster.
+# @param primary The number of primary vms to stand up in the cluster
+#   (0 or 1).
 # @param primary_cpus The number of CPUs to allocate to the primary vm.
 # @param primary_mem_mb The amount of memory in MB to allocate to the
 #   primary vm.
 # @param primary_disk_gb The amount of disk space in GB to allocate to
 #   the primary vm.
+# @param agents The number of Puppet agent vms to stand up in the
+#   cluster.
 # @param agent_cpus The number of CPUs to allocate to each agent vm.
 # @param agent_mem_mb The amount of memory in MB to allocate to each
 #   agent vm.
@@ -54,10 +56,11 @@ plan kvm_automation_tooling::standup_cluster(
   Kvm_automation_tooling::Version $os_version,
   Kvm_automation_tooling::Os_arch $os_arch,
   Stdlib::Ip::Address::V4::CIDR $network_addresses,
-  Integer $agents = 1,
+  Integer[0,1] $primary = 1,
   Integer $primary_cpus = 4,
   Integer $primary_mem_mb = 8192,
   Integer $primary_disk_gb = 20,
+  Integer $agents = 1,
   Integer $agent_cpus = 1,
   Integer $agent_mem_mb = 512,
   Integer $agent_disk_gb = 10,
@@ -100,10 +103,11 @@ plan kvm_automation_tooling::standup_cluster(
     'user_name'           => $user,
     'ssh_public_key_path' => $ssh_public_key_path,
     'user_password'       => $user_password,
-    'agent_count'         => $agents,
+    'primary_count'       => $primary,
     'primary_cpus'        => $primary_cpus,
     'primary_memory'      => $primary_mem_mb,
     'primary_disk_size'   => $primary_disk_gb,
+    'agent_count'         => $agents,
     'agent_cpus'          => $agent_cpus,
     'agent_memory'        => $agent_mem_mb,
     'agent_disk_size'     => $agent_disk_gb,

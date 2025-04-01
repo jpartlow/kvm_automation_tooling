@@ -27,6 +27,7 @@ resource "libvirt_network" "network" {
 # The puppet-server/db/postgresql node
 module "primary" {
   source = "./modules/vm"
+  count = var.primary_count
   cluster_id = var.cluster_id
   hostname = "primary"
   pool_name = var.pool_name
