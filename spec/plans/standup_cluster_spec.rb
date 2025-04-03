@@ -37,6 +37,46 @@ describe 'plan: standup_cluster' do
     FileUtils.cp(File.join(KatRspec.fixture_path, '/terraform/spec.tfstate'), "#{tempdir}/#{cluster_id}.tfstate")
   end
 
+  context 'with bad parameters' do
+    it 'raises if os params partially set' do
+      params.delete('os_version')
+      result = run_plan('kvm_automation_tooling::standup_cluster', params)
+      expect(result.ok?).to eq(false)
+      expect(result.value.msg).to match(/os_version.*must all be set/)
+    end
+
+    it 'raises if os params not set and vms do not all have os params' do
+      params.delete('os')
+      params.delete('os_version')
+      params.delete('os_arch')
+
+      result = run_plan('kvm_automation_tooling::standup_cluster', params)
+      expect(result.ok?).to eq(false)
+      expect(result.value.msg).to match(/os_version.*must be set if not set in the vm spec hashes/)
+    end
+
+    it 'raises if os params unset and only some vms have os params' do
+      params.delete('os')
+      params.delete('os_version')
+      params.delete('os_arch')
+      params['vms'] = [
+        {
+          'role' => 'primary',
+        },
+        {
+          'role' => 'agents',
+          'os'         => 'ubuntu',
+          'os_version' => '24.04',
+          'os_arch'    => 'x86_64',
+        },
+      ]
+
+      result = run_plan('kvm_automation_tooling::standup_cluster', params)
+      expect(result.ok?).to eq(false)
+      expect(result.value.msg).to match(/os_version.*must be set if not set in the vm spec hashes/)
+    end
+  end
+
   context 'successfully runs' do
 
     before(:each) do

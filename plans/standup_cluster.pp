@@ -7,11 +7,16 @@
 #   *os_version*, *os_arch* to obtain a reasonably unique id for the
 #   cluster. The *cluster_name* allows you to stand up more than one
 #   cluster of the same architecture and platform, for example.
-# @param os The base operating system of the cluster.
-# @param os_version The version of the base operating system of the
+# @param os The default operating system of the cluster.
+#   NOTE: os, os_version and os_arch are only 'optional' in the sense
+#   that they can be specified specifically in the vm spec hashes. But
+#   if not provided, each vm spec hash must have them set.
+#   Additionally, if one is set, all three must be set to define the
+#   platform.
+# @param os_version The version of the default operating system of the
 #   cluster.
-# @param os_arch The chip architecture of the base operating system of
-#   the cluster.
+# @param os_arch The chip architecture of the default operating system
+#   of the cluster.
 # @param vms An array of VM specifications for the cluster. Example:
 #     [
 #       {
@@ -57,9 +62,9 @@
 #   vms in the cluster.
 plan kvm_automation_tooling::standup_cluster(
   String $cluster_name,
-  Kvm_automation_tooling::Operating_system $os,
-  Kvm_automation_tooling::Version $os_version,
-  Kvm_automation_tooling::Os_arch $os_arch,
+  Optional[Kvm_automation_tooling::Operating_system] $os = undef,
+  Optional[Kvm_automation_tooling::Version] $os_version = undef,
+  Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
   Array[Kvm_automation_tooling::Vm_spec,1] $vms,
   Stdlib::Ip::Address::V4::CIDR $network_addresses,
   String $domain_name = 'vm',
@@ -73,6 +78,17 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $install_openvox = true,
 ) {
   $terraform_dir = './terraform'
+
+  # validate os parameters
+  if [$os, $os_version, $os_arch].all |$i| { $i =~ Undef } {
+    if $vms.any |$vm_spec| { $vm_spec['os'] =~ Undef } {
+      fail('The os, os_version and os_arch parameters must be set if not set in the vm spec hashes.')
+    }
+  } elsif [$os, $os_version, $os_arch].any |$i| { $i =~ Undef } {
+    fail('The os, os_version and os_arch parameters must all be set if one is set.')
+  }
+  # Not going to worry just yet about partially defined os params inside
+  # the vm spec hashes...
 
   $vm_specs = $vms.map |$vm_spec| {
     kvm_automation_tooling::fill_vm_spec($vm_spec, {
