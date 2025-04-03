@@ -129,14 +129,17 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
       "os": "ubuntu",
       "os_version": "2404",
       "os_arch": "x86_64",
-      "architecture": "singular",
-      "agents": 1,
-      "primary_cpus": 2,
-      "primary_mem_mb": 4096,
-      "primary_disk_gb": 5,
-      "agent_cpus": 1,
-      "agent_mem_mb": 512,
-      "agent_disk_gb": 5
+      "vms": [
+        {
+          "role": "primary",
+          "cpus": 2,
+          "mem_mb": 4096,
+          "disk_gb": 5
+        },
+        {
+          "role": "agent"
+        }
+      ]
     }
     EOF
     bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json

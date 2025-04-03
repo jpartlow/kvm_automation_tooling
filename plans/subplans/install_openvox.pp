@@ -9,10 +9,11 @@
 # @param postgresql_target The target to install PostgreSQL on.
 plan kvm_automation_tooling::subplans::install_openvox(
   Array[Target] $targets,
-  Target $puppetserver_target,
-  Target $puppetdb_target,
-  Target $postgresql_target,
+  Optional[Target] $puppetserver_target,
+  Optional[Target] $puppetdb_target,
+  Optional[Target] $postgresql_target,
 ) {
   apply_prep($targets)
 
+  # TODO: Apply manifests to standup the server services.
 }

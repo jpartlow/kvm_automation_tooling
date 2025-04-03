@@ -1,6 +1,4 @@
 locals {
-  identifier = "${var.cluster_id}-${var.hostname}"
-
   # The path to the cloud-init configuration templates
   cloud_init_path = "${path.module}/../../../cloud-init"
   user_data = templatefile(

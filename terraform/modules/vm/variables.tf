@@ -1,8 +1,3 @@
-variable "cluster_id" {
-  description = "An identifier for the cluster, used as part of each generated libvirt object id."
-  type = string
-}
-
 variable "hostname" {
   description = "The hostname to set for the VM."
   type = string
@@ -26,16 +21,22 @@ variable "cpu_mode" {
 variable "cpus" {
   description = "The number of CPUs to allocate to the VM."
   type = number
+  default = 1
+  nullable = false
 }
 
-variable "memory" {
+variable "mem_mb" {
   description = "The amount of memory in MB to allocate to the VM."
   type = number
+  default = 1024
+  nullable = false
 }
 
-variable "disk_size" {
+variable "disk_gb" {
   description = "The size of the VM disk in GB."
   type = number
+  default = 10
+  nullable = false
 }
 
 variable "user_name" {
