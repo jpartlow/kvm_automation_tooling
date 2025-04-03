@@ -7,15 +7,11 @@
 #   *os_version*, *os_arch* to obtain a reasonably unique id for the
 #   cluster. The *cluster_name* allows you to stand up more than one
 #   cluster of the same architecture and platform, for example.
-# @param architecture The Puppet services architecture of the cluster
-#   (see docs/ARCHITECTURE.md).
 # @param os The base operating system of the cluster.
 # @param os_version The version of the base operating system of the
 #   cluster.
 # @param os_arch The chip architecture of the base operating system of
 #   the cluster.
-# @param network_addresses The network address range to use for the
-#   cluster. This should be a /24 CIDR block.
 # @param vms An array of VM specifications for the cluster. Example:
 #     [
 #       {
@@ -33,6 +29,13 @@
 #   level plan parameters unless overridden in a specific spec hash.
 #   The count key is optional and defaults to 1.
 #   (See the Kvm_automation_tooling::Vm_spec type for details.)
+# @param network_addresses The network address range to use for the
+#   cluster. This should be a /24 CIDR block.
+# @param domain_name The domain name to use for the cluster. This is
+#   appended to the hostnames of the VMs in the cluster, and will
+#   resolve locally within the cluster.
+# @param architecture The Puppet services architecture of the cluster
+#   (see docs/ARCHITECTURE.md).
 # @param image_download_dir The directory where base os images are
 #   downloaded to. This should be an absolute path.
 # @param terraform_state_dir The directory where terraform state files,
@@ -54,12 +57,13 @@
 #   vms in the cluster.
 plan kvm_automation_tooling::standup_cluster(
   String $cluster_name,
-  Kvm_automation_tooling::Architecture $architecture = 'singular',
   Kvm_automation_tooling::Operating_system $os,
   Kvm_automation_tooling::Version $os_version,
   Kvm_automation_tooling::Os_arch $os_arch,
-  Stdlib::Ip::Address::V4::CIDR $network_addresses,
   Array[Kvm_automation_tooling::Vm_spec,1] $vms,
+  Stdlib::Ip::Address::V4::CIDR $network_addresses,
+  String $domain_name = 'vm',
+  Kvm_automation_tooling::Architecture $architecture = 'singular',
   String $image_download_dir = "${system::env('HOME')}/images",
   String $terraform_state_dir = 'kvm_automation_tooling/../terraform/instances',
   String $user = system::env('USER'),
@@ -90,7 +94,6 @@ plan kvm_automation_tooling::standup_cluster(
   }.unique()
 
   $cluster_id = "${cluster_name}-${architecture}-${cluster_platform}"
-  $domain_name = "${cluster_id}.vm"
   $_terraform_state_dir = find_file($terraform_state_dir)
   $tfvars_file = "${_terraform_state_dir}/${cluster_id}.tfvars.json"
   $tfstate_file_name = "${cluster_id}.tfstate"
