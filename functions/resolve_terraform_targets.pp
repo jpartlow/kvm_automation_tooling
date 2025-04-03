@@ -16,17 +16,19 @@ function kvm_automation_tooling::resolve_terraform_targets(
 ) {
   log::debug("Inventory file: ${inventory_file}")
 
-  $inventory = loadyaml($inventory_file)
+  $inventory = loadyaml($inventory_file, {})
   log::debug("Loaded inventory: ${inventory}")
 
-  $config = $inventory['config']
+  $config = $inventory.dig('config')
   log::debug("Config: ${config}")
 
-  $puppet_group = $inventory['groups'].filter |$group| {
-    $group['name'] == $group_name
-  }[0]
+  $puppet_group = $inventory.dig('groups').then |$groups| {
+    $groups.filter |$group| {
+      $group['name'] == $group_name
+    }[0]
+  }
   if $puppet_group =~ Undef {
-    fail("Did not find group '${group}' in inventory:\n${inventory}")
+    fail("Did not find group '${group_name}' in inventory:\n${inventory}")
   }
   log::debug("Puppet group: ${puppet_group}")
 
@@ -37,7 +39,7 @@ function kvm_automation_tooling::resolve_terraform_targets(
   log::debug("Resolved references for 'puppet': ${refs}")
 
   $refs_in_role = $refs['targets'].filter |$r| {
-    $r['name'] =~ "^${role}"
+    $r['name'] =~ "-${role}-[0-9]+$"
   }
   log::debug("Resolved references in role ${role}: ${refs_in_role}")
 

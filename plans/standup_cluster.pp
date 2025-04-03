@@ -7,31 +7,40 @@
 #   *os_version*, *os_arch* to obtain a reasonably unique id for the
 #   cluster. The *cluster_name* allows you to stand up more than one
 #   cluster of the same architecture and platform, for example.
-# @param architecture The Puppet services architecture of the cluster
-#   (see docs/ARCHITECTURE.md).
-# @param os The base operating system of the cluster.
-# @param os_version The version of the base operating system of the
+# @param os The default operating system of the cluster.
+#   NOTE: os, os_version and os_arch are only 'optional' in the sense
+#   that they can be specified specifically in the vm spec hashes. But
+#   if not provided, each vm spec hash must have them set.
+#   Additionally, if one is set, all three must be set to define the
+#   platform.
+# @param os_version The version of the default operating system of the
 #   cluster.
-# @param os_arch The chip architecture of the base operating system of
-#   the cluster.
+# @param os_arch The chip architecture of the default operating system
+#   of the cluster.
+# @param vms An array of VM specifications for the cluster. Example:
+#     [
+#       {
+#         'role' => 'primary',
+#         'cpus": 8,
+#         'mem_mb': 8192,
+#         'disk_gb': 20,
+#       },
+#       {
+#         'role' => 'agent',
+#         'count' => 3,
+#       },
+#     ]
+#   The os, os_version and os_arch keys are provided by the top
+#   level plan parameters unless overridden in a specific spec hash.
+#   The count key is optional and defaults to 1.
+#   (See the Kvm_automation_tooling::Vm_spec type for details.)
 # @param network_addresses The network address range to use for the
 #   cluster. This should be a /24 CIDR block.
-# @param primary The number of primary vms to stand up in the cluster
-#   (0 or 1).
-# @param primary_cpus The number of CPUs to allocate to the primary vm.
-# @param primary_mem_mb The amount of memory in MB to allocate to the
-#   primary vm.
-# @param primary_disk_gb The amount of disk space in GB to allocate to
-#   the primary vm.
-# @param agents The number of Puppet agent vms to stand up in the
-#   cluster.
-# @param agent_cpus The number of CPUs to allocate to each agent vm.
-# @param agent_mem_mb The amount of memory in MB to allocate to each
-#   agent vm.
-# @param agent_disk_gb The amount of disk space in GB to allocate to
-#   each agent vm.
-# @param cpu_mode The CPU mode to use for the vm domains. Set this to
-#   'host-passthrough' to enable nested virtualization.
+# @param domain_name The domain name to use for the cluster. This is
+#   appended to the hostnames of the VMs in the cluster, and will
+#   resolve locally within the cluster.
+# @param architecture The Puppet services architecture of the cluster
+#   (see docs/ARCHITECTURE.md).
 # @param image_download_dir The directory where base os images are
 #   downloaded to. This should be an absolute path.
 # @param terraform_state_dir The directory where terraform state files,
@@ -47,24 +56,19 @@
 # @param ssh_private_key_path The path to the private key to use for
 #   ssh access to the vms. (This will be set in the generated inventory
 #   file.)
-# @param user_password The password to set for the login user on the vms.
-#   This is optional and should only be used for debugging.
+# @param user_password The password to set for the login user on the
+#   vms. This is optional and should only be used for debugging.
+# @param install_openvox Whether to install OpenVox Puppet on the
+#   vms in the cluster.
 plan kvm_automation_tooling::standup_cluster(
   String $cluster_name,
-  Kvm_automation_tooling::Architecture $architecture = 'singular',
-  Kvm_automation_tooling::Operating_system $os,
-  Kvm_automation_tooling::Version $os_version,
-  Kvm_automation_tooling::Os_arch $os_arch,
+  Optional[Kvm_automation_tooling::Operating_system] $os = undef,
+  Optional[Kvm_automation_tooling::Version] $os_version = undef,
+  Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
+  Array[Kvm_automation_tooling::Vm_spec,1] $vms,
   Stdlib::Ip::Address::V4::CIDR $network_addresses,
-  Integer[0,1] $primary = 1,
-  Integer $primary_cpus = 4,
-  Integer $primary_mem_mb = 8192,
-  Integer $primary_disk_gb = 20,
-  Integer $agents = 1,
-  Integer $agent_cpus = 1,
-  Integer $agent_mem_mb = 512,
-  Integer $agent_disk_gb = 10,
-  Optional[String] $cpu_mode = undef,
+  String $domain_name = 'vm',
+  Kvm_automation_tooling::Architecture $architecture = 'singular',
   String $image_download_dir = "${system::env('HOME')}/images",
   String $terraform_state_dir = 'kvm_automation_tooling/../terraform/instances',
   String $user = system::env('USER'),
@@ -74,44 +78,64 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $install_openvox = true,
 ) {
   $terraform_dir = './terraform'
-  $platform = kvm_automation_tooling::platform($os, $os_version, $os_arch)
-  $cluster_id = "${cluster_name}-${architecture}-${platform}"
-  $domain_name = "${cluster_id}.vm"
-  $primary_hostname = "${cluster_id}-primary"
-  $agent_hostnames = $agents.map |$i| { "${cluster_id}-agent-${i}" }
+
+  # validate os parameters
+  if [$os, $os_version, $os_arch].all |$i| { $i =~ Undef } {
+    if $vms.any |$vm_spec| { $vm_spec['os'] =~ Undef } {
+      fail('The os, os_version and os_arch parameters must be set if not set in the vm spec hashes.')
+    }
+  } elsif [$os, $os_version, $os_arch].any |$i| { $i =~ Undef } {
+    fail('The os, os_version and os_arch parameters must all be set if one is set.')
+  }
+  # Not going to worry just yet about partially defined os params inside
+  # the vm spec hashes...
+
+  $vm_specs = $vms.map |$vm_spec| {
+    kvm_automation_tooling::fill_vm_spec($vm_spec, {
+      'role'       => 'defaults',
+      'os'         => $os,
+      'os_version' => $os_version,
+      'os_arch'    => $os_arch,
+    })
+  }
+  $roles = $vms.map |$s| { $s['role'] }.unique()
+
+  $cluster_platform = kvm_automation_tooling::platform({
+    'os'         => $os,
+    'os_version' => $os_version,
+    'os_arch'    => $os_arch,
+  })
+  $vm_platforms = $vm_specs.map |$vm_spec| {
+    kvm_automation_tooling::platform($vm_spec)
+  }.unique()
+
+  $cluster_id = "${cluster_name}-${architecture}-${cluster_platform}"
   $_terraform_state_dir = find_file($terraform_state_dir)
   $tfvars_file = "${_terraform_state_dir}/${cluster_id}.tfvars.json"
   $tfstate_file_name = "${cluster_id}.tfstate"
   $tfstate_file = "${_terraform_state_dir}/${tfstate_file_name}"
   $inventory_file = "${_terraform_state_dir}/inventory.${cluster_id}.yaml"
 
-  # Ensure base image volume is present and a platform image pool exists.
-  $image_results = run_plan('kvm_automation_tooling::subplans::manage_base_image_volume',
-    'platform' => $platform,
-    'image_download_dir' => $image_download_dir,
-  )
+  # Ensure base image volumes are present and a platform image pools
+  # exist.
+  $image_results = parallelize($vm_platforms) |$p| {
+    run_plan(
+      'kvm_automation_tooling::subplans::manage_base_image_volume',
+      'platform' => $p,
+      'image_download_dir' => $image_download_dir,
+    )
+  }
 
   # Write cluster specific tfvars.json file to a separate directory to
   # keep different cluster instances separated.
   file::write($tfvars_file, stdlib::to_json({
-    # TODO: this list was generated by copilot and needs to be reviewed.
     'cluster_id'          => $cluster_id,
-    'base_volume_name'    => $image_results['base_volume_name'],
-    'pool_name'           => $image_results['pool_name'],
     'network_addresses'   => $network_addresses,
     'domain_name'         => $domain_name,
     'user_name'           => $user,
     'ssh_public_key_path' => $ssh_public_key_path,
     'user_password'       => $user_password,
-    'primary_count'       => $primary,
-    'primary_cpus'        => $primary_cpus,
-    'primary_memory'      => $primary_mem_mb,
-    'primary_disk_size'   => $primary_disk_gb,
-    'agent_count'         => $agents,
-    'agent_cpus'          => $agent_cpus,
-    'agent_memory'        => $agent_mem_mb,
-    'agent_disk_size'     => $agent_disk_gb,
-    'cpu_mode'            => $cpu_mode,
+    'vm_specs'            => kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results),
   }))
 
   # Ensure terraform dependencies are installed.
@@ -124,7 +148,12 @@ plan kvm_automation_tooling::standup_cluster(
     'state'    => $tfstate_file,
     'return_output' => true,
   )
-  out::message($apply_result)
+  $ip_addresses = $apply_result.dig('vm_ip_addresses', 'value')
+  if $ip_addresses =~ Undef {
+    log::warn("Terraform apply did not return an ip address list:\n${apply_result}")
+  } else {
+    out::message("VM IP addresses: ${stdlib::to_json_pretty($ip_addresses)}")
+  }
 
   # Generate an inventory file for the cluster.
   file::write($inventory_file, epp('kvm_automation_tooling/inventory.yaml.epp', {
@@ -135,15 +164,16 @@ plan kvm_automation_tooling::standup_cluster(
     'domain_name'       => $domain_name,
   }))
 
-  $primary_target = kvm_automation_tooling::resolve_terraform_targets($inventory_file, 'primary')[0]
-  out::message("Primary target: ${primary_target}")
+  $target_map = $roles.reduce({}) |$map, $role| {
+    $targets = kvm_automation_tooling::resolve_terraform_targets($inventory_file, $role)
+    out::message("${capitalize($role)} targets: ${stdlib::to_json_pretty($targets)}")
+    $map + { $role => $targets }
+  }
 
-  $agent_targets = kvm_automation_tooling::resolve_terraform_targets($inventory_file, 'agent')
-  out::message("Agent targets: ${agent_targets}")
-
-  $all_targets = [$primary_target] + $agent_targets
+  $all_targets = $target_map.values().flatten()
 
   if $install_openvox {
+    $primary_target = $target_map.dig('primary', 0)
     run_plan('kvm_automation_tooling::subplans::install_openvox',
       'targets' => $all_targets,
       'puppetserver_target' => $primary_target,

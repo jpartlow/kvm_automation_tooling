@@ -8,12 +8,12 @@ terraform {
 }
 
 resource "libvirt_volume" "volume_qcow2" {
-  name   = "vm-image.${local.identifier}.qcow2"
+  name   = "vm-image.${var.hostname}.qcow2"
   pool   = var.pool_name
   base_volume_name = var.base_volume_name
   base_volume_pool = "default"
   format = "qcow2"
-  size   = var.disk_size * local.gigabyte # need to use cloud-init to grow the partition?
+  size   = var.disk_gb * local.gigabyte # need to use cloud-init to grow the partition?
 }
 
 # for more info about parameters check this out
@@ -21,7 +21,7 @@ resource "libvirt_volume" "volume_qcow2" {
 # Use CloudInit to add our ssh-key to the instance
 # you can add also meta_data field
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name           = "commoninit.iso.${local.identifier}"
+  name           = "commoninit.iso.${var.hostname}"
   user_data      = local.user_data
   network_config = local.network_config
   meta_data      = local.meta_data
@@ -30,8 +30,8 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 
 # Create the machine
 resource "libvirt_domain" "domain" {
-  name   = "${local.identifier}"
-  memory = var.memory
+  name   = var.hostname
+  memory = var.mem_mb
   vcpu   = var.cpus
   qemu_agent = true
 

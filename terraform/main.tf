@@ -24,38 +24,16 @@ resource "libvirt_network" "network" {
   }
 }
 
-# The puppet-server/db/postgresql node
-module "primary" {
+module "vmdomain" {
   source = "./modules/vm"
-  count = var.primary_count
-  cluster_id = var.cluster_id
-  hostname = "primary"
-  pool_name = var.pool_name
-  base_volume_name = var.base_volume_name
-  cpu_mode = var.cpu_mode
-  cpus = var.primary_cpus
-  memory = var.primary_memory
-  disk_size = var.primary_disk_size
-  gateway_ip = local.gateway_ip
-  network_id = libvirt_network.network.id
-  user_name = var.user_name
-  user_password = var.user_password
-  ssh_public_key = local.ssh_public_key
-  depends_on = [libvirt_network.network]
-}
-
-# The puppet-agent nodes
-module "agent" {
-  source = "./modules/vm"
-  count = var.agent_count
-  cluster_id = var.cluster_id
-  hostname = "agent-${count.index}"
-  pool_name = var.pool_name
-  base_volume_name = var.base_volume_name
-  cpu_mode = var.cpu_mode
-  cpus = var.agent_cpus
-  memory = var.agent_memory
-  disk_size = var.agent_disk_size
+  for_each = var.vm_specs
+  hostname = each.key
+  pool_name = each.value.pool_name
+  base_volume_name = each.value.base_volume_name
+  cpu_mode = each.value.cpu_mode
+  cpus = each.value.cpus
+  mem_mb = each.value.mem_mb
+  disk_gb = each.value.disk_gb
   gateway_ip = local.gateway_ip
   network_id = libvirt_network.network.id
   user_name = var.user_name

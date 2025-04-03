@@ -16,6 +16,10 @@ jobs:
         ruby-version:
           - '3.2'
           - '3.3'
+# Not testing 3.4 yet; bundler fails here:
+# bundler: failed to load command: bolt (/home/runner/work/kvm_automation_tooling/kvm_automation_tooling/vendor/bundle/ruby/3.4.0/bin/bolt)
+# /home/runner/work/kvm_automation_tooling/kvm_automation_tooling/vendor/bundle/ruby/3.4.0/gems/puppet-8.10.0/lib/puppet/feature/base.rb:21:in '<top (required)>': Cannot determine basic system flavour (Puppet::Error)
+#          - '3.4'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -10,16 +10,6 @@ variable "cluster_id" {
   default = "dev"
 }
 
-variable "pool_name" {
-  description = "Identifier for the libvirt image pool to use for the VM images."
-  type = string
-}
-
-variable "base_volume_name" {
-  description = "The name of the libvirt volume to use as the base image for the VM images."
-  type = string
-}
-
 variable "user_name" {
   description = "The name of the user account to create for ssh login on generated vm hosts."
   type = string
@@ -47,64 +37,22 @@ variable "user_password" {
   nullable = false
 }
 
-variable "cpu_mode" {
-  description = "The CPU mode to use for the VMs."
-  type = string
-}
-
-########################################################################
-# Primary node variables
-
-variable "primary_count" {
-  description = "The number of primary nodes to create in the cluster."
-  type = number
-  default = 1
-  validation {
-    condition     = var.primary_count >= 0 && var.primary_count <= 1
-    error_message = "The primary_count may be 0 or 1."
-  }
-}
-
-variable "primary_cpus" {
-  description = "The number of CPUs to allocate to the primary node."
-  type = number
-  default = 4
-}
-
-variable "primary_memory" {
-  description = "The amount of memory in MB to allocate to the primary node."
-  type = number
-  default = 8192
-}
-
-variable "primary_disk_size" {
-  description = "The size of the primary node disk in GB."
-  type = number
-  default = 20
-}
-
-########################################################################
-# Agent node variables
-
-variable "agent_count" {
-  description = "The number of agent nodes to create in the cluster."
-  type = number
-}
-
-variable "agent_cpus" {
-  description = "The number of CPUs to allocate to each agent node."
-  type = number
-  default = 2
-}
-
-variable "agent_memory" {
-  description = "The amount of memory in MB to allocate to each agent node."
-  type = number
-  default = 2048
-}
-
-variable "agent_disk_size" {
-  description = "The size of each agent node disk in GB."
-  type = number
-  default = 10
+variable "vm_specs" {
+  description = "A map of vm specifications to use for generating VMs with the vm module. The keys are the unique hostname string for each VM, and the values are an object with configuration details for the vm module."
+  type = map(object({
+    # Identifier for the libvirt image pool to use for the VM images.
+    pool_name = string
+    # The name of the libvirt volume to use as the base image for the
+    # VM images.
+    base_volume_name = string
+    # The number of CPUs to allocate to each vm.
+    cpus      = optional(number)
+    # The amount of memory in MB to allocate to each vm.
+    mem_mb    = optional(number)
+    # The size of each vm disk in GB.
+    disk_gb   = optional(number)
+    # The CPU mode to use for the VMs.
+    # (Set to host-passthrough for nested virtualization.)
+    cpu_mode  = optional(string)
+  }))
 }
