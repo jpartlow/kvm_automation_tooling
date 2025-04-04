@@ -22,10 +22,16 @@ describe 'plan: teardown_cluster' do
   end
 
   context 'with state files to delete' do
-    let(:terraform_state_dir) { Dir.mktmpdir('rspec-kat') }
+    let(:terraform_state_dir) { Dir.mktmpdir('rspec-kat-teardown-cluster') }
     let(:tfvars_file) { "#{terraform_state_dir}/#{params['cluster_id']}.tfvars.json" }
     let(:tfstate_file) { "#{terraform_state_dir}/#{params['cluster_id']}.tfstate" }
     let(:inventory_file) { "#{terraform_state_dir}/inventory.#{params['cluster_id']}.yaml" }
+
+    around(:each) do |example|
+      example.run
+    ensure
+      FileUtils.remove_entry_secure(terraform_state_dir)
+    end
 
     before(:each) do
       FileUtils.touch(tfvars_file)
