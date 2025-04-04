@@ -74,6 +74,7 @@ plan kvm_automation_tooling::standup_cluster(
   String $user = system::env('USER'),
   String $ssh_public_key_path = "${system::env('HOME')}/.ssh/id_rsa.pub",
   String $ssh_private_key_path = regsubst($ssh_public_key_path, '(.*).pub', '\\1'),
+  Boolean $setup_inter_cluster_ssh = true,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
 ) {
