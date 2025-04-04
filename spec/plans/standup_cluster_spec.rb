@@ -4,7 +4,7 @@ require 'tmpdir'
 describe 'plan: standup_cluster' do
   include_context 'plan_init'
 
-  let(:tempdir) { Dir.mktmpdir('rspec-kat') }
+  let(:tempdir) { Dir.mktmpdir('rspec-kat-standup-cluster') }
   let(:params) do
     {
       'cluster_name' => 'spec',
@@ -90,6 +90,7 @@ describe 'plan: standup_cluster' do
           'state'         => "#{tempdir}/#{cluster_id}.tfstate",
           'return_output' => true,
         )
+      expect_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh')
     end
 
     context 'for a single platform' do
