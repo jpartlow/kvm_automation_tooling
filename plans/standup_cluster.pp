@@ -74,6 +74,7 @@ plan kvm_automation_tooling::standup_cluster(
   String $user = system::env('USER'),
   String $ssh_public_key_path = "${system::env('HOME')}/.ssh/id_rsa.pub",
   String $ssh_private_key_path = regsubst($ssh_public_key_path, '(.*).pub', '\\1'),
+  Boolean $setup_inter_cluster_ssh = true,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
 ) {
@@ -171,6 +172,23 @@ plan kvm_automation_tooling::standup_cluster(
   }
 
   $all_targets = $target_map.values().flatten()
+
+  if $setup_inter_cluster_ssh {
+    $controllers = $target_map.reduce([]) |$acc, $entry| {
+      $role = $entry[0]
+      $targets = $entry[1]
+      if ['primary', 'runner'].any |$i| { $role == $i } {
+        $acc + $targets
+      } else {
+        $acc
+      }
+    }
+    run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh',
+      'controllers'  => $controllers,
+      'destinations' => $all_targets,
+      'user'         => $user,
+    )
+  }
 
   if $install_openvox {
     $primary_target = $target_map.dig('primary', 0)

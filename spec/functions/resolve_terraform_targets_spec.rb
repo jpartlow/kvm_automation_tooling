@@ -3,14 +3,11 @@ require 'spec_helper'
 describe 'kvm_automation_tooling::resolve_terraform_targets' do
   include BoltSpec::BoltContext
 
-  let(:tempdir) { Dir.mktmpdir('rspec-kat') }
+  let(:tempdir) { Dir.mktmpdir('rspec-kat-resolve-terraform-targets') }
 
   # Mock out functions coming from other Bolt modules
   let(:pre_cond) do
     <<~PRECOND
-      function log::debug($msg) {
-        notice($msg)
-      }
       function resolve_references(Hash $group) {
         {
           'targets' => [
