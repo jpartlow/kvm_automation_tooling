@@ -7,9 +7,13 @@
   ],
   "parameters": {
     "type": {
-      "type": "String",
+      "type": "Enum['ed25519', 'rsa']",
       "description": "The ssh key type.",
       "default": "ed25519"
+    },
+    "bits": {
+      "type": "Optional[Integer]",
+      "description": "The number of bits in the key."
     }
   }
 }

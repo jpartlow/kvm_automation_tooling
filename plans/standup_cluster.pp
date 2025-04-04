@@ -173,6 +173,13 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = $target_map.values().flatten()
 
+  if $setup_inter_cluster_ssh {
+    run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh',
+      'targets' => $all_targets,
+      'user'    => $user,
+    )
+  }
+
   if $install_openvox {
     $primary_target = $target_map.dig('primary', 0)
     run_plan('kvm_automation_tooling::subplans::install_openvox',
