@@ -1,0 +1,19 @@
+{
+  "description": "Generate a passphraseless ssh keypair in a temp directory and return the paths to the keypair files.",
+  "input_method": "stdin",
+  "files": [
+    "kvm_automation_tooling/lib/kvm_automation_tooling/command.rb",
+    "ruby_task_helper/files/task_helper.rb"
+  ],
+  "parameters": {
+    "type": {
+      "type": "Enum['ed25519', 'rsa']",
+      "description": "The ssh key type.",
+      "default": "ed25519"
+    },
+    "bits": {
+      "type": "Optional[Integer]",
+      "description": "The number of bits in the key."
+    }
+  }
+}
