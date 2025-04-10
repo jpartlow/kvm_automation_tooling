@@ -1,0 +1,105 @@
+---
+name: 'Plan Tests'
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to use for the cluster'
+        required: true
+        type: string
+      os-version:
+        description: 'Operating system version to use for the cluster'
+        required: true
+        type: string
+      os-arch:
+        description: 'Operating system arch to use for the cluster'
+        required: true
+        type: string
+      vms:
+        description: |-
+          JSON array of VM definitions as defined by the
+          kvm_automation_tooling::vm_spec datatype
+        required: true
+        type: string
+        default: |-
+          [
+            {
+              "role": "agent"
+            }
+          ]
+
+env:
+  # Whether or not we are using this workflow within
+  # kvm_automation_tooling, or another repo. Controls whether or not to
+  # checkout the kvm_automation_tooling normally as the
+  # github.workspace, or nested at ./kvm_automation_tooling.
+  NESTED: ${{ github.repository != 'jpartlow/kvm_automation_tooling' }} 
+  # The working directory for the job steps, either github.workspace
+  # or ./kvm_automation_tooling depending on whether checkout is nested
+  # within the workspace.
+  WORKING_DIR: ${{ github.repository == 'jpartlow/kvm_automation_tooling' && github.workspace || './kvm_automation_tooling' }}
+
+jobs:
+  standup-cluster:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ ! env.NESTED }}
+      - name: Checkout kvm_automation_tooling (nested)
+        if: ${{ env.NESTED }}
+        uses: actions/checkout@v4
+        working-directory: $${ github.repository }}
+        with:
+          repository: 'jpartlow/kvm_automation_tooling'
+          path: 'kvm_automation_tooling'
+      - name: Install Terraform
+        run: |-
+          # From https://developer.hashicorp.com/terraform/install
+          wget -O - https://apt.releases.hashicorp.com/gpg | \
+            sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+            sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install terraform
+      - name: Install Libvirt
+        run: |-
+          sudo apt install libvirt-daemon-system libvirt-dev genisoimage
+          # Even if we add the runner user to the libvirt group, we can't
+          # restart the session to take advantage of that, and using
+          # something like newgrp requests a password, while su -l also
+          # fails to provide a shell with the new group membership. So I'm
+          # just opening up permissions instead.
+          sudo chmod o+rw /var/run/libvirt/libvirt-sock
+          # Turn off the qemu security driver to avoid SELinux issues reading
+          # the base image file
+          sudo sed -i -e 's/^#security_driver =.*$/security_driver = "none"/' '/etc/libvirt/qemu.conf'
+          sudo systemctl restart libvirtd
+          # Create the default directory storage pool
+          sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+      - name: Install module dependencies
+        run: bundle exec bolt module install
+      - name: Generate an SSH key to use for the cluster
+        run: ssh-keygen -t ed25519 -f "${HOME}/.ssh/ssh-id-test" -N '' -q
+      - name: Write standup_cluster params
+        run: |-
+          cat > standup_cluster_params.json <<EOF
+          {
+            "cluster_name": "test",
+            "network_addresses": "192.168.100.0/24",
+            "ssh_public_key_path": "${HOME}/.ssh/ssh-id-test.pub",
+            "os": "${{ inputs.os }}",
+            "os_version": "${{ inputs.os-version }}",
+            "os_arch": "${{ inputs.os-arch }}",
+            "vms": ${{ inputs.vms }}
+          }
+          EOF
+      - name: Run standup_cluster plan
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
