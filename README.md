@@ -57,9 +57,23 @@ Example:
   "os_version": "2404",
   "os_arch": "x86_64",
   "architecture": "singular",
-  "agents": 1,
+  "vms": [
+    {
+      "role": "primary",
+      "cpus": 8,
+      "mem_mb": 8192,
+      "disk_gb": 20,
+    },
+    {
+      "role": "agent",
+      "count": 2,
+    }
+  ]
 }
 ```
+
+(See the [Vm_spec datatype](types/vm_spec.pp) for the full set of
+parameters that may be set for a given *vms* hash.)
 
 ```bash
 bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @cluster_params.json
