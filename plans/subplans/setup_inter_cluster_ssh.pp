@@ -17,11 +17,14 @@
 #   are authorized to log into.
 # @param $user The user ssh account on the vms.
 # @param $key_type The type of ssh key to generate. (ed25519 or rsa)
+# @param $root_access Whether to allow root access to the destinations via the
+#   controllers with the generated key. (Required for Beaker, for example.)
 plan kvm_automation_tooling::subplans::setup_inter_cluster_ssh(
   TargetSpec $controllers,
   TargetSpec $destinations,
   String $user,
   String $key_type = 'ed25519',
+  Boolean $root_access = true,
 ) {
   if $controllers.empty() {
     out::message('No controller VMs found. Skipping inter-cluster ssh setup.')
@@ -56,12 +59,22 @@ plan kvm_automation_tooling::subplans::setup_inter_cluster_ssh(
     )
     run_command("chown -R ${user}:${user} /home/${user}/.ssh/${ssh_key_file}*", $controllers)
 
-    out::message("Authorizing ssh public key on destination vms: ${stdlib::to_json_pretty($destinations)}")
+    out::message("Authorizing ssh public key on destination vms as ${user}: ${stdlib::to_json_pretty($destinations)}")
     run_command(@("EOS"), $destinations)
       echo "${ssh_public_key}" >> "${remote_authorized_keys_path}"
       chmod 600 "${remote_authorized_keys_path}"
       chown ${user}:${user} "${remote_authorized_keys_path}"
       | EOS
+
+    if $root_access {
+      out::message("Authorizing ssh public key on destination vms as root: ${stdlib::to_json_pretty($destinations)}")
+      $root_authorized_keys_path = '/root/.ssh/authorized_keys'
+      run_command(@("EOS"), $destinations)
+        echo "${ssh_public_key}" >> "${root_authorized_keys_path}"
+        chmod 600 "${root_authorized_keys_path}"
+        chown root:root "${root_authorized_keys_path}"
+        | EOS
+    }
   }
   if file::exists($tmp_dir) {
     run_command("rm -rf ${tmp_dir}", 'localhost')

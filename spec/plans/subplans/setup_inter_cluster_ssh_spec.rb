@@ -60,9 +60,15 @@ describe 'plan: setup_inter_cluster_ssh' do
       chown spec:spec "/home/spec/.ssh/authorized_keys"
     EOS
       .with_targets(destinations)
+    expect_command(<<~EOS)
+      echo "ssh-ed25519 publickey" >> "/root/.ssh/authorized_keys"
+      chmod 600 "/root/.ssh/authorized_keys"
+      chown root:root "/root/.ssh/authorized_keys"
+    EOS
+      .with_targets(destinations)
 
-    $result = run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh', params)
-    expect($result.ok?).to(eq(true), $result.value)
+    result = run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh', params)
+    expect(result.ok?).to(eq(true), result.value)
   end
 
   it 'deletes tmpdir after error' do
@@ -71,7 +77,7 @@ describe 'plan: setup_inter_cluster_ssh' do
     expect_command('chown -R spec:spec /home/spec/.ssh/id_ed25519*')
       .error_with('kind' => 'err', 'msg' => 'oops')
 
-    $result = run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh', params)
-    expect($result.ok?).to eq(false)
+    result = run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh', params)
+    expect(result.ok?).to eq(false)
   end
 end
