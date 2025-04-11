@@ -21,12 +21,12 @@
 #     [
 #       {
 #         'role' => 'primary',
-#         'cpus": 8,
-#         'mem_mb': 8192,
-#         'disk_gb': 20,
+#         'cpus' => 8,
+#         'mem_mb'  => 8192,
+#         'disk_gb' => 20,
 #       },
 #       {
-#         'role' => 'agent',
+#         'role'  => 'agent',
 #         'count' => 3,
 #       },
 #     ]

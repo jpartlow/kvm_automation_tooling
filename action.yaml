@@ -1,0 +1,119 @@
+---
+# https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action
+name: 'Standup Nested VM Cluster'
+description: 'Standup a cluster of local nested virtual machines via libvirt with the help of the Bolt kvm_automation_tooling module.'
+
+inputs:
+  os:
+    description: 'Operating system to use for the cluster'
+    required: true
+    type: string
+  os-version:
+    description: 'Operating system version to use for the cluster'
+    required: true
+    type: string
+  os-arch:
+    description: 'Operating system arch to use for the cluster'
+    required: true
+    type: string
+  vms:
+    description: |-
+      JSON array of VM definitions as defined by the
+      kvm_automation_tooling::vm_spec datatype
+    required: true
+    type: string
+    default: |-
+      [
+        {
+          "role": "agent"
+        }
+      ]
+
+outputs:
+  cluster-details:
+    description: "VM information for the cluster (ip and hostname)."
+    value: ${{ steps.inventory-details.outputs.inventory_json }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout kvm_automation_tooling module
+      uses: actions/checkout@v4
+      with:
+        repository: 'jpartlow/kvm_automation_tooling'
+        path: 'kvm_automation_tooling'
+    - name: Install Terraform
+      shell: bash
+      run: |-
+        # From https://developer.hashicorp.com/terraform/install
+        wget -O - https://apt.releases.hashicorp.com/gpg | \
+          sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
+          sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt update && sudo apt install terraform
+    - name: Install Libvirt
+      shell: bash
+      run: |-
+        sudo apt install libvirt-daemon-system libvirt-dev genisoimage
+        # Even if we add the runner user to the libvirt group, we can't
+        # restart the session to take advantage of that, and using
+        # something like newgrp requests a password, while su -l also
+        # fails to provide a shell with the new group membership. So I'm
+        # just opening up permissions instead.
+        sudo chmod o+rw /var/run/libvirt/libvirt-sock
+        # Turn off the qemu security driver to avoid SELinux issues reading
+        # the base image file.
+        sudo sed -i -e 's/^#security_driver =.*$/security_driver = "none"/' '/etc/libvirt/qemu.conf'
+        sudo systemctl restart libvirtd
+        # Create the default directory storage pool.
+        sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2'
+        bundler-cache: true
+        working-directory: kvm_automation_tooling
+    - name: Install module dependencies
+      shell: bash
+      working-directory: kvm_automation_tooling
+      run: bundle exec bolt module install
+    - name: Generate an SSH key to use for the cluster
+      shell: bash
+      run: ssh-keygen -t ed25519 -f "${HOME}/.ssh/ssh-id-test" -N '' -q
+    - name: Write standup_cluster params
+      shell: bash
+      env:
+        OS: ${{ inputs.os }}
+        OS_VERSION: ${{ inputs.os-version }}
+        OS_ARCH: ${{ inputs.os-arch }}
+        VMS: ${{ inputs.vms }}
+      working-directory: kvm_automation_tooling
+      run: |-
+        cat > standup_cluster_params.json <<EOF
+        {
+          "cluster_name": "test",
+          "network_addresses": "192.168.100.0/24",
+          "ssh_public_key_path": "${HOME}/.ssh/ssh-id-test.pub",
+          "os": "${OS}",
+          "os_version": "${OS_VERSION}",
+          "os_arch": "${OS_ARCH}",
+          "vms": ${VMS}
+        }
+        EOF
+    - name: Run standup_cluster plan
+      shell: bash
+      working-directory: kvm_automation_tooling
+      run: |-
+        bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
+    - name: Collect inventory details
+      id: inventory-details
+      shell: bash
+      env:
+        # Suppress warnings about Bolt gem versus package use.
+        BOLT_GEM: true
+        OS: ${{ inputs.os }}
+        OS_VERSION: ${{ inputs.os-version }}
+        OS_ARCH: ${{ inputs.os-arch }}
+      working-directory: kvm_automation_tooling
+      run: |-
+        bundle exec bolt inventory show --inventory terraform/instances/inventory.*.yaml --format json --detail | tee inventory.json
+        echo "inventory_json=$(cat inventory.json)" >> $GITHUB_OUTPUT
