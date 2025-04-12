@@ -98,6 +98,7 @@ runs:
           "cluster_name": "test",
           "network_addresses": "192.168.100.0/24",
           "ssh_public_key_path": "${HOME}/.ssh/ssh-id-test.pub",
+          "setup_inter_cluster_root_ssh": true,
           "os": "${OS}",
           "os_version": "${OS_VERSION}",
           "os_arch": "${OS_ARCH}",
