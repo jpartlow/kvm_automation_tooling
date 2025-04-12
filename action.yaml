@@ -16,6 +16,11 @@ inputs:
     description: 'Operating system arch to use for the cluster'
     required: true
     type: string
+  ruby-version:
+    description: 'Ruby version to install for the action'
+    required: true
+    type: string
+    default: '3.3'
   vms:
     description: |-
       JSON array of VM definitions as defined by the
@@ -69,7 +74,7 @@ runs:
         sudo virsh pool-create-as --name default --type dir --target /var/lib/libvirt/images
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2'
+        ruby-version: ${{ inputs.ruby-version }}
         bundler-cache: true
         working-directory: kvm_automation_tooling
     - name: Install module dependencies
