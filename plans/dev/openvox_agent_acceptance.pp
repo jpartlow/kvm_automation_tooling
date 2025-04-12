@@ -43,16 +43,16 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
     | EOS
 
   out::message('Create a hosts.yaml file for beaker.')
-  # This has the side effect of setting a 'platform' variable on each agent target.
-  run_plan('kvm_automation_tooling::subplans::lookup_platform', 'targets' => $agents)
-  $hosts_yaml = epp('kvm_automation_tooling/beaker-hosts.yaml.epp', {
-    'agents' => get_targets($agents),
+  $host_yaml = '/tmp/openvox_agents-beaker-hosts.yaml'
+  run_plan('kvm_automation_tooling::dev::generate_beaker_hosts_file', {
+    'hosts'      => $agents,
+    'hosts_yaml' => $host_yaml,
   })
-  run_command(@("EOS"), $runner, '_run_as' => $user)
-    cat > openvox-agent/acceptance/hosts.yaml <<EOF
-    ${hosts_yaml}
-    EOF
-    | EOS
+  upload_file(
+    $host_yaml,
+    "/home/${user}/openvox-agent/acceptance/hosts.yaml",
+    $runner,
+  )
 
   out::message('Run beaker.')
   run_command(@(EOS), $runner, '_run_as' => $user)

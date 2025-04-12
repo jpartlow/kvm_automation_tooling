@@ -4,6 +4,7 @@ HOSTS:
 <%- $agents.each |$agent| {-%>
   <%= $agent.name %>:
     vmhostname: '<%= "${agent.name}.vm" %>'
+    ip: '<%= $agent.uri %>'
     roles:
       - agent
     platform: '<%= $agent.vars['platform'] %>'
