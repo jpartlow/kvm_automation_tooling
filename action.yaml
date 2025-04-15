@@ -51,6 +51,10 @@ inputs:
       host root access via SSH.
     type: boolean
     default: false
+  debug:
+    description: 'Enable debug output (adds --stream to bolt commands).'
+    type: boolean
+    default: false
 
 outputs:
   cluster-details:
@@ -130,18 +134,17 @@ runs:
         EOF
     - name: Run standup_cluster plan
       shell: bash
+      env:
+        STREAM: ${{ (inputs.debug && '--stream --no-verbose') || '' }}
       working-directory: kvm_automation_tooling
       run: |-
-        bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
+        bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json ${STREAM}
     - name: Collect inventory details
       id: inventory-details
       shell: bash
       env:
         # Suppress warnings about Bolt gem versus package use.
         BOLT_GEM: true
-        OS: ${{ inputs.os }}
-        OS_VERSION: ${{ inputs.os-version }}
-        OS_ARCH: ${{ inputs.os-arch }}
       working-directory: kvm_automation_tooling
       run: |-
         bundle exec bolt inventory show --inventory terraform/instances/inventory.*.yaml --format json --detail | tee inventory.json
