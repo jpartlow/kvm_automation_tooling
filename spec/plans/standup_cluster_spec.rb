@@ -90,7 +90,7 @@ describe 'plan: standup_cluster' do
           'state'         => "#{tempdir}/#{cluster_id}.tfstate",
           'return_output' => true,
         )
-      expect_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh')
+      expect_plan('kvm_automation_tooling::subplans::setup_cluster_ssh')
     end
 
     context 'for a single platform' do

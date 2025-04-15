@@ -19,7 +19,7 @@
 # @param $key_type The type of ssh key to generate. (ed25519 or rsa)
 # @param $root_access Whether to allow root access to the destinations via the
 #   controllers with the generated key. (Required for Beaker, for example.)
-plan kvm_automation_tooling::subplans::setup_inter_cluster_ssh(
+plan kvm_automation_tooling::subplans::setup_cluster_ssh(
   TargetSpec $controllers,
   TargetSpec $destinations,
   String $user,
@@ -27,7 +27,7 @@ plan kvm_automation_tooling::subplans::setup_inter_cluster_ssh(
   Boolean $root_access = true,
 ) {
   if $controllers.empty() {
-    out::message('No controller VMs found. Skipping inter-cluster ssh setup.')
+    out::message('No controller VMs found. Skipping cluster ssh setup.')
     return
   }
 

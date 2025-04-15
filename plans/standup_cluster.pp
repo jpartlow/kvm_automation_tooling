@@ -56,16 +56,16 @@
 # @param ssh_private_key_path The path to the private key to use for
 #   ssh access to the vms. (This will be set in the generated inventory
 #   file.)
-# @param setup_inter_cluster_ssh Whether to setup ssh access between
+# @param setup_cluster_ssh Whether to setup ssh access between
 #   the VMs in the cluster. This is done by creating a new ssh keypair
 #   on controller VMs (any vm with the role of 'primary' or 'runner'),
 #   and adding the public key to the login account of all other vms in
 #   the cluster.
-#   See the kvm_automation_tooling::subplans::setup_inter_cluster_ssh
+#   See the kvm_automation_tooling::subplans::setup_cluster_ssh
 #   plan for details.
-# @param setup_inter_cluster_root_ssh Whether to allow root ssh
+# @param setup_cluster_root_ssh Whether to allow root ssh
 #   access from the controller VMs to the other VMs in the cluster. Only
-#   applies if setup_inter_cluster_ssh is true.
+#   applies if setup_cluster_ssh is true.
 # @param user_password The password to set for the login user on the
 #   vms. This is optional and should only be used for debugging.
 # @param install_openvox Whether to install OpenVox Puppet on the
@@ -84,8 +84,8 @@ plan kvm_automation_tooling::standup_cluster(
   String $user = system::env('USER'),
   String $ssh_public_key_path = "${system::env('HOME')}/.ssh/id_rsa.pub",
   String $ssh_private_key_path = regsubst($ssh_public_key_path, '(.*).pub', '\\1'),
-  Boolean $setup_inter_cluster_ssh = true,
-  Boolean $setup_inter_cluster_root_ssh = false,
+  Boolean $setup_cluster_ssh = true,
+  Boolean $setup_cluster_root_ssh = false,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
 ) {
@@ -184,7 +184,7 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = $target_map.values().flatten()
 
-  if $setup_inter_cluster_ssh {
+  if $setup_cluster_ssh {
     $controllers = $target_map.reduce([]) |$acc, $entry| {
       $role = $entry[0]
       $targets = $entry[1]
@@ -194,11 +194,11 @@ plan kvm_automation_tooling::standup_cluster(
         $acc
       }
     }
-    run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh',
+    run_plan('kvm_automation_tooling::subplans::setup_cluster_ssh',
       'controllers'  => $controllers,
       'destinations' => $all_targets,
       'user'         => $user,
-      'root_access'  => $setup_inter_cluster_root_ssh,
+      'root_access'  => $setup_cluster_root_ssh,
     )
   }
 

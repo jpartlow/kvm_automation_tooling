@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'plan: setup_inter_cluster_ssh' do
+describe 'plan: setup_cluster_ssh' do
   include_context 'plan_init'
 
   let(:controllers) { ['controller1.rspec'] }
@@ -67,7 +67,7 @@ describe 'plan: setup_inter_cluster_ssh' do
     EOS
       .with_targets(destinations)
 
-    result = run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh', params)
+    result = run_plan('kvm_automation_tooling::subplans::setup_cluster_ssh', params)
     expect(result.ok?).to(eq(true), result.value)
   end
 
@@ -77,7 +77,7 @@ describe 'plan: setup_inter_cluster_ssh' do
     expect_command('chown -R spec:spec /home/spec/.ssh/id_ed25519*')
       .error_with('kind' => 'err', 'msg' => 'oops')
 
-    result = run_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh', params)
+    result = run_plan('kvm_automation_tooling::subplans::setup_cluster_ssh', params)
     expect(result.ok?).to eq(false)
   end
 end
