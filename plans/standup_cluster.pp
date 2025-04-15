@@ -64,8 +64,15 @@
 #   See the kvm_automation_tooling::subplans::setup_cluster_ssh
 #   plan for details.
 # @param setup_cluster_root_ssh Whether to allow root ssh
-#   access from the controller VMs to the other VMs in the cluster. Only
-#   applies if setup_cluster_ssh is true.
+#   access between controller and destination VMs in the cluster. Only
+#   applies if *setup_cluster_ssh* is true.
+# @param host_root_access Whether to allow root ssh access from the
+#   host machine to all VMs in the cluster. The *ssh_public_key_path*
+#   key is propogated to all *user* accounts on the generated VMs
+#   automatically as part of cloud-init during the Terraform. Without
+#   this, Bolt wouldn't be able to communicate with the VMs as *user*.
+#   This flag determines whether to additionally add this public key
+#   to the root accounts.
 # @param user_password The password to set for the login user on the
 #   vms. This is optional and should only be used for debugging.
 # @param install_openvox Whether to install OpenVox Puppet on the
@@ -86,6 +93,7 @@ plan kvm_automation_tooling::standup_cluster(
   String $ssh_private_key_path = regsubst($ssh_public_key_path, '(.*).pub', '\\1'),
   Boolean $setup_cluster_ssh = true,
   Boolean $setup_cluster_root_ssh = false,
+  Boolean $host_root_access = false,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
 ) {
@@ -202,6 +210,18 @@ plan kvm_automation_tooling::standup_cluster(
     )
   }
 
+  if $host_root_access {
+    out::message("Authorizing host ssh public key on all vms as root: ${stdlib::to_json_pretty($all_targets)}")
+
+    $host_public_key = file::read($ssh_public_key_path)
+    $root_authorized_keys_path = '/root/.ssh/authorized_keys'
+    run_command(@("EOS"), $all_targets)
+      echo "${host_public_key}" >> "${root_authorized_keys_path}"
+      chmod 600 "${root_authorized_keys_path}"
+      chown root:root "${root_authorized_keys_path}"
+      | EOS
+  }
+
   if $install_openvox {
     $primary_target = $target_map.dig('primary', 0)
     run_plan('kvm_automation_tooling::subplans::install_openvox',
@@ -211,4 +231,6 @@ plan kvm_automation_tooling::standup_cluster(
       'postgresql_target' => $primary_target,
     )
   }
+
+  return($target_map)
 }
