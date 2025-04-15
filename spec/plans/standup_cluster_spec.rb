@@ -21,6 +21,9 @@ describe 'plan: standup_cluster' do
           'mem_mb' => 2048,
           'disk_gb' => 20,
         },
+        {
+          'role' => 'agent',
+        }
       ],
     }
   end
@@ -90,7 +93,7 @@ describe 'plan: standup_cluster' do
           'state'         => "#{tempdir}/#{cluster_id}.tfstate",
           'return_output' => true,
         )
-      expect_plan('kvm_automation_tooling::subplans::setup_inter_cluster_ssh')
+      expect_plan('kvm_automation_tooling::subplans::setup_cluster_ssh')
     end
 
     context 'for a single platform' do
@@ -106,13 +109,36 @@ describe 'plan: standup_cluster' do
         allow_apply_prep
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
-        expect(result.ok?).to(eq(true), result.value)
+        expect(result.ok?).to(eq(true), result.value.to_s)
+
+        target_map = result.value
+        expect(target_map.keys).to match_array(['primary', 'agent'])
+        expect(target_map['primary'].map(&:name)).to eq(["spec-singular-ubuntu-2404-amd64-primary-1.vm"])
+        expect(target_map['agent'].map(&:name)).to eq(["spec-singular-ubuntu-2404-amd64-agent-1.vm"])
       end
 
       it 'just terraforms when install_openvox is false' do
         params['install_openvox'] = false
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
-        expect(result.ok?).to(eq(true), result.value)
+        expect(result.ok?).to(eq(true), result.value.to_s)
+      end
+
+      it 'adds host root access when requsted' do
+        allow_apply_prep
+
+        public_key_path = "#{tempdir}/ssh_rspec.pub"
+        File.write(public_key_path, 'rspec-public-key')
+        params['ssh_public_key_path'] = public_key_path
+        params['host_root_access'] = true
+        expect_task('kvm_automation_tooling::add_ssh_authorized_key')
+          .with_targets(['spec-singular-ubuntu-2404-amd64-primary-1.vm', 'spec-singular-ubuntu-2404-amd64-agent-1.vm'])
+          .with_params({
+            'user' => 'root',
+            'ssh_public_key' => 'rspec-public-key',
+          })
+
+        result = run_plan('kvm_automation_tooling::standup_cluster', params)
+        expect(result.ok?).to(eq(true), result.value.to_s)
       end
     end
 
@@ -167,7 +193,7 @@ describe 'plan: standup_cluster' do
           'os_arch' => 'x86_64',
         }
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
-        expect(result.ok?).to(eq(true), result.value)
+        expect(result.ok?).to(eq(true), result.value.to_s)
       end
     end
   end
