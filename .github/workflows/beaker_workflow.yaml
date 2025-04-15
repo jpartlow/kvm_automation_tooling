@@ -1,0 +1,47 @@
+---
+name: 'Beaker Workflow Test'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  standup-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: local-action
+        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          os: ubuntu
+          os-version: '24.04'
+          os-arch: amd64
+          setup-cluster-root-ssh: true
+          vms: |-
+            [
+              {
+                "role": "runner",
+                "cpus": 4,
+                "mem_mb": 8192,
+                "disk_gb": 10
+              },
+              {
+                "role": "agent",
+                "cpus": 2,
+                "mem_mb": 2048
+              }
+            ]
+      - name: Display inventory details
+        working-directory: kvm_automation_tooling
+        env:
+          INVENTORY_JSON: ${{ steps.local-action.outputs.cluster-details }}
+        run: |-
+          jq . <<< $INVENTORY_JSON
+      - name: Run openvox_agent_acceptance plan
+        working-directory: kvm_automation_tooling
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::dev::openvox_agent_acceptance --inventory terraform/instances/inventory.test-singular-ubuntu-2404-amd64.yaml runner="test-singular-ubuntu-2404-amd64-runner-1" agents="test-singular-ubuntu-2404-amd64-agent-1" --stream --no-verbose
