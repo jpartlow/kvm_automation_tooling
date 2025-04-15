@@ -130,12 +130,12 @@ describe 'plan: standup_cluster' do
         File.write(public_key_path, 'rspec-public-key')
         params['ssh_public_key_path'] = public_key_path
         params['host_root_access'] = true
-        expect_command(<<~EOS)
-          echo "rspec-public-key" >> "/root/.ssh/authorized_keys"
-          chmod 600 "/root/.ssh/authorized_keys"
-          chown root:root "/root/.ssh/authorized_keys"
-        EOS
+        expect_task('kvm_automation_tooling::add_ssh_authorized_key')
           .with_targets(['spec-singular-ubuntu-2404-amd64-primary-1.vm', 'spec-singular-ubuntu-2404-amd64-agent-1.vm'])
+          .with_params({
+            'user' => 'root',
+            'ssh_public_key' => 'rspec-public-key',
+          })
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)

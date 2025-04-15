@@ -1,0 +1,13 @@
+{
+  "description": "Adds an SSH public key to the authorized_keys file of a user on a remote host.",
+  "parameters": {
+    "user": {
+      "type": "String[1]",
+      "description": "The user account."
+    },
+    "ssh_public_key": {
+      "type": "String[1]",
+      "description": "The SSH public key string to add to the authorized_keys file."
+    }
+  }
+}

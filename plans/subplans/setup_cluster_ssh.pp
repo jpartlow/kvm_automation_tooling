@@ -49,10 +49,6 @@ plan kvm_automation_tooling::subplans::setup_cluster_ssh(
     $ssh_public_key_file = $ssh_results['pubkeyfile']
     $ssh_public_key = $ssh_results['pubkey']
 
-    $remote_public_key_path = "/home/${user}/.ssh/${ssh_public_key_file}"
-    $remote_authorized_keys_path = "/home/${user}/.ssh/authorized_keys"
-
-
     $upload_result = catch_errors() || {
       out::message("Uploading ssh keypair to controller VMs: ${stdlib::to_json_pretty($controllers)}")
       upload_file(
@@ -68,20 +64,19 @@ plan kvm_automation_tooling::subplans::setup_cluster_ssh(
       run_command("chown -R ${user}:${user} /home/${user}/.ssh/${ssh_key_file}*", $controllers)
 
       out::message("Authorizing ssh public key on destination vms as ${user}: ${stdlib::to_json_pretty($destinations)}")
-      run_command(@("EOS"), $destinations)
-        echo "${ssh_public_key}" >> "${remote_authorized_keys_path}"
-        chmod 600 "${remote_authorized_keys_path}"
-        chown ${user}:${user} "${remote_authorized_keys_path}"
-        | EOS
+      run_task('kvm_automation_tooling::add_ssh_authorized_key',
+        $destinations,
+        'user' => $user,
+        'ssh_public_key' => $ssh_public_key,
+      )
 
       if $root_access {
         out::message("Authorizing ssh public key on destination vms as root: ${stdlib::to_json_pretty($destinations)}")
-        $root_authorized_keys_path = '/root/.ssh/authorized_keys'
-        run_command(@("EOS"), $destinations)
-          echo "${ssh_public_key}" >> "${root_authorized_keys_path}"
-          chmod 600 "${root_authorized_keys_path}"
-          chown root:root "${root_authorized_keys_path}"
-          | EOS
+        run_task('kvm_automation_tooling::add_ssh_authorized_key',
+          $destinations,
+          'user' => 'root',
+          'ssh_public_key' => $ssh_public_key,
+        )
       }
     }
     if file::exists($tmp_dir) {

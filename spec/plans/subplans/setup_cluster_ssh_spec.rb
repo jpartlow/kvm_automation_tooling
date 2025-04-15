@@ -64,18 +64,18 @@ describe 'plan: setup_cluster_ssh' do
       expect_command('chown -R spec:spec /home/spec/.ssh/id_ed25519*')
         .with_targets(controllers)
 
-      expect_command(<<~EOS)
-        echo "ssh-ed25519 publickey" >> "/home/spec/.ssh/authorized_keys"
-        chmod 600 "/home/spec/.ssh/authorized_keys"
-        chown spec:spec "/home/spec/.ssh/authorized_keys"
-      EOS
+      expect_task('kvm_automation_tooling::add_ssh_authorized_key')
         .with_targets(destinations)
-      expect_command(<<~EOS)
-        echo "ssh-ed25519 publickey" >> "/root/.ssh/authorized_keys"
-        chmod 600 "/root/.ssh/authorized_keys"
-        chown root:root "/root/.ssh/authorized_keys"
-      EOS
+        .with_params({
+          'user' => 'spec',
+          'ssh_public_key' => 'ssh-ed25519 publickey',
+        })
+      expect_task('kvm_automation_tooling::add_ssh_authorized_key')
         .with_targets(destinations)
+        .with_params({
+          'user' => 'root',
+          'ssh_public_key' => 'ssh-ed25519 publickey',
+        })
 
       result = run_plan('kvm_automation_tooling::subplans::setup_cluster_ssh', params)
       expect(result.ok?).to(eq(true), result.value)

@@ -214,12 +214,11 @@ plan kvm_automation_tooling::standup_cluster(
     out::message("Authorizing host ssh public key on all vms as root: ${stdlib::to_json_pretty($all_targets)}")
 
     $host_public_key = file::read($ssh_public_key_path)
-    $root_authorized_keys_path = '/root/.ssh/authorized_keys'
-    run_command(@("EOS"), $all_targets)
-      echo "${host_public_key}" >> "${root_authorized_keys_path}"
-      chmod 600 "${root_authorized_keys_path}"
-      chown root:root "${root_authorized_keys_path}"
-      | EOS
+    run_task('kvm_automation_tooling::add_ssh_authorized_key',
+      $all_targets,
+      'user' => 'root',
+      'ssh_public_key' => $host_public_key,
+    )
   }
 
   if $install_openvox {
