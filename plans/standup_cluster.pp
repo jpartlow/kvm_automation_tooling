@@ -75,8 +75,12 @@
 #   to the root accounts.
 # @param user_password The password to set for the login user on the
 #   vms. This is optional and should only be used for debugging.
-# @param install_openvox Whether to install OpenVox Puppet on the
+# @param install_openvox Whether to install openvox Puppet(TM) on the
 #   vms in the cluster.
+# @param install_openvox_params A hash of parameters to pass to the
+#   kvm_automation_tooling::subplans::install_openvox plan if
+#   installing something other than the latest agent package from
+#   the latest collection. See the subplan for parameter details.
 plan kvm_automation_tooling::standup_cluster(
   String $cluster_name,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
@@ -96,6 +100,8 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $host_root_access = false,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
+  Kvm_automation_tooling::Openvox_install_params
+  $install_openvox_params = {},
 ) {
   $terraform_dir = './terraform'
 
@@ -224,10 +230,12 @@ plan kvm_automation_tooling::standup_cluster(
   if $install_openvox {
     $primary_target = $target_map.dig('primary', 0)
     run_plan('kvm_automation_tooling::subplans::install_openvox',
-      'targets' => $all_targets,
-      'puppetserver_target' => $primary_target,
-      'puppetdb_target' => $primary_target,
-      'postgresql_target' => $primary_target,
+      $install_openvox_params + {
+        'targets' => $all_targets,
+        'puppetserver_target' => $primary_target,
+        'puppetdb_target' => $primary_target,
+        'postgresql_target' => $primary_target,
+      }
     )
   }
 
