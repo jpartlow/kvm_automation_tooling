@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  standup-cluster:
+  standup-cluster-and-run-beaker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,6 +22,7 @@ jobs:
           os-arch: amd64
           setup-cluster-root-ssh: true
           debug: true
+          install-openvox: true
           vms: |-
             [
               {

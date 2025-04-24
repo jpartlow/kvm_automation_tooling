@@ -1,0 +1,140 @@
+---
+name: 'Action Acceptance Tests'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  install-openvox-collection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: local-action
+        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          os: ubuntu
+          os-version: '24.04'
+          os-arch: amd64
+          setup-cluster-root-ssh: true
+          debug: true
+          install-openvox: true
+          openvox-collection: 'openvox7'
+          vms: |-
+            [
+              {
+                "role": "agent",
+                "cpus": 2,
+                "mem_mb": 2048
+              }
+            ]
+      - name: Verify openvox-agent is installed
+        working-directory: kvm_automation_tooling
+        env:
+          # Suppress warnings about Bolt gem versus package use.
+          BOLT_GEM: true
+        shell: bash
+        run: |-
+          set -e
+          set +o pipefail
+          res=$(bundle exec bolt command run \
+                  '/opt/puppetlabs/bin/puppet --version' \
+                  --inventory terraform/instances/inventory.*.yaml \
+                  --targets test-singular-ubuntu-2404-amd64-agent-1 \
+                  --format json)
+          echo "${res}"
+          echo "${res}" | jq .
+          ver=$(echo "$res" | jq ."items"[0].value.stdout)
+          echo "ver: ${ver}"
+          set -x
+          [[ "${ver}" =~ \"7\. ]]
+  install-openvox-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: local-action
+        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          os: ubuntu
+          os-version: '24.04'
+          os-arch: amd64
+          setup-cluster-root-ssh: true
+          debug: true
+          install-openvox: true
+          openvox-version: '8.13.0'
+          vms: |-
+            [
+              {
+                "role": "agent",
+                "cpus": 2,
+                "mem_mb": 2048
+              }
+            ]
+      - name: Verify openvox-agent is installed
+        working-directory: kvm_automation_tooling
+        env:
+          # Suppress warnings about Bolt gem versus package use.
+          BOLT_GEM: true
+        shell: bash
+        run: |-
+          set -e
+          set +o pipefail
+          res=$(bundle exec bolt command run \
+                  '/opt/puppetlabs/bin/puppet --version' \
+                  --inventory terraform/instances/inventory.*.yaml \
+                  --targets test-singular-ubuntu-2404-amd64-agent-1 \
+                  --format json)
+          echo "${res}"
+          echo "${res}" | jq .
+          ver=$(echo "$res" | jq ."items"[0].value.stdout)
+          echo "ver: ${ver}"
+          set -x
+          [[ "${ver}" =~ \"8\.13\.0 ]]
+  install-openvox-pre-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: local-action
+        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          os: ubuntu
+          os-version: '24.04'
+          os-arch: amd64
+          setup-cluster-root-ssh: true
+          debug: true
+          install-openvox: true
+          openvox-released: false
+          openvox-version: '8.13.0'
+          vms: |-
+            [
+              {
+                "role": "agent",
+                "cpus": 2,
+                "mem_mb": 2048
+              }
+            ]
+      - name: Verify openvox-agent is installed
+        working-directory: kvm_automation_tooling
+        env:
+          # Suppress warnings about Bolt gem versus package use.
+          BOLT_GEM: true
+        shell: bash
+        run: |-
+          set -e
+          set +o pipefail
+          res=$(bundle exec bolt command run \
+                  '/opt/puppetlabs/bin/puppet --version' \
+                  --inventory terraform/instances/inventory.*.yaml \
+                  --targets test-singular-ubuntu-2404-amd64-agent-1 \
+                  --format json)
+          echo "${res}"
+          echo "${res}" | jq .
+          ver=$(echo "$res" | jq ."items"[0].value.stdout)
+          echo "ver: ${ver}"
+          set -x
+          [[ "${ver}" =~ \"8\.13\.0 ]]
