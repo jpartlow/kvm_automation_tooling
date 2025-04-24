@@ -5,26 +5,26 @@ description: 'Standup a cluster of local nested virtual machines via libvirt wit
 
 inputs:
   os:
-    description: 'Operating system to use for the cluster'
+    description: 'Operating system to use for the cluster.'
     required: true
     type: string
   os-version:
-    description: 'Operating system version to use for the cluster'
+    description: 'Operating system version to use for the cluster.'
     required: true
     type: string
   os-arch:
-    description: 'Operating system arch to use for the cluster'
+    description: 'Operating system arch to use for the cluster.'
     required: true
     type: string
   ruby-version:
-    description: 'Ruby version to install for the action'
+    description: 'Ruby version to install for the action.'
     required: true
     type: string
     default: '3.3'
   vms:
     description: |-
       JSON array of VM definitions as defined by the
-      kvm_automation_tooling::vm_spec datatype
+      kvm_automation_tooling::vm_spec datatype.
     required: true
     type: string
     default: |-
@@ -33,6 +33,42 @@ inputs:
           "role": "agent"
         }
       ]
+  install-openvox:
+    description: |-
+      Whether or not to install the openvox Puppet(TM) agent on the
+      vms.
+    type: boolean
+    default: false
+  openvox-collection:
+    type: string
+    default: 'openvox8'
+  openvox-version:
+    description: |-
+      Version of openvox to install in the cluster. The default value,
+      'latest', will install the latest version of openvox in the
+      given openvox-collection. The openvox-version must match the
+      collection (you can't request 7.y from the openvox8
+      collection...).
+
+      If you are installing a pre-release version of openvox, then
+      openvox-collection is ignored and openvox-version must be a
+      specific version, not 'latest'.
+    type: string
+    default: 'latest'
+  openvox-released:
+    description: |-
+      If true, install a released openvox-version from the set
+      openvox-collection. If false, install a pre-release
+      openvox-version package from the openvox-artifacts-url server.
+    type: boolean
+    default: true
+  openvox-artifacts-url:
+    description: |-
+      URL to the openvox build artifacts. Used to download pre-release
+      openvox rpm or deb packages directly, if openvox-released is set
+      to false.
+    type: string
+    default: 'https://s3.osuosl.org/openvox-artifacts'
   setup-cluster-ssh:
     description: |-
       If true, generated VMs with controller roles ('primary' or
@@ -116,6 +152,11 @@ runs:
         SETUP_CLUSTER_SSH: ${{ inputs.setup-cluster-ssh }}
         SETUP_CLUSTER_ROOT_SSH: ${{ inputs.setup-cluster-root-ssh }}
         HOST_ROOT_ACCESS: ${{ inputs.host-root-access }}
+        INSTALL_OPENVOX: ${{ inputs.install-openvox }}
+        OPENVOX_COLLECTION: ${{ inputs.openvox-collection }}
+        OPENVOX_VERSION: ${{ inputs.openvox-version }}
+        OPENVOX_RELEASED: ${{ inputs.openvox-released }}
+        OPENVOX_ARTIFACTS_URL: ${{ inputs.openvox-artifacts-url }}
       working-directory: kvm_automation_tooling
       run: |-
         cat > standup_cluster_params.json <<EOF
@@ -129,7 +170,14 @@ runs:
           "os": "${OS}",
           "os_version": "${OS_VERSION}",
           "os_arch": "${OS_ARCH}",
-          "vms": ${VMS}
+          "vms": ${VMS},
+          "install_openvox": ${INSTALL_OPENVOX},
+          "install_openvox_params": {
+            "openvox_collection": "${OPENVOX_COLLECTION}",
+            "openvox_version": "${OPENVOX_VERSION}",
+            "openvox_released": ${OPENVOX_RELEASED},
+            "openvox_artifacts_url": "${OPENVOX_ARTIFACTS_URL}"
+          }
         }
         EOF
     - name: Run standup_cluster plan

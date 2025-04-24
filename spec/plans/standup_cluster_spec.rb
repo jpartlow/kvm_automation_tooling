@@ -106,7 +106,15 @@ describe 'plan: standup_cluster' do
       end
 
       it 'terraforms and installs openvox' do
-        allow_apply_prep
+        expect_task('openvox_bootstrap::install')
+          .with_targets(['spec-singular-ubuntu-2404-amd64-primary-1.vm', 'spec-singular-ubuntu-2404-amd64-agent-1.vm'])
+          .with_params({
+            'version'    => 'latest',
+            'collection' => 'openvox8',
+            'apt_source' => 'https://apt.overlookinfratech.com',
+            'yum_source' => 'https://yum.overlookinfratech.com',
+          })
+        expect_plan('facts')
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
@@ -124,7 +132,7 @@ describe 'plan: standup_cluster' do
       end
 
       it 'adds host root access when requsted' do
-        allow_apply_prep
+        expect_plan('kvm_automation_tooling::subplans::install_openvox')
 
         public_key_path = "#{tempdir}/ssh_rspec.pub"
         File.write(public_key_path, 'rspec-public-key')
@@ -182,7 +190,7 @@ describe 'plan: standup_cluster' do
             'path' => 'ubuntu-2204-amd64',
           )
 
-        allow_apply_prep
+        expect_plan('kvm_automation_tooling::subplans::install_openvox')
       end
 
       it 'manages all platforms' do
