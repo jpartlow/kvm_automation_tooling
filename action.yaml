@@ -153,8 +153,8 @@ runs:
         SETUP_CLUSTER_ROOT_SSH: ${{ inputs.setup-cluster-root-ssh }}
         HOST_ROOT_ACCESS: ${{ inputs.host-root-access }}
         INSTALL_OPENVOX: ${{ inputs.install-openvox }}
-        OPENVOX_COLLECTION: ${{ inputs.openvox-collection }}
-        OPENVOX_VERSION: ${{ inputs.openvox-version }}
+        OPENVOX_COLLECTION: ${{ inputs.openvox-collection || 'openvox8' }}
+        OPENVOX_VERSION: ${{ inputs.openvox-version || 'latest' }}
         OPENVOX_RELEASED: ${{ inputs.openvox-released }}
         OPENVOX_ARTIFACTS_URL: ${{ inputs.openvox-artifacts-url }}
       working-directory: kvm_automation_tooling
