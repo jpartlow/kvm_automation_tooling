@@ -7,26 +7,21 @@ inputs:
   os:
     description: 'Operating system to use for the cluster.'
     required: true
-    type: string
   os-version:
     description: 'Operating system version to use for the cluster.'
     required: true
-    type: string
   os-arch:
     description: 'Operating system arch to use for the cluster.'
     required: true
-    type: string
   ruby-version:
     description: 'Ruby version to install for the action.'
     required: true
-    type: string
     default: '3.3'
   vms:
     description: |-
       JSON array of VM definitions as defined by the
       kvm_automation_tooling::vm_spec datatype.
     required: true
-    type: string
     default: |-
       [
         {
@@ -37,10 +32,8 @@ inputs:
     description: |-
       Whether or not to install the openvox Puppet(TM) agent on the
       vms.
-    type: boolean
     default: false
   openvox-collection:
-    type: string
     default: 'openvox8'
   openvox-version:
     description: |-
@@ -53,43 +46,36 @@ inputs:
       If you are installing a pre-release version of openvox, then
       openvox-collection is ignored and openvox-version must be a
       specific version, not 'latest'.
-    type: string
     default: 'latest'
   openvox-released:
     description: |-
       If true, install a released openvox-version from the set
       openvox-collection. If false, install a pre-release
       openvox-version package from the openvox-artifacts-url server.
-    type: boolean
     default: true
   openvox-artifacts-url:
     description: |-
       URL to the openvox build artifacts. Used to download pre-release
       openvox rpm or deb packages directly, if openvox-released is set
       to false.
-    type: string
     default: 'https://s3.osuosl.org/openvox-artifacts'
   setup-cluster-ssh:
     description: |-
       If true, generated VMs with controller roles ('primary' or
       'runner'), will be given ssh access to all vms in the cluster.
-    type: boolean
     default: true
   setup-cluster-root-ssh:
     description: |-
       If true, and setup-cluster-ssh is true, controllers will
       also be given root ssh access.
-    type: boolean
     default: false
   host-root-access:
     description: |-
       If true, the generated VMs will be configured to allow the
       host root access via SSH.
-    type: boolean
     default: false
   debug:
     description: 'Enable debug output (adds --stream to bolt commands).'
-    type: boolean
     default: false
 
 outputs:
