@@ -17,15 +17,19 @@ function kvm_automation_tooling::platform(
     fail("An os, os_version, and os_arch must be set in the vm_spec. Received: ${vm_spec}")
   }
 
+  $_deb_arch = $arch ? {
+    'x86_64'  => 'amd64',
+    'aarch64' => 'arm64',
+    default   => $arch,
+  }
+
   case $os {
+    'debian': {
+      "${os}-${version}-${_deb_arch}"
+    }
     'ubuntu': {
       $_version = kvm_automation_tooling::get_normalized_ubuntu_version($version)
-      $_arch = $arch ? {
-        'x86_64'  => 'amd64',
-        'aarch64' => 'arm64',
-        default   => $arch,
-      }
-      "${os}-${_version}-${_arch}"
+      "${os}-${_version}-${_deb_arch}"
     }
     default: {
       fail("TODO: Implement support for operating system: ${os}")
