@@ -12,14 +12,19 @@ on:
 jobs:
   standup-cluster:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ['ubuntu', '2404', 'amd64']
+          - ['debian', '12', 'amd64']
     steps:
       - uses: actions/checkout@v4
       - id: local-action
         uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
         with:
-          os: ubuntu
-          os-version: '24.04'
-          os-arch: amd64
+          os: ${{ matrix.os[0] }}
+          os-version: ${{ matrix.os[1] }}
+          os-arch: ${{ matrix.os[2] }}
           debug: true
           vms: |-
             [
@@ -41,5 +46,7 @@ jobs:
           jq . <<< $INVENTORY_JSON
       - name: Run teardown_cluster plan
         working-directory: kvm_automation_tooling
+        env:
+          PLATFORM: ${{ matrix.os[0] }}-${{ matrix.os[1] }}-${{ matrix.os[2] }}
         run: |-
-          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id=test-singular-ubuntu-2404-amd64
+          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id="test-singular-${PLATFORM}"

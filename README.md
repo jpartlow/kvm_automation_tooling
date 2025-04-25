@@ -4,20 +4,22 @@ A Bolt module for creating and destroying kvm vm clusters via libvirt.
 Uses Terraform and the puppetlabs-terraform module to manage vm creation.
 Uses cloud-init to configure user account, ssh keys and network.
 
-Currently supports Ubuntu 24.04, 22.04 and 20.04.
-
 Principally intended as a development/ci tool for OpenVox stack testing.
 
 TODO:
 
 * Add support for other OSes
-  * Debian
   * EL, Rocky, Alma
   * Fedora
   * SLES
   * ?
 * Add support for other architectures?
 * Finish OpenVox stack setup (openvox-server, openvox-db, postgresql)
+
+## OS Support
+
+* Debian 12, 11, 10
+* Ubuntu 24.04, 22.04, 20.04
 
 ## Dependencies
 
@@ -30,6 +32,9 @@ These are the versions I was using when I built this module.
 * [libvirt](https://libvirt.org/) 10.0.0
 * libvirt-dev (for the ruby bindings using ruby-libvirt from the Gemfile)
 * genisoimage (for creating the cloud-init iso)
+
+Note: Puppet and Bolt will also be installed as Gems by Bundler,
+so installing those system packages is not strictly necessary.
 
 ## Usage
 
@@ -63,7 +68,7 @@ bundle exec bolt module install
 The [kvm_automation_tooling::standup_cluster](plans/standup_cluster.pp) plan is
 the main entry point for cluster automation.
 
-Write a cluster_params.json file with parameters neede by the plan.
+Write a cluster_params.json file with parameters needed by the plan.
 
 Example:
 
