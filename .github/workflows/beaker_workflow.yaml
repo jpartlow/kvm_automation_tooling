@@ -28,8 +28,7 @@ jobs:
               {
                 "role": "runner",
                 "cpus": 4,
-                "mem_mb": 8192,
-                "disk_gb": 10
+                "mem_mb": 8192
               },
               {
                 "role": "agent",
