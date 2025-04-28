@@ -2,5 +2,6 @@
 # when standing up vms.
 type Kvm_automation_tooling::Operating_system = Enum[
   'debian',
+  'rocky',
   'ubuntu',
 ]

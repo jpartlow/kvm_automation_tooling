@@ -51,7 +51,7 @@
 # apppear to keep additional dated images that are not the 9.y
 # latest.
 # https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
-# https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-LVM-9.4-20240609.0.x86_64.qcow2
+# https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base-9.4-20240523.0.x86_64.qcow2
 # https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base-9.4-20240609.0.x86_64.qcow2
 #
 # Unlike alma, it looks like rocky does keep the latest daily
@@ -118,8 +118,9 @@ function kvm_automation_tooling::get_image_url(
     kvm_automation_tooling::get_normalized_os_arch($os_name, $os_spec['arch'])
   $image_version = $os_spec['image_version']
   $image_servers = {
-    'ubuntu' => 'https://cloud-images.ubuntu.com',
     'debian' => 'https://cloud.debian.org',
+    'rocky'  => 'https://dl.rockylinux.org',
+    'ubuntu' => 'https://cloud-images.ubuntu.com',
   }
   $image_server = $image_servers[$os_name]
   $codename =
@@ -160,6 +161,35 @@ function kvm_automation_tooling::get_image_url(
       }
     }
 
+    'rocky': {
+      $base_image_name = "Rocky-${os_version}-GenericCloud-Base"
+      $base_pub_url    = "${image_server}/pub/rocky"
+      $base_vault_url  = "${image_server}/vault/rocky"
+
+      case $image_version {
+        # Historical build
+        # Ex:
+        # https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base-9.4-20240523.0.x86_64.qcow2
+        /^(\d+\.\d+)-.+$/: {
+          "${base_vault_url}/${1}/images/${os_arch}/${base_image_name}-${image_version}.${os_arch}.qcow2"
+        }
+
+        # A specific major.minor version.
+        # Ex:
+        # https://dl.rockylinux.org/vault/rocky/9.5/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+        NotUndef: {
+          "${base_vault_url}/${image_version}/images/${os_arch}/${base_image_name}.latest.${os_arch}.qcow2"
+        }
+
+        # Latest release build
+        # Ex:
+        # https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+        default: {
+          "${base_pub_url}/${os_version}/images/${os_arch}/${base_image_name}.latest.${os_arch}.qcow2"
+        }
+      }
+    }
+
     'ubuntu': {
       $base_url = "${image_server}/${codename}"
       $image_name = "${codename}-server-cloudimg-${os_arch}"
@@ -181,7 +211,7 @@ function kvm_automation_tooling::get_image_url(
       }
     }
 
-    # TODO: rocky, suse, fedora, etc.
+    # TODO: suse, fedora, etc.
     default: {
       fail(@("ERR"/L))
         The kvm_automation_tooling::get_image_url() function does not \

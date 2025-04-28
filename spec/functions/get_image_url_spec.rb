@@ -102,4 +102,37 @@ describe 'kvm_automation_tooling::get_image_url' do
       )
     end
   end
+
+  context 'rocky' do
+    let(:params) do
+      {
+        'name' => 'rocky',
+        'version' => '9',
+        'arch' => 'x86_64',
+      }
+    end
+
+    it 'returns an url string for rocky' do
+      is_expected.to(
+        run.with_params(params)
+          .and_return('https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2')
+      )
+    end
+
+    it 'returns a major.minor version for rocky' do
+      p = params.merge('image_version' => '9.5')
+      is_expected.to(
+        run.with_params(p)
+          .and_return('https://dl.rockylinux.org/vault/rocky/9.5/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2')
+      )
+    end
+
+    it 'returns a historical version for rocky' do
+      p = params.merge('image_version' => '9.4-20240523.0')
+      is_expected.to(
+        run.with_params(p)
+          .and_return('https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base-9.4-20240523.0.x86_64.qcow2')
+      )
+    end
+  end
 end

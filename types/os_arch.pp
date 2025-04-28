@@ -3,4 +3,6 @@
 type Kvm_automation_tooling::Os_arch = Enum[
   'x86_64',
   'amd64',
+  'aarch64',
+  'arm64',
 ]

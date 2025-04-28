@@ -74,4 +74,10 @@ describe 'kvm_automation_tooling::translate_os_version_codename' do
       )
     end
   end
+
+  it 'returns what it was given for a non debian based os' do
+    is_expected.to(
+      run.with_params('rocky', '9').and_return('9')
+    )
+  end
 end
