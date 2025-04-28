@@ -9,7 +9,7 @@ Principally intended as a development/ci tool for OpenVox stack testing.
 TODO:
 
 * Add support for other OSes
-  * EL, Rocky, Alma
+  * EL, Alma
   * Fedora
   * SLES
   * ?
@@ -19,6 +19,7 @@ TODO:
 ## OS Support
 
 * Debian 12, 11, 10
+* Rocky 9, 8
 * Ubuntu 24.04, 22.04, 20.04
 
 ## Dependencies
@@ -109,6 +110,56 @@ of 'foo', and hostnames 'foo-primary-1' and 'foo-agent-1'
 respectively. The terraform state files and a bolt inventory file
 (distinguished by the cluster_id) will be found under the
 terraform/instances/ directory.
+
+#### RedHat Issues
+
+RHEL 9 variants require x86_64-v2 support.
+
+https://developers.redhat.com/blog/2021/01/05/building-red-hat-enterprise-linux-9-for-the-x86-64-v2-microarchitecture-level#recommendations_for_rhel_9
+
+This could be set in the libvirt cpu model per
+https://libvirt.org/formatdomain.html#cpu-model-and-topology (choosing
+something like Nehalem as a lowest level of support), but the
+terraform provider I'm using, dmacvicar/libvirt, does not support
+setting a cpu model entry, just the overall cpu mode attribute.
+
+https://github.com/dmacvicar/terraform-provider-libvirt/issues/1129
+
+The workaround is to set the cpu_mode to host-model or
+host-passthrough.
+
+##### Rocky Issues
+
+The Rocky 8 images are larger (2GB) than the Rocky 9 and Debian/Ubuntu
+images (around 500MB), so take longer in gha when downloading.
+
+Also, the Rocky images seem to define a 10GB partition, since, even
+though
+[KvmAutomationTooling::LibvirtWrapper.upload_image()](lib/kvm_automation_tooling/libvirt_wrapper.rb)
+is specifying a 3GB default capacity, the capacity set in volume xml
+ends up being 10GB. In practice this means that with these images, you
+must specify a minimum disk size of 10GB for vms based on them. The
+[terraform vm.disk_gb param](terraform/modules/vm/variables.tf) has a
+10GB default, but if you override this to less than 10GB for a Rocky
+vm, you will get an error similar to:
+
+```
+Finished: task terraform::apply with 1 failure in 0.8 sec
+Finished: plan terraform::apply in 0.8 sec
+Finished: plan kvm_automation_tooling::standup_cluster in 32.73 sec
+Failed on localhost:
+
+  Error: when 'size' is specified, it shouldn't
+  be smaller than the backing store specified with
+  'base_volume_id' or 'base_volume_name/base_volume_pool'
+
+    with module.vmdomain["test-singular-rocky-9-x86_64-primary-1"].libvirt_volume.volume_qcow2,
+    on modules/vm/main.tf line 10, in resource "libvirt_volume" "volume_qcow2":
+    10: resource "libvirt_volume" "volume_qcow2" {
+```
+
+(I know you can grow partitionts with cloud-init; I'm not certain if
+it's feasible to shrink them.)
 
 ### Teardown Cluster
 
