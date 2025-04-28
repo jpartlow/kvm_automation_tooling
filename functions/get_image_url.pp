@@ -118,15 +118,57 @@ function kvm_automation_tooling::get_image_url(
     kvm_automation_tooling::get_normalized_os_arch($os_name, $os_spec['arch'])
   $image_version = $os_spec['image_version']
   $image_servers = {
-    'debian' => 'https://cloud.debian.org',
-    'rocky'  => 'https://dl.rockylinux.org',
-    'ubuntu' => 'https://cloud-images.ubuntu.com',
+    'almalinux' => 'https://repo.almalinux.org',
+    # Note: vault.almalinux.org has the historical images
+    'almalinux-vault' => 'https://vault.almalinux.org',
+    'debian'    => 'https://cloud.debian.org',
+    'rocky'     => 'https://dl.rockylinux.org',
+    'ubuntu'    => 'https://cloud-images.ubuntu.com',
   }
   $image_server = $image_servers[$os_name]
   $codename =
     kvm_automation_tooling::translate_os_version_codename($os_name, $os_version)
 
   case $os_name {
+    'almalinux': {
+      $vault_server = $image_servers['almalinux-vault']
+      $base_image_name = "AlmaLinux-${os_version}-GenericCloud"
+
+      case $image_version {
+        # Historical build
+        # Ex:
+        # https://vault.almalinux.org/9.4/cloud/x86_64/images/AlmaLinux-9-GenericCloud-9.4-20240507.x86_64.qcow2
+        /^(\d+\.\d+)-.+$/: {
+          "${vault_server}/${1}/cloud/${os_arch}/images/${base_image_name}-${image_version}.${os_arch}.qcow2"
+        }
+
+        # A specific major.minor version.
+        # XXX: There is a nasty edge case here in that the latest
+        # major.minor (currently version 9.5) is only available
+        # at the repo.almalinux.org site, and not in the vault.
+        # But any older version is only in the valut, not
+        # repo.almalinux.org... So...yeah. I'm not going to hardcode a
+        # special case for 9.5, because it would change all the time,
+        # and I don't think we'll pin much to an x.y. But if it does
+        # start to come up, we'll probably need another parameter to
+        # differentiate whether the caller expects to find the image
+        # in the vault or not.
+        # Ex:
+        # https://vault.almalinux.org/9.4/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
+        NotUndef: {
+          "${vault_server}/${image_version}/cloud/${os_arch}/images/${base_image_name}-latest.${os_arch}.qcow2"
+        }
+
+        # If no image_version is given, default to latest released
+        # version.
+        # Ex:
+        # https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2
+        default: {
+          "${image_server}/almalinux/${os_version}/cloud/${os_arch}/images/${base_image_name}-latest.${os_arch}.qcow2"
+        }
+      }
+    }
+
     'debian': {
       $base_url =
         "${image_server}/images/cloud/${codename}"

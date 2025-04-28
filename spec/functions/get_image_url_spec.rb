@@ -31,14 +31,14 @@ describe 'kvm_automation_tooling::get_image_url' do
       }
     end
 
-    it 'returns an url string for ubuntu' do
+    it 'returns an url string' do
       is_expected.to(
         run.with_params(params)
           .and_return('https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img')
       )
     end
 
-    it 'returns a daily version for ubuntu' do
+    it 'returns a daily version' do
       p = params.merge('image_version' => '20250425')
       is_expected.to(
         run.with_params(p)
@@ -57,14 +57,14 @@ describe 'kvm_automation_tooling::get_image_url' do
       }
     end
 
-    it 'returns an url string for debian' do
+    it 'returns an url string' do
       is_expected.to(
         run.with_params(params)
           .and_return('https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2')
       )
     end
 
-    it 'returns a historical version for debian' do
+    it 'returns a historical version' do
       p = params.merge('image_version' => '20240703-1797')
       is_expected.to(
         run.with_params(p)
@@ -72,7 +72,7 @@ describe 'kvm_automation_tooling::get_image_url' do
       )
     end
 
-    it 'returns a historical daily version for debian' do
+    it 'returns a historical daily version' do
       p = params.merge('image_version' => 'daily-20240703-1797')
       is_expected.to(
         run.with_params(p)
@@ -80,7 +80,7 @@ describe 'kvm_automation_tooling::get_image_url' do
       )
     end
 
-    it 'returns a daily latest version for debian' do
+    it 'returns a daily latest version' do
       p = params.merge(
         'version' => '13',
         'image_version' => 'daily-latest'
@@ -91,7 +91,7 @@ describe 'kvm_automation_tooling::get_image_url' do
       )
     end
 
-    it 'returns a specific pre-release version for debian' do
+    it 'returns a specific pre-release version' do
       p = params.merge(
         'version' => '13',
         'image_version' => 'daily-20250430-2098',
@@ -112,14 +112,14 @@ describe 'kvm_automation_tooling::get_image_url' do
       }
     end
 
-    it 'returns an url string for rocky' do
+    it 'returns an url string' do
       is_expected.to(
         run.with_params(params)
           .and_return('https://dl.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud-Base.latest.x86_64.qcow2')
       )
     end
 
-    it 'returns a major.minor version for rocky' do
+    it 'returns a major.minor version' do
       p = params.merge('image_version' => '9.5')
       is_expected.to(
         run.with_params(p)
@@ -127,11 +127,44 @@ describe 'kvm_automation_tooling::get_image_url' do
       )
     end
 
-    it 'returns a historical version for rocky' do
+    it 'returns a historical version' do
       p = params.merge('image_version' => '9.4-20240523.0')
       is_expected.to(
         run.with_params(p)
           .and_return('https://dl.rockylinux.org/vault/rocky/9.4/images/x86_64/Rocky-9-GenericCloud-Base-9.4-20240523.0.x86_64.qcow2')
+      )
+    end
+  end
+
+  context 'almalinux' do
+    let(:params) do
+      {
+        'name' => 'almalinux',
+        'version' => '9',
+        'arch' => 'x86_64',
+      }
+    end
+
+    it 'returns an url string' do
+      is_expected.to(
+        run.with_params(params)
+          .and_return('https://repo.almalinux.org/almalinux/9/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2')
+      )
+    end
+
+    it 'returns a major.minor version' do
+      p = params.merge('image_version' => '9.4')
+      is_expected.to(
+        run.with_params(p)
+          .and_return('https://vault.almalinux.org/9.4/cloud/x86_64/images/AlmaLinux-9-GenericCloud-latest.x86_64.qcow2')
+      )
+    end
+
+    it 'returns a historical version' do
+      p = params.merge('image_version' => '9.4-20240507')
+      is_expected.to(
+        run.with_params(p)
+          .and_return('https://vault.almalinux.org/9.4/cloud/x86_64/images/AlmaLinux-9-GenericCloud-9.4-20240507.x86_64.qcow2')
       )
     end
   end

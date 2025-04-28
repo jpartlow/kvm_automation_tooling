@@ -1,5 +1,7 @@
 # Enumeration of platforms that the module can pull images for.
 type Kvm_automation_tooling::Allowed_platforms = Enum[
+  'almalinux-8-x86_64',
+  'almalinux-9-x86_64',
   'debian-10-amd64',
   'debian-11-amd64',
   'debian-12-amd64',
