@@ -123,7 +123,7 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
     cd kvm_automation_tooling
     cat > standup_cluster_params.json <<EOF
     {
-      "cluster_name": "test",
+      "cluster_id": "test",
       "network_addresses": "192.168.200.0/24",
       "ssh_public_key_path": "${ssh_key_file}.pub",
       "os": "ubuntu",

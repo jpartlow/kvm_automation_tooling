@@ -40,18 +40,18 @@ jobs:
           BOLT_GEM: true
         shell: bash
         run: |-
-          set -e
+          set +e
           set +o pipefail
           res=$(bundle exec bolt command run \
                   '/opt/puppetlabs/bin/puppet --version' \
-                  --inventory terraform/instances/inventory.*.yaml \
-                  --targets test-singular-ubuntu-2404-amd64-agent-1 \
+                  --inventory terraform/instances/inventory.test.yaml \
+                  --targets test-agent-1 \
                   --format json)
           echo "${res}"
           echo "${res}" | jq .
           ver=$(echo "$res" | jq ."items"[0].value.stdout)
           echo "ver: ${ver}"
-          set -x
+          set -ex
           [[ "${ver}" =~ \"7\. ]]
   install-openvox-version:
     runs-on: ubuntu-latest
@@ -82,18 +82,18 @@ jobs:
           BOLT_GEM: true
         shell: bash
         run: |-
-          set -e
+          set +e
           set +o pipefail
           res=$(bundle exec bolt command run \
                   '/opt/puppetlabs/bin/puppet --version' \
-                  --inventory terraform/instances/inventory.*.yaml \
-                  --targets test-singular-ubuntu-2404-amd64-agent-1 \
+                  --inventory terraform/instances/inventory.test.yaml \
+                  --targets test-agent-1 \
                   --format json)
           echo "${res}"
           echo "${res}" | jq .
           ver=$(echo "$res" | jq ."items"[0].value.stdout)
           echo "ver: ${ver}"
-          set -x
+          set -ex
           [[ "${ver}" =~ \"8\.13\.0 ]]
   install-openvox-pre-release:
     runs-on: ubuntu-latest
@@ -125,16 +125,16 @@ jobs:
           BOLT_GEM: true
         shell: bash
         run: |-
-          set -e
+          set +e
           set +o pipefail
           res=$(bundle exec bolt command run \
                   '/opt/puppetlabs/bin/puppet --version' \
-                  --inventory terraform/instances/inventory.*.yaml \
-                  --targets test-singular-ubuntu-2404-amd64-agent-1 \
+                  --inventory terraform/instances/inventory.test.yaml \
+                  --targets test-agent-1 \
                   --format json)
           echo "${res}"
           echo "${res}" | jq .
           ver=$(echo "$res" | jq ."items"[0].value.stdout)
           echo "ver: ${ver}"
-          set -x
+          set -ex
           [[ "${ver}" =~ \"8\.13\.0 ]]

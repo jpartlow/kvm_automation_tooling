@@ -47,7 +47,5 @@ jobs:
           jq . <<< $INVENTORY_JSON
       - name: Run teardown_cluster plan
         working-directory: kvm_automation_tooling
-        env:
-          PLATFORM: ${{ matrix.os[0] }}-${{ matrix.os[1] }}-${{ matrix.os[2] }}
         run: |-
-          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id="test-singular-${PLATFORM}"
+          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id="test"

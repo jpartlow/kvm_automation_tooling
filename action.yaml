@@ -147,7 +147,7 @@ runs:
       run: |-
         cat > standup_cluster_params.json <<EOF
         {
-          "cluster_name": "test",
+          "cluster_id": "test",
           "network_addresses": "192.168.100.0/24",
           "ssh_public_key_path": "${HOME}/.ssh/ssh-id-test.pub",
           "setup_cluster_ssh": ${SETUP_CLUSTER_SSH},
@@ -181,5 +181,5 @@ runs:
         BOLT_GEM: true
       working-directory: kvm_automation_tooling
       run: |-
-        bundle exec bolt inventory show --inventory terraform/instances/inventory.*.yaml --format json --detail | tee inventory.json
+        bundle exec bolt inventory show --inventory terraform/instances/inventory.test.yaml --format json --detail | tee inventory.json
         echo "inventory_json=$(cat inventory.json)" >> $GITHUB_OUTPUT

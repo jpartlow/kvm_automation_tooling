@@ -3,10 +3,10 @@
 #
 # Makes use of terraform under the hood for vm initialization.
 #
-# @param cluster_name This is combined with *architecture*, *os*,
-#   *os_version*, *os_arch* to obtain a reasonably unique id for the
-#   cluster. The *cluster_name* allows you to stand up more than one
-#   cluster of the same architecture and platform, for example.
+# @param cluster_id This should be a short, unique string per cluster.
+#   It must obey the character constraints for hostname as it is
+#   combined with the vm spec role and count to form unique hostnames
+#   for each vm in the cluster..
 # @param os The default operating system of the cluster.
 #   NOTE: os, os_version and os_arch are only 'optional' in the sense
 #   that they can be specified specifically in the vm spec hashes. But
@@ -82,7 +82,7 @@
 #   installing something other than the latest agent package from
 #   the latest collection. See the subplan for parameter details.
 plan kvm_automation_tooling::standup_cluster(
-  String $cluster_name,
+  Pattern['[[a-z][A-Z][0-9]-]+'] $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
   Optional[Kvm_automation_tooling::Version] $os_version = undef,
   Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
@@ -135,7 +135,6 @@ plan kvm_automation_tooling::standup_cluster(
     kvm_automation_tooling::platform($vm_spec)
   }.unique()
 
-  $cluster_id = "${cluster_name}-${architecture}-${cluster_platform}"
   $_terraform_state_dir = find_file($terraform_state_dir)
   $tfvars_file = "${_terraform_state_dir}/${cluster_id}.tfvars.json"
   $tfstate_file_name = "${cluster_id}.tfstate"

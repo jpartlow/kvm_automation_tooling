@@ -1,11 +1,9 @@
 # This plan is just a wrapper around the terraform::destroy plan
 # that automatically sets the dir, state and vars_file parameters based
-# on the given cluster_id:
+# on the given cluster_id.
 #
-#   "$cluster_name-$architecture-$os-$os_version-$os_rarch"
-#
-# It also cleans up state in the terraform/instances directory and removes
-# the local cluster specific inventory file.
+# It also cleans up state in the terraform/instances directory and
+# removes the local cluster specific inventory file.
 #
 # @param cluster_id The unique identifier for the cluster to destroy.
 # @param terraform_state_dir The directory where terraform state files
