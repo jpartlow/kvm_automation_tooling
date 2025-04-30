@@ -141,6 +141,19 @@ Successful on 1 target: foo-primary-1
 Ran on 1 target in 4.28 sec
 ```
 
+## Images
+
+### Removing Images
+
+To clean up images, use virsh to remove the base volumes from the
+default storage pool and delete the images from your download
+directory (~/images by default).
+
+```bash
+virsh vol-delete --pool default --vol debian-13-generic-amd64.qcow2
+rm ~/images/debian-13-generic-amd64.qcow2
+```
+
 ## Tests
 
 The modules must have been installed first via 'bolt module install' so that
