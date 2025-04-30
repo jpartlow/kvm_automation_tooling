@@ -32,9 +32,9 @@ plan kvm_automation_tooling::subplans::install_openvox(
   Optional[Target] $puppetdb_target = undef,
   Optional[Target] $postgresql_target = undef,
   Optional[Kvm_automation_tooling::Openvox_version]
-  $openvox_version = 'latest',
+    $openvox_version = 'latest',
   Optional[Kvm_automation_tooling::Openvox_collection]
-  $openvox_collection = 'openvox8',
+    $openvox_collection = 'openvox8',
   Boolean $openvox_released = true,
   Optional[Stdlib::HTTPUrl] $openvox_artifacts_url = undef,
 ) {

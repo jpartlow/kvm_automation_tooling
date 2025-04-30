@@ -1,5 +1,5 @@
-# Generic function to produce a cononical descriptive platform string from
-# a set of os, version and cpu arch values.
+# Generic function to produce a canonical descriptive platform string
+# from a set of os, version and cpu arch values.
 function kvm_automation_tooling::platform(
   Variant[
     Struct[{
