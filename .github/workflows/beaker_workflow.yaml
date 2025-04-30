@@ -12,14 +12,21 @@ on:
 jobs:
   standup-cluster-and-run-beaker:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - ['almalinux', '9', 'x86_64']
+          - ['debian', '12', 'x86_64']
+          - ['rocky', '9', 'x86_64']
+          - ['ubuntu', '24.04', 'x86_64']
     steps:
       - uses: actions/checkout@v4
       - id: local-action
         uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
         with:
-          os: ubuntu
-          os-version: '24.04'
-          os-arch: amd64
+          os: ${{ matrix.os[0] }}
+          os-version: ${{ matrix.os[1] }}
+          os-arch: ${{ matrix.os[2] }}
           setup-cluster-root-ssh: true
           debug: true
           install-openvox: true
@@ -28,12 +35,14 @@ jobs:
               {
                 "role": "runner",
                 "cpus": 4,
-                "mem_mb": 8192
+                "mem_mb": 8192,
+                "cpu_mode": "host-model"
               },
               {
                 "role": "agent",
                 "cpus": 2,
-                "mem_mb": 2048
+                "mem_mb": 2048,
+                "cpu_mode": "host-model"
               }
             ]
       - name: Display inventory details
