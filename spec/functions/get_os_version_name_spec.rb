@@ -18,7 +18,7 @@ describe 'kvm_automation_tooling::get_os_version_name' do
   it 'returns nil for unknown ubuntu version' do
     is_expected.to(
       run.with_params('ubuntu', '9999')
-        .and_return(nil)
+        .and_raise_error(/does not know the .+ codename/)
     )
   end
 
@@ -32,7 +32,7 @@ describe 'kvm_automation_tooling::get_os_version_name' do
   it 'returns nil for an unknown debian codename' do
     is_expected.to(
       run.with_params('debian', '9999')
-        .and_return(nil)
+        .and_raise_error(/does not know the .+ codename/)
     )
   end
 end

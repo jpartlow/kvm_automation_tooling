@@ -14,6 +14,7 @@ function kvm_automation_tooling::get_os_version_name(
         '10' => 'buster',
         '11' => 'bullseye',
         '12' => 'bookworm',
+        '13' => 'trixie',
       }
       $_major_version = $version.split('\.')[0]
       $codename = $debian_version_names[$_major_version]
@@ -37,6 +38,14 @@ function kvm_automation_tooling::get_os_version_name(
         been expanded without adding a case to support it...
         | - EOS
     }
+  }
+
+  if $codename =~ Undef {
+    fail(@("EOS"/L))
+      The kvm_automation_tooling::get_os_version_name() function \
+      does not know the ${os} codename for ${version}. Does it need \
+      to be updated?
+      | - EOS
   }
 
   return $codename
