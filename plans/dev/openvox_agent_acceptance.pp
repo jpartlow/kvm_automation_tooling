@@ -29,6 +29,8 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
     sudo apt install -y ruby ruby-bundler ruby-dev build-essential
     | EOS
 
+  run_task('package', $runner, 'action' => 'install', 'name' => 'git')
+
   out::message('Checkout an instance of openvox-agent and install the gem bundle.')
   run_command(@("EOS"), $runner, '_run_as' => $user)
     set -e
