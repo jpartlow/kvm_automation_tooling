@@ -25,9 +25,9 @@ plan kvm_automation_tooling::subplans::lookup_platform(
     }
 
     $platform = kvm_automation_tooling::platform(
-      'os'         => $os,
-      'os_version' => $os_full_version,
-      'os_arch'    => $os_arch,
+      'name'    => $os,
+      'version' => $os_full_version,
+      'arch'    => $os_arch,
     )
     $target.set_var('platform', $platform)
   }

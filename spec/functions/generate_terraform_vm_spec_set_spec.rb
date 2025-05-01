@@ -1,14 +1,16 @@
 require 'spec_helper'
 
 describe 'kvm_automation_tooling::generate_terraform_vm_spec_set' do
-  let(:cluster_id) { 'test-singular-ubuntu-2404-amd64' }
+  let(:cluster_id) { 'test' }
   let(:vm_specs) do
     [
       {
         'role' => 'primary',
-        'os' => 'ubuntu',
-        'os_version' => '24.04',
-        'os_arch' => 'x86_64',
+        'os' => {
+          'name' => 'ubuntu',
+          'version' => '24.04',
+          'arch' => 'x86_64',
+        },
         'cpus' => 4,
         'mem_mb' => 4096,
         'disk_gb' => 20,
@@ -16,9 +18,11 @@ describe 'kvm_automation_tooling::generate_terraform_vm_spec_set' do
       {
         'role' => 'agent',
         'count' => 2,
-        'os' => 'ubuntu',
-        'os_version' => '22.04',
-        'os_arch' => 'x86_64',
+        'os' => {
+          'name' => 'ubuntu',
+          'version' => '22.04',
+          'arch' => 'x86_64',
+        },
       },
     ]
   end
@@ -46,18 +50,18 @@ describe 'kvm_automation_tooling::generate_terraform_vm_spec_set' do
       run.with_params(cluster_id, vm_specs, image_results)
         .and_return(
           {
-            'test-singular-ubuntu-2404-amd64-primary-1' => {
+            'test-primary-1' => {
               'cpus' => 4,
               'mem_mb' => 4096,
               'disk_gb' => 20,
               'base_volume_name' => 'noble-server.img',
               'pool_name' => 'ubuntu-2404-amd64.pool',
             },
-            'test-singular-ubuntu-2404-amd64-agent-1' => {
+            'test-agent-1' => {
               'base_volume_name' => 'jammy-server.img',
               'pool_name' => 'ubuntu-2204-amd64.pool',
             },
-            'test-singular-ubuntu-2404-amd64-agent-2' => {
+            'test-agent-2' => {
               'base_volume_name' => 'jammy-server.img',
               'pool_name' => 'ubuntu-2204-amd64.pool',
             },

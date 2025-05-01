@@ -1,8 +1,8 @@
 # Convert the puppet inventory group into a hosts.yaml file for
 # use with Beaker.
 #
-# @param $hosts The hosts to include in the hosts.yaml file.
-# @param $hosts_yaml An absolute path of the hosts file to generate.
+# @param hosts The hosts to include in the hosts.yaml file.
+# @param hosts_yaml An absolute path of the hosts file to generate.
 plan kvm_automation_tooling::dev::generate_beaker_hosts_file(
   TargetSpec $hosts = 'puppet',
   String[1] $hosts_yaml = '/tmp/hosts.yaml',

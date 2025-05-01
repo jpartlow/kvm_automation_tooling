@@ -5,7 +5,7 @@ describe 'plan: teardown_cluster' do
 
   let(:params) do
     {
-      'cluster_id' => 'spec-singular-ubuntu-2404-amd64',
+      'cluster_id' => 'spec',
     }
   end
   let(:terraform_state_dir) do

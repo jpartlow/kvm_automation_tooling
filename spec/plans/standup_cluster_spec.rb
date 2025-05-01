@@ -7,7 +7,7 @@ describe 'plan: standup_cluster' do
   let(:tempdir) { Dir.mktmpdir('rspec-kat-standup-cluster') }
   let(:params) do
     {
-      'cluster_name' => 'spec',
+      'cluster_id' => 'spec',
       'os'           => 'ubuntu',
       'os_version'   => '24.04',
       'os_arch'      => 'x86_64',
@@ -27,7 +27,7 @@ describe 'plan: standup_cluster' do
       ],
     }
   end
-  let(:cluster_id) { 'spec-singular-ubuntu-2404-amd64' }
+  let(:cluster_id) { 'spec' }
 
   around(:each) do |example|
     example.run
@@ -68,9 +68,11 @@ describe 'plan: standup_cluster' do
         },
         {
           'role' => 'agents',
-          'os'         => 'ubuntu',
-          'os_version' => '24.04',
-          'os_arch'    => 'x86_64',
+          'os'   => {
+            'name'    => 'ubuntu',
+            'version' => '24.04',
+            'arch'    => 'x86_64',
+          },
         },
       ]
 
@@ -107,7 +109,7 @@ describe 'plan: standup_cluster' do
 
       it 'terraforms and installs openvox' do
         expect_task('openvox_bootstrap::install')
-          .with_targets(['spec-singular-ubuntu-2404-amd64-primary-1.vm', 'spec-singular-ubuntu-2404-amd64-agent-1.vm'])
+          .with_targets(['spec-primary-1.vm', 'spec-agent-1.vm'])
           .with_params({
             'version'    => 'latest',
             'collection' => 'openvox8',
@@ -121,8 +123,8 @@ describe 'plan: standup_cluster' do
 
         target_map = result.value
         expect(target_map.keys).to match_array(['primary', 'agent'])
-        expect(target_map['primary'].map(&:name)).to eq(["spec-singular-ubuntu-2404-amd64-primary-1.vm"])
-        expect(target_map['agent'].map(&:name)).to eq(["spec-singular-ubuntu-2404-amd64-agent-1.vm"])
+        expect(target_map['primary'].map(&:name)).to eq(["spec-primary-1.vm"])
+        expect(target_map['agent'].map(&:name)).to eq(["spec-agent-1.vm"])
       end
 
       it 'just terraforms when install_openvox is false' do
@@ -139,7 +141,7 @@ describe 'plan: standup_cluster' do
         params['ssh_public_key_path'] = public_key_path
         params['host_root_access'] = true
         expect_task('kvm_automation_tooling::add_ssh_authorized_key')
-          .with_targets(['spec-singular-ubuntu-2404-amd64-primary-1.vm', 'spec-singular-ubuntu-2404-amd64-agent-1.vm'])
+          .with_targets(['spec-primary-1.vm', 'spec-agent-1.vm'])
           .with_params({
             'user' => 'root',
             'ssh_public_key' => 'rspec-public-key',
@@ -196,9 +198,11 @@ describe 'plan: standup_cluster' do
       it 'manages all platforms' do
         params['vms'] << {
           'role' => 'agent',
-          'os' => 'ubuntu',
-          'os_version' => '22.04',
-          'os_arch' => 'x86_64',
+          'os' => {
+            'name' => 'ubuntu',
+            'version' => '22.04',
+            'arch' => 'x86_64',
+          },
         }
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)

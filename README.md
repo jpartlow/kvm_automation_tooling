@@ -74,13 +74,12 @@ Example:
 
 ```json
 {
-  "cluster_name": "foo",
+  "cluster_id": "foo",
   "network_addresses": "192.168.100.0/24",
   "ssh_public_key_path": "/some/path/to/ssh/id_for_vms.pub",
   "os": "ubuntu",
   "os_version": "2404",
   "os_arch": "x86_64",
-  "architecture": "singular",
   "vms": [
     {
       "role": "primary",
@@ -106,8 +105,9 @@ bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @clus
 ```
 
 This will produce a cluster of a primary and one agent with a cluster_id string
-of 'foo-singular-ubuntu-2404-amd64'. The terraform state files and a bolt
-inventory file (distinguished by the cluster_id) will be found under the
+of 'foo', and hostnames 'foo-primary-1' and 'foo-agent-1'
+respectively. The terraform state files and a bolt inventory file
+(distinguished by the cluster_id) will be found under the
 terraform/instances/ directory.
 
 ### Teardown Cluster
@@ -115,7 +115,7 @@ terraform/instances/ directory.
 To teardown the cluster, run the teardown_cluster plan with the cluster_id:
 
 ```bash
-bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id=foo-singular-ubuntu-2404-amd64
+bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id=foo
 ```
 
 Note: You may need the vms active to run the teardown plan so that terraform
@@ -133,12 +133,25 @@ You can use this inventory file to run other Bolt plans, tasks or commands
 against the cluster. Given the 'foo' cluster example above, you could run:
 
 ```bash
-jpartlow@archimedes:~/work/src/kvm_automation_tooling$ be bolt command run --inventory terraform/instances/inventory.foo-singular-ubuntu-2404-amd64.yaml --targets foo-singular-ubuntu-2404-amd64-primary-1 'echo hi'
-Started on foo-singular-ubuntu-2404-amd64-primary-1...
-Finished on foo-singular-ubuntu-2404-amd64-primary-1:
+jpartlow@archimedes:~/work/src/kvm_automation_tooling$ be bolt command run --inventory terraform/instances/inventory.foo.yaml --targets foo-primary-1 'echo hi'
+Started on foo-primary-1...
+Finished on foo-primary-1:
   hi
-Successful on 1 target: foo-singular-ubuntu-2404-amd64-primary-1
+Successful on 1 target: foo-primary-1
 Ran on 1 target in 4.28 sec
+```
+
+## Images
+
+### Removing Images
+
+To clean up images, use virsh to remove the base volumes from the
+default storage pool and delete the images from your download
+directory (~/images by default).
+
+```bash
+virsh vol-delete --pool default --vol debian-13-generic-amd64.qcow2
+rm ~/images/debian-13-generic-amd64.qcow2
 ```
 
 ## Tests

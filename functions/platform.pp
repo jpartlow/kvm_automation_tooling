@@ -1,38 +1,21 @@
-# Generic function to produce a cononical descriptive platform string from
-# a set of os, version and cpu arch values.
+# Generic function to produce a canonical descriptive platform string
+# from a set of os, version and cpu arch values.
 function kvm_automation_tooling::platform(
-  Variant[
-    Struct[{
-      os         => Kvm_automation_tooling::Operating_system,
-      os_version => Kvm_automation_tooling::Version,
-      os_arch    => Kvm_automation_tooling::Os_arch,
-    }],
-    Kvm_automation_tooling::Vm_spec
-  ] $vm_spec,
+  Kvm_automation_tooling::Os_spec $os_spec,
 ) {
-  $os = $vm_spec['os']
-  $version = $vm_spec['os_version']
-  $arch = $vm_spec['os_arch']
-  if [$os, $version, $arch].any |$v| {$v =~ Undef } {
-    fail("An os, os_version, and os_arch must be set in the vm_spec. Received: ${vm_spec}")
-  }
+  $os = $os_spec['name']
+  $version = $os_spec['version']
+  $arch = $os_spec['arch']
 
-  $_deb_arch = $arch ? {
-    'x86_64'  => 'amd64',
-    'aarch64' => 'arm64',
-    default   => $arch,
-  }
+  $_arch = kvm_automation_tooling::get_normalized_os_arch($os, $arch)
 
   case $os {
-    'debian': {
-      "${os}-${version}-${_deb_arch}"
-    }
     'ubuntu': {
       $_version = kvm_automation_tooling::get_normalized_ubuntu_version($version)
-      "${os}-${_version}-${_deb_arch}"
+      "${os}-${_version}-${_arch}"
     }
     default: {
-      fail("TODO: Implement support for operating system: ${os}")
+      "${os}-${version}-${_arch}"
     }
   }
 }

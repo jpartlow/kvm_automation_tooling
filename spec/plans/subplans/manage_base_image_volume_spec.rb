@@ -5,7 +5,11 @@ describe 'plan: subplans::manage_base_image_volume' do
 
   let(:params) do
     {
-      'platform' => 'ubuntu-2404-amd64',
+      'os_spec' => {
+        'name'    => 'ubuntu',
+        'version' => '24.04',
+        'arch'    => 'amd64',
+      },
       'image_download_dir' => '/dev/null',
     }
   end
