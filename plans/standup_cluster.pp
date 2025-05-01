@@ -17,6 +17,14 @@
 #   cluster.
 # @param os_arch The chip architecture of the default operating system
 #   of the cluster.
+# @param image_version Specific image version to download. If not set,
+#   the latest released version is downloaded. (See
+#   [Kvm_automation_tooling::Os_spec](./types/os_spec.pp) for
+#   details.)
+# @param image_url_override Complete URL pointing to the specific
+#   image to download. (See
+#   [Kvm_automation_tooling::Os_spec](./types/os_spec.pp) for
+#   details.)
 # @param vms An array of VM specifications for the cluster. Example:
 #     [
 #       {
@@ -86,6 +94,8 @@ plan kvm_automation_tooling::standup_cluster(
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
   Optional[Kvm_automation_tooling::Version] $os_version = undef,
   Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
+  Optional[String[1]] $image_version = undef,
+  Optional[Stdlib::HTTPUrl] $image_url_override = undef,
   Array[Kvm_automation_tooling::Vm_spec,1] $vms,
   Stdlib::Ip::Address::V4::CIDR $network_addresses,
   String $domain_name = 'vm',
@@ -116,24 +126,26 @@ plan kvm_automation_tooling::standup_cluster(
   # Not going to worry just yet about partially defined os params inside
   # the vm spec hashes...
 
+  $roles = $vms.map |$s| { $s['role'] }.unique()
   $vm_specs = $vms.map |$vm_spec| {
     kvm_automation_tooling::fill_vm_spec($vm_spec, {
-      'role'       => 'defaults',
-      'os'         => $os,
-      'os_version' => $os_version,
-      'os_arch'    => $os_arch,
+      'role' => 'defaults',
+      'os'   => {
+        'name'    => $os,
+        'version' => $os_version,
+        'arch'    => $os_arch,
+        'image_version'      => $image_version,
+        'image_url_override' => $image_url_override,
+      },
     })
   }
-  $roles = $vms.map |$s| { $s['role'] }.unique()
+  $os_specs = $vm_specs.map |$vm_spec| { $vm_spec['os'] }.unique()
 
   $cluster_platform = kvm_automation_tooling::platform({
-    'os'         => $os,
-    'os_version' => $os_version,
-    'os_arch'    => $os_arch,
+    'name'    => $os,
+    'version' => $os_version,
+    'arch'    => $os_arch,
   })
-  $vm_platforms = $vm_specs.map |$vm_spec| {
-    kvm_automation_tooling::platform($vm_spec)
-  }.unique()
 
   $_terraform_state_dir = find_file($terraform_state_dir)
   $tfvars_file = "${_terraform_state_dir}/${cluster_id}.tfvars.json"
@@ -143,10 +155,10 @@ plan kvm_automation_tooling::standup_cluster(
 
   # Ensure base image volumes are present and a platform image pools
   # exist.
-  $image_results = parallelize($vm_platforms) |$p| {
+  $image_results = parallelize($os_specs) |$os_spec| {
     run_plan(
       'kvm_automation_tooling::subplans::manage_base_image_volume',
-      'platform' => $p,
+      'os_spec' => $os_spec,
       'image_download_dir' => $image_download_dir,
     )
   }

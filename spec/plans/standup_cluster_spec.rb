@@ -68,9 +68,11 @@ describe 'plan: standup_cluster' do
         },
         {
           'role' => 'agents',
-          'os'         => 'ubuntu',
-          'os_version' => '24.04',
-          'os_arch'    => 'x86_64',
+          'os'   => {
+            'name'    => 'ubuntu',
+            'version' => '24.04',
+            'arch'    => 'x86_64',
+          },
         },
       ]
 
@@ -196,9 +198,11 @@ describe 'plan: standup_cluster' do
       it 'manages all platforms' do
         params['vms'] << {
           'role' => 'agent',
-          'os' => 'ubuntu',
-          'os_version' => '22.04',
-          'os_arch' => 'x86_64',
+          'os' => {
+            'name' => 'ubuntu',
+            'version' => '22.04',
+            'arch' => 'x86_64',
+          },
         }
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)

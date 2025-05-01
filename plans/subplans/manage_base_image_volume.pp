@@ -2,14 +2,16 @@
 # imported into libvirt as a volume. Ensure that a libvirt pool for
 # platform images based on this volume is created as well.
 plan kvm_automation_tooling::subplans::manage_base_image_volume(
-  String $platform,
+  Kvm_automation_tooling::Os_spec $os_spec,
   String $image_download_dir,
 ) {
+
+  $platform = kvm_automation_tooling::platform($os_spec)
 
   run_command("mkdir -p ${image_download_dir}", 'localhost')
 
   # Download and import base image.
-  $base_image_url = kvm_automation_tooling::get_image_url($platform)
+  $base_image_url = kvm_automation_tooling::get_image_url($os_spec)
   $base_image_name = $base_image_url.split('/')[-1]
   $base_image_path = "${image_download_dir}/${base_image_name}"
   run_task('kvm_automation_tooling::download_image', 'localhost',

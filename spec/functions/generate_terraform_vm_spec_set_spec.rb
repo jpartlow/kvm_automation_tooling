@@ -6,9 +6,11 @@ describe 'kvm_automation_tooling::generate_terraform_vm_spec_set' do
     [
       {
         'role' => 'primary',
-        'os' => 'ubuntu',
-        'os_version' => '24.04',
-        'os_arch' => 'x86_64',
+        'os' => {
+          'name' => 'ubuntu',
+          'version' => '24.04',
+          'arch' => 'x86_64',
+        },
         'cpus' => 4,
         'mem_mb' => 4096,
         'disk_gb' => 20,
@@ -16,9 +18,11 @@ describe 'kvm_automation_tooling::generate_terraform_vm_spec_set' do
       {
         'role' => 'agent',
         'count' => 2,
-        'os' => 'ubuntu',
-        'os_version' => '22.04',
-        'os_arch' => 'x86_64',
+        'os' => {
+          'name' => 'ubuntu',
+          'version' => '22.04',
+          'arch' => 'x86_64',
+        },
       },
     ]
   end

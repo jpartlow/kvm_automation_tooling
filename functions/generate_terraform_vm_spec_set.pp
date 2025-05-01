@@ -19,7 +19,7 @@ function kvm_automation_tooling::generate_terraform_vm_spec_set(
 ) >> Hash[String, Hash] {
   $vm_specs.reduce({}) |$map, $spec| {
 
-    $platform = kvm_automation_tooling::platform($spec)
+    $platform = kvm_automation_tooling::platform($spec['os'])
     $count = $spec['count'] =~ Undef ? {
       true    => 1,
       default => $spec['count'],
