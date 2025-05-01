@@ -11,4 +11,4 @@ modules:
   - git: https://github.com/jpartlow/puppetlabs-terraform
     ref: maint-bump-ruby_task_helper-dependency-for-puppet-8
   - git: https://github.com/jpartlow/openvox_bootstrap
-    ref: main
+    ref: 0.1.0
