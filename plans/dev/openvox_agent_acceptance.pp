@@ -29,6 +29,8 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
     sudo apt install -y ruby ruby-bundler ruby-dev build-essential
     | EOS
 
+  run_task('package', $runner, 'action' => 'install', 'name' => 'git')
+
   out::message('Checkout an instance of openvox-agent and install the gem bundle.')
   run_command(@("EOS"), $runner, '_run_as' => $user)
     set -e
@@ -58,19 +60,11 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
   run_command(@(EOS), $runner, '_run_as' => $user)
     set -e
     cd openvox-agent/acceptance
-    # Get rid of the post_suite defined in the repo's
-    # config/aio/options.rb included from the .beaker.yml defaults.
-    # The type value is necessary for the configure_type_defaults_on()
-    # method to work properly as it will default to 'pe' otherwise.
-    echo '{type:"aio"}' > local_options.rb
-    cat > configure_type_defaults.rb <<EOF
-    test_name('configure root ssh environment path') do
-      configure_type_defaults_on(agents)
-    end
-    EOF
-    bundle exec beaker init --hosts hosts.yaml --preserve-hosts always \
-      --keyfile ~/.ssh/id_ed25519 --pre-suite configure_type_defaults.rb \
-      --tests tests --options_file local_options.rb
+
+    bundle exec beaker init --hosts hosts.yaml \
+      --preserve-hosts always --keyfile ~/.ssh/id_ed25519 \
+      --pre-suite pre-suite/configure_type_defaults.rb \
+      --tests tests
     # The provision step is still needed here, see notes in the
     # beaker-hosts.yaml.epp template...
     bundle exec beaker provision

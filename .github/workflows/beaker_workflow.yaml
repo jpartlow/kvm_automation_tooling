@@ -47,3 +47,43 @@ jobs:
         working-directory: kvm_automation_tooling
         run: |-
           bundle exec bolt plan run kvm_automation_tooling::dev::openvox_agent_acceptance --inventory terraform/instances/inventory.test.yaml runner="test-runner-1" agents="test-agent-1" --stream --no-verbose
+  test-beaker-on-debian-pre-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: local-action
+        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          os: debian
+          os-version: '13'
+          os-arch: amd64
+          image_version: 'daily-latest'
+          setup-cluster-root-ssh: true
+          debug: true
+          install-openvox: true
+          openvox-released: false
+          openvox-version: '8.17.0'
+          vms: |-
+            [
+              {
+                "role": "runner",
+                "cpus": 4,
+                "mem_mb": 8192,
+                "disk_gb": 10
+              },
+              {
+                "role": "agent",
+                "cpus": 2,
+                "mem_mb": 2048
+              }
+            ]
+      - name: Display inventory details
+        working-directory: kvm_automation_tooling
+        env:
+          INVENTORY_JSON: ${{ steps.local-action.outputs.cluster-details }}
+        run: |-
+          jq . <<< $INVENTORY_JSON
+      - name: Run openvox_agent_acceptance plan
+        working-directory: kvm_automation_tooling
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::dev::openvox_agent_acceptance --inventory terraform/instances/inventory.test.yaml runner="test-runner-1" agents="test-agent-1" --stream --no-verbose
