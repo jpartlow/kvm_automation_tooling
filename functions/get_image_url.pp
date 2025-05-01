@@ -123,7 +123,7 @@ function kvm_automation_tooling::get_image_url(
   }
   $image_server = $image_servers[$os_name]
   $codename =
-    kvm_automation_tooling::get_os_version_name($os_name, $os_version)
+    kvm_automation_tooling::translate_os_version_codename($os_name, $os_version)
 
   case $os_name {
     'debian': {
