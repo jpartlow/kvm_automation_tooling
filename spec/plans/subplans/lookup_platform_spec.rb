@@ -64,4 +64,32 @@ describe 'plan: kvm_automation_tooling::subplans::lookup_platform' do
       )
     end
   end
+
+  context 'debian pre-release image' do
+    let(:facts) do
+      {
+        'os' => {
+          'name' => 'Debian',
+          'release' => {
+            'full' => 'trixie/sid',
+            'major' => 'trixie/sid',
+          },
+          'distro' => {
+            'codename' => 'trixie',
+          },
+          'architecture' => 'amd64',
+        },
+      }
+    end
+
+    it 'returns a target with platform var by translating codename' do
+      result = run_plan('kvm_automation_tooling::subplans::lookup_platform', 'targets' => 'spec')
+
+      expect(result.ok?).to(eq(true), result.value.to_s)
+      expect(result.value.first.vars).to include(
+        'platform' => 'debian-13-amd64',
+      )
+    end
+
+  end
 end

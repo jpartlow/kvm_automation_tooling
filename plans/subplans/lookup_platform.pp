@@ -16,6 +16,16 @@ plan kvm_automation_tooling::subplans::lookup_platform(
     # of whether puppet/facter are present on the target:
     $os = downcase(dig($target.facts, 'os', 'name'))
     $os_full_version = dig($target.facts, 'os', 'release', 'full')
+    # However, there is a case where version may be 'n/a' or
+    # something like 'trixie/sid'.
+    # This is the case for Debian pre-release images.
+    # For this case we need to fallback to translating the codename.
+    if $os_full_version !~ Kvm_automation_tooling::Version {
+      $codename = dig($target.facts, 'os', 'distro', 'codename')
+      $os_version = kvm_automation_tooling::translate_os_version_codename($os, $codename)
+    } else {
+      $os_version = $os_full_version
+    }
 
     # But architecture will only be in the facts if facter was present.
     if dig($target.facts, 'os', 'architecture') =~ Undef {
@@ -26,7 +36,7 @@ plan kvm_automation_tooling::subplans::lookup_platform(
 
     $platform = kvm_automation_tooling::platform(
       'name'    => $os,
-      'version' => $os_full_version,
+      'version' => $os_version,
       'arch'    => $os_arch,
     )
     $target.set_var('platform', $platform)
