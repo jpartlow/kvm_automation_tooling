@@ -7,15 +7,15 @@
 # they can't handle agent packages outside of the default
 # puppet-agent package names and repositories.
 #
-# @param $runner The target spec for the runner VM that will run
-#   the openvox-agent acceptance tests.
-# @param $agents The target spec for the agent VMs that will be
-#   tested by the openvox-agent acceptance tests.
-# @param $openvox_agent_url The url of the openvox-agent git
-#   repository.
-# @param $branch The branch of the openvox-agent git repository
-#   to checkout.
-# @param $user The user ssh account on the VMs where openv-agent
+# @param runner The target spec for the runner VM that will run
+#   the oenvox-agent acceptance tests.
+# @param agents The target spec for the agent VMs that will be
+#   teste by the openvox-agent acceptance tests.
+# @param openvox_agent_url The url of the openvox-agent git
+#   repostory.
+# @param branch The branch of the openvox-agent git repository
+#   to chckout.
+# @param user The user ssh account on the VMs where openv-agent
 #   will be checked out and beaker run.
 plan kvm_automation_tooling::dev::openvox_agent_acceptance(
   TargetSpec $runner,

@@ -20,13 +20,13 @@
 #
 # If controllers is an empty set, nothing is done.
 #
-# @param $controllers The target spec for the controller VMs that will
-#   receive the generated ssh keypair.
-# @param $destinations The target spec for the VMs that controllers
-#   are authorized to log into.
-# @param $user The user ssh account on the vms.
-# @param $key_type The type of ssh key to generate. (ed25519 or rsa)
-# @param $root_access Whether to allow root access to the destination
+# @param controllers The target spec for the controller VMs that will
+#   receie the generated ssh keypair.
+# @param destinations The target spec for the VMs that controllers
+#   are athorized to log into.
+# @param user The user ssh account on the vms.
+# @param key_type The type of ssh key to generate. (ed25519 or rsa)
+# @param root_access Whether to allow root access to the destination
 #   VMs. (Required for Beaker, for example.)
 plan kvm_automation_tooling::subplans::setup_cluster_ssh(
   TargetSpec $controllers,

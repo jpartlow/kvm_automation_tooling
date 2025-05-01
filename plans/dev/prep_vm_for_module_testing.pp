@@ -21,11 +21,11 @@
 # (If you are using the standup_cluster plan to create a vm to test with,
 # the mode can be set using the cpu_mode parameter.)
 #
-# @param $dev_vm The target spec for the VM to be used for testing.
-# @param $kvm_module_url The URL to the kvm_automation_tooling git
-#   repository. This is used to check out the module code on the VM.
-# @param $branch The branch to check out.
-# @param $virbr0_network_prefix The three octet network prefix for the
+# @param dev_vm The target spec for the VM to be used for testing.
+# @param kvm_module_url The URL to the kvm_automation_tooling git
+#   repostory. This is used to check out the module code on the VM.
+# @param branch The branch to check out.
+# @param virbr0_network_prefix The three octet network prefix for the
 #   new virbr0 network on the VM. (Distinguished from the host's virbr0
 #   which will usually be 192.168.122.0/24).
 plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
