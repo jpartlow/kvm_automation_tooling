@@ -12,10 +12,11 @@ function kvm_automation_tooling::platform(
   case $os {
     'ubuntu': {
       $_version = kvm_automation_tooling::get_normalized_ubuntu_version($version)
-      "${os}-${_version}-${_arch}"
     }
     default: {
-      "${os}-${version}-${_arch}"
+      $_version = $version.split('\.')[0]
     }
   }
+
+  "${os}-${_version}-${_arch}"
 }
