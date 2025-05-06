@@ -45,6 +45,8 @@ variable "vm_specs" {
     # The name of the libvirt volume to use as the base image for the
     # VM images.
     base_volume_name = string
+    # The name of the operating system being used on the vm.
+    os = string
     # The number of CPUs to allocate to each vm.
     cpus      = optional(number)
     # The amount of memory in MB to allocate to each vm.

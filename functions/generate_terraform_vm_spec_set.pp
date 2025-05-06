@@ -20,6 +20,7 @@ function kvm_automation_tooling::generate_terraform_vm_spec_set(
   $vm_specs.reduce({}) |$map, $spec| {
 
     $platform = kvm_automation_tooling::platform($spec['os'])
+    $os_name = dig($spec, 'os', 'name')
     $count = $spec['count'] =~ Undef ? {
       true    => 1,
       default => $spec['count'],
@@ -35,6 +36,7 @@ function kvm_automation_tooling::generate_terraform_vm_spec_set(
     } + {
       'base_volume_name' => $image_result['base_volume_name'],
       'pool_name'        => $image_result['pool_name'],
+      'os'               => $os_name,
     }
 
     $map + Integer[1, $count].reduce({}) |$m, $i| {
