@@ -194,13 +194,13 @@ plan kvm_automation_tooling::standup_cluster(
       out::message("VM IP addresses: ${stdlib::to_json_pretty($ip_addresses)}")
       $valid_addresses = $ip_addresses.all |$i| {
         $host_map = $i[1]
-        # Check that the ip address is not an ipv6 address, because a
+        # Check that the ip address is an ipv4 address, because a
         # Bolt::Target.uri needs an ipv4 address when we resolve
         # references below.
-        $host_map['ip_address'] !~ /::/
+        $host_map['ip_address'] =~ Stdlib::Ip::Address::V4
       }
       if !$valid_addresses {
-        log::warn('Some ipv6 addresses returned; refreshing state.')
+        log::warn('Some hosts missing valid IPv4 addresses; refreshing state.')
       }
     }
     $valid_addresses

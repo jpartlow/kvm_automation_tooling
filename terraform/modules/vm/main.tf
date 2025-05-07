@@ -73,5 +73,5 @@ resource "libvirt_domain" "domain" {
 
 output "ip_address" {
   description = "The IP address of the vm."
-  value = libvirt_domain.domain.network_interface.0.addresses[0]
+  value = length(libvirt_domain.domain.network_interface) > 0 && length(libvirt_domain.domain.network_interface.0.addresses) > 0 ? libvirt_domain.domain.network_interface[0].addresses[0] : null
 }
