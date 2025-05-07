@@ -25,14 +25,43 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
   String $user = system::env('USER'),
 ) {
   out::message('Install ruby and packages required for rubygem native builds.')
-  run_command(@(EOS), $runner)
-    sudo apt install -y ruby ruby-bundler ruby-dev build-essential
-    | EOS
-
-  run_task('package', $runner, 'action' => 'install', 'name' => 'git')
+  $runner_target = get_target($runner)
+  run_plan('facts', 'targets' => $runner_target)
+  if $runner_target.facts()['aio_agent_version'] == undef{
+    apply_prep($runner_target)
+  }
+  apply($runner_target) {
+    $common_packages = [
+      'ruby',
+      'git',
+    ]
+    case $facts['os']['family'] {
+      'Debian': {
+        $packages = [
+          'build-essential',
+          'ruby-bundler',
+          'ruby-dev',
+        ]
+      }
+      'RedHat': {
+        $packages = [
+          'ruby-devel',
+          'rubygem-bundler',
+          'make',
+          'gcc',
+        ]
+      }
+      default: {
+        fail("Unsupported os: ${facts['os']}")
+      }
+    }
+    package { $packages + $common_packages:
+      ensure => installed,
+    }
+  }
 
   out::message('Checkout an instance of openvox-agent and install the gem bundle.')
-  run_command(@("EOS"), $runner, '_run_as' => $user)
+  run_command(@("EOS"), $runner_target, '_run_as' => $user)
     set -e
     if ! [ -d openvox-agent ]; then
       git clone "${openvox_agent_url}"
@@ -53,11 +82,11 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
   upload_file(
     $host_yaml,
     "/home/${user}/openvox-agent/acceptance/hosts.yaml",
-    $runner,
+    $runner_target,
   )
 
   out::message('Run beaker.')
-  run_command(@(EOS), $runner, '_run_as' => $user)
+  run_command(@(EOS), $runner_target, '_run_as' => $user)
     set -e
     cd openvox-agent/acceptance
 

@@ -15,10 +15,16 @@ jobs:
     strategy:
       matrix:
         os:
-          - ['ubuntu', '2404', 'amd64']
-          - ['debian', '12', 'amd64']
+          - ['almalinux', '8', 'x86_64']
+          - ['almalinux', '9', 'x86_64']
+          - ['debian', '11', 'x86_64']
+          - ['debian', '12', 'x86_64']
           # debian 13 is not released yet, but we can get dailies...
-          - ['debian', '13', 'amd64', 'daily-latest']
+          - ['debian', '13', 'x86_64', 'daily-latest']
+          - ['rocky', '8', 'x86_64']
+          - ['rocky', '9', 'x86_64']
+          - ['ubuntu', '22.04', 'x86_64']
+          - ['ubuntu', '24.04', 'x86_64']
     steps:
       - uses: actions/checkout@v4
       - id: local-action
@@ -29,16 +35,19 @@ jobs:
           os-arch: ${{ matrix.os[2] }}
           image_version: ${{ matrix.os[3] }}
           debug: true
+          # Setting cpu_mode to host-model is necessary for redhat9
+          # x86_64-v2 requirements (see README.md)
           vms: |-
             [
               {
                 "role": "primary",
                 "cpus": 2,
                 "mem_mb": 4096,
-                "disk_gb": 5
+                "cpu_mode": "host-model"
               },
               {
-                "role": "agent"
+                "role": "agent",
+                "cpu_mode": "host-model"
               }
             ]
       - name: Display inventory details

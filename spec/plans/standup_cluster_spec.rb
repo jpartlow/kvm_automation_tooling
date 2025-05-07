@@ -83,6 +83,15 @@ describe 'plan: standup_cluster' do
   end
 
   context 'successfully runs' do
+    let(:apply_result) do
+      {
+        'vm_ip_addresses' => {
+          'value' => {
+            'spec-primary-1' => { 'ip_address' => '1.2.3.4', },
+          },
+        },
+      }
+    end
 
     before(:each) do
       allow_any_out_message
@@ -95,6 +104,7 @@ describe 'plan: standup_cluster' do
           'state'         => "#{tempdir}/#{cluster_id}.tfstate",
           'return_output' => true,
         )
+        .always_return(apply_result)
       expect_plan('kvm_automation_tooling::subplans::setup_cluster_ssh')
     end
 

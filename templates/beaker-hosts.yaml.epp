@@ -7,7 +7,7 @@ HOSTS:
     ip: '<%= $agent.uri %>'
     roles:
       - agent
-    platform: '<%= $agent.vars['platform'] %>'
+    platform: '<%= $agent.vars['beaker_platform'] %>'
     # Setting the hypervisor to none is paradoxically still important.
     # It corresponds to a sort of default Beaker::Hypervisor, and it's
     # configure() method is still important, as it calls the included

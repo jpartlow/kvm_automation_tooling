@@ -39,4 +39,50 @@ describe 'kvm_automation_tooling::platform' do
       )
     end
   end
+
+  context 'rocky' do
+    it 'returns a platform string' do
+      is_expected.to(
+        run.with_params({ 'name' => 'rocky', 'version' => '9', 'arch' => 'x86_64' })
+          .and_return('rocky-9-x86_64')
+      )
+    end
+
+    it 'switches to x86_64 for rocky arch' do
+      is_expected.to(
+        run.with_params({ 'name' => 'rocky', 'version' => '9', 'arch' => 'amd64'})
+          .and_return('rocky-9-x86_64')
+      )
+    end
+
+    it 'clips to major' do
+      is_expected.to(
+        run.with_params({ 'name' => 'rocky', 'version' => '9.5', 'arch' => 'amd64'})
+          .and_return('rocky-9-x86_64')
+      )
+    end
+  end
+
+  context 'almalinux' do
+    it 'returns a platform string' do
+      is_expected.to(
+        run.with_params({ 'name' => 'almalinux', 'version' => '9', 'arch' => 'x86_64' })
+          .and_return('almalinux-9-x86_64')
+      )
+    end
+
+    it 'switches to x86_64 for almalinux arch' do
+      is_expected.to(
+        run.with_params({ 'name' => 'almalinux', 'version' => '9', 'arch' => 'amd64'})
+          .and_return('almalinux-9-x86_64')
+      )
+    end
+
+    it 'clips to major' do
+      is_expected.to(
+        run.with_params({ 'name' => 'almalinux', 'version' => '9.5', 'arch' => 'amd64'})
+          .and_return('almalinux-9-x86_64')
+      )
+    end
+  end
 end

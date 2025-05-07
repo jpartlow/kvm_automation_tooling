@@ -13,6 +13,11 @@ variable "base_volume_name" {
   type = string
 }
 
+variable "os" {
+  description = "The name of the operating system being used on the VM."
+  type = string
+}
+
 variable "cpu_mode" {
   description = "The CPU mode to use for the VM."
   type = string

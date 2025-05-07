@@ -179,17 +179,31 @@ plan kvm_automation_tooling::standup_cluster(
   run_task('terraform::initialize', 'localhost', 'dir' => $terraform_dir)
 
   # Terraform apply.
-  $apply_result = run_plan('terraform::apply',
-    'dir'      => $terraform_dir,
-    'var_file' => $tfvars_file,
-    'state'    => $tfstate_file,
-    'return_output' => true,
-  )
-  $ip_addresses = $apply_result.dig('vm_ip_addresses', 'value')
-  if $ip_addresses =~ Undef {
-    log::warn("Terraform apply did not return an ip address list:\n${apply_result}")
-  } else {
-    out::message("VM IP addresses: ${stdlib::to_json_pretty($ip_addresses)}")
+  ctrl::do_until(limit => 10, interval => 5) || {
+    $apply_result = run_plan('terraform::apply',
+      'dir'      => $terraform_dir,
+      'var_file' => $tfvars_file,
+      'state'    => $tfstate_file,
+      'return_output' => true,
+    )
+    $ip_addresses = $apply_result.dig('vm_ip_addresses', 'value')
+    if $ip_addresses =~ Undef {
+      log::warn("Terraform apply did not return an ip address list:\n${apply_result}")
+      $valid_addresses = false
+    } else {
+      out::message("VM IP addresses: ${stdlib::to_json_pretty($ip_addresses)}")
+      $valid_addresses = $ip_addresses.all |$i| {
+        $host_map = $i[1]
+        # Check that the ip address is an ipv4 address, because a
+        # Bolt::Target.uri needs an ipv4 address when we resolve
+        # references below.
+        $host_map['ip_address'] =~ Stdlib::Ip::Address::V4
+      }
+      if !$valid_addresses {
+        log::warn('Some hosts missing valid IPv4 addresses; refreshing state.')
+      }
+    }
+    $valid_addresses
   }
 
   # Generate an inventory file for the cluster.
@@ -208,6 +222,8 @@ plan kvm_automation_tooling::standup_cluster(
   }
 
   $all_targets = $target_map.values().flatten()
+
+  wait_until_available($all_targets)
 
   if $setup_cluster_ssh {
     $controllers = $target_map.reduce([]) |$acc, $entry| {

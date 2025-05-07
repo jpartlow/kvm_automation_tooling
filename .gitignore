@@ -1,5 +1,6 @@
 Gemfile.lock
 vendor/bundle
+tmp/
 
 # puppet and bolt
 inventory.*.yaml

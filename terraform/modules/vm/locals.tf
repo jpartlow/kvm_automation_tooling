@@ -12,7 +12,8 @@ locals {
   network_config = templatefile(
     "${local.cloud_init_path}/network-config.yaml.tftpl",
     {
-      gateway_ip = var.gateway_ip
+      gateway_ip = var.gateway_ip,
+      os         = var.os,
     }
   )
   meta_data = templatefile(

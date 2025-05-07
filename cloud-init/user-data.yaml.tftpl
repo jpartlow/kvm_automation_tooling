@@ -14,7 +14,7 @@ users:
 %{ if user_password != "" ~}
     # for debugging
     plain_text_passwd: ${user_password}
-    lock-passwd: false
+    lock_passwd: false
 %{ endif ~}
 # Set Passwords Module
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#set-passwords
@@ -23,7 +23,8 @@ chpasswd: { expire: False }
 # Package Update Upgrade Install Module
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#package-update-upgrade-install
 # Ensure qemu agent is installed so that terraform-provider-libvirt can retrieve IP address.
-packages: qemu-guest-agent
+packages:
+  - qemu-guest-agent
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd
 runcmd:
   - [ systemctl, daemon-reload ]

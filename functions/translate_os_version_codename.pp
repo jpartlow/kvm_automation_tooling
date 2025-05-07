@@ -4,12 +4,15 @@
 # Raises an error if unable to translate the given
 # version_or_codename.
 #
+# If given something for an *os* other than debian or ubuntu, it
+# returns what it was given.
+#
 # @param $os The operating system name (debian or ubuntu).
 # @param $version_or_codename The version number (e.g., 10, 11, 12,
 #   18.04, 20.04), or codename string (trixie, noble, etc.) to
 #   translate.
 function kvm_automation_tooling::translate_os_version_codename(
-  Enum['debian','ubuntu'] $os,
+  Kvm_automation_tooling::Operating_system $os,
   Variant[Kvm_automation_tooling::Version,Pattern[/[a-z]+/]]
     $version_or_codename,
 ) {
@@ -57,11 +60,7 @@ function kvm_automation_tooling::translate_os_version_codename(
     }
 
     default: {
-      fail(@("EOS"/L))
-        The kvm_automation_tooling::translate_os_version_codename() \
-        function has no handling of ${os}. The function's os enum \
-        must have been expanded without adding a case to support it...
-        | - EOS
+      $translation = $version_or_codename
     }
   }
 

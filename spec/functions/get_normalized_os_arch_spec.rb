@@ -14,7 +14,6 @@ describe 'kvm_automation_tooling::get_normalized_os_arch' do
     end
 
     it 'returns arm64 for aarch64' do
-      pending
       is_expected.to(
         run.with_params('debian', 'aarch64')
           .and_return('arm64')
@@ -28,7 +27,6 @@ describe 'kvm_automation_tooling::get_normalized_os_arch' do
 
   context 'other' do
     it 'returns x86_64 for amd64' do
-      pending
       is_expected.to(
         run.with_params('rocky', 'amd64')
           .and_return('x86_64')
@@ -36,7 +34,6 @@ describe 'kvm_automation_tooling::get_normalized_os_arch' do
     end
 
     it 'returns aarch64 for arm64' do
-      pending
       is_expected.to(
         run.with_params('rocky', 'arm64')
           .and_return('aarch64')
