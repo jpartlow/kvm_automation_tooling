@@ -80,7 +80,7 @@ inputs:
       URL to the openvox build artifacts. Used to download pre-release
       openvox rpm or deb packages directly, if openvox-released is set
       to false.
-    default: 'https://s3.osuosl.org/openvox-artifacts'
+    default: 'https://artifacts.voxpupuli.org'
   setup-cluster-ssh:
     description: |-
       If true, generated VMs with controller roles ('primary' or

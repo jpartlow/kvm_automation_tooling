@@ -24,10 +24,11 @@ describe 'plan: install_openvox' do
     expect_task('openvox_bootstrap::install')
       .with_targets(targets)
       .with_params({
+        'package'    => 'openvox-agent',
         'version'    => 'latest',
         'collection' => 'openvox8',
-        'apt_source' => 'https://apt.overlookinfratech.com',
-        'yum_source' => 'https://yum.overlookinfratech.com',
+        'apt_source' => 'https://apt.voxpupuli.org',
+        'yum_source' => 'https://yum.voxpupuli.org',
       })
 
     result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
@@ -39,10 +40,11 @@ describe 'plan: install_openvox' do
     expect_task('openvox_bootstrap::install')
       .with_targets(targets)
       .with_params({
+        'package'    => 'openvox-agent',
         'version'    => '7.0.0',
         'collection' => 'openvox7',
-        'apt_source' => 'https://apt.overlookinfratech.com',
-        'yum_source' => 'https://yum.overlookinfratech.com',
+        'apt_source' => 'https://apt.voxpupuli.org',
+        'yum_source' => 'https://yum.voxpupuli.org',
       })
 
     result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
@@ -57,7 +59,7 @@ describe 'plan: install_openvox' do
       .with_params({
         'version'    => '9.0.0',
         'package'    => 'openvox-agent',
-        'artifacts_source' => 'https://s3.osuosl.org/openvox-artifacts',
+        'artifacts_source' => 'https://artifacts.voxpupuli.org',
       })
 
     result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
