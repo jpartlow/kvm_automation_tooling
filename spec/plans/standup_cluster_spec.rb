@@ -121,10 +121,11 @@ describe 'plan: standup_cluster' do
         expect_task('openvox_bootstrap::install')
           .with_targets(['spec-primary-1.vm', 'spec-agent-1.vm'])
           .with_params({
+            'package'    => 'openvox-agent',
             'version'    => 'latest',
             'collection' => 'openvox8',
-            'apt_source' => 'https://apt.overlookinfratech.com',
-            'yum_source' => 'https://yum.overlookinfratech.com',
+            'apt_source' => 'https://apt.voxpupuli.org',
+            'yum_source' => 'https://yum.voxpupuli.org',
           })
         expect_plan('facts')
 

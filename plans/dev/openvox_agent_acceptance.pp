@@ -27,7 +27,7 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
   out::message('Install ruby and packages required for rubygem native builds.')
   $runner_target = get_target($runner)
   run_plan('facts', 'targets' => $runner_target)
-  if $runner_target.facts()['aio_agent_version'] == undef{
+  if ($runner_target.facts()['aio_agent_version'] == undef) {
     apply_prep($runner_target)
   }
   apply($runner_target) {
