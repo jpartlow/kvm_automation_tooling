@@ -240,13 +240,12 @@ plan kvm_automation_tooling::standup_cluster(
   }
 
   if $install_openvox {
-    $primary_target = $target_map.dig('primary', 0)
+    $primary_targets = $target_map['primary']
     run_plan('kvm_automation_tooling::install_openvox',
       $install_openvox_params + {
-        'targets' => $all_targets,
-        'puppetserver_target' => $primary_target,
-        'puppetdb_target' => $primary_target,
-        'postgresql_target' => $primary_target,
+        'openvox_agent_targets'  => $all_targets,
+        'openvox_server_targets' => $primary_targets,
+        'openvox_db_targets'     => $primary_targets,
       }
     )
   }
