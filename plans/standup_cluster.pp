@@ -1,5 +1,5 @@
-# Standup one cluster of KVM virtual machines for a particular OS Puppet
-# architecture.
+# Standup one cluster of KVM virtual machines based on a given
+# Kvm_automation_tooling::Vm_spec structure.
 #
 # Makes use of terraform under the hood for vm initialization.
 #
@@ -48,7 +48,7 @@
 #   appended to the hostnames of the VMs in the cluster, and will
 #   resolve locally within the cluster.
 # @param architecture The Puppet services architecture of the cluster
-#   (see docs/ARCHITECTURE.md).
+#   (see docs/ARCHITECTURE.md). (Currently unused.)
 # @param image_download_dir The directory where base os images are
 #   downloaded to. This should be an absolute path.
 # @param terraform_state_dir The directory where terraform state files,
@@ -241,7 +241,7 @@ plan kvm_automation_tooling::standup_cluster(
 
   if $install_openvox {
     $primary_target = $target_map.dig('primary', 0)
-    run_plan('kvm_automation_tooling::subplans::install_openvox',
+    run_plan('kvm_automation_tooling::install_openvox',
       $install_openvox_params + {
         'targets' => $all_targets,
         'puppetserver_target' => $primary_target,

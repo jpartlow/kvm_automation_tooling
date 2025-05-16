@@ -31,7 +31,7 @@ describe 'plan: install_openvox' do
         'yum_source' => 'https://yum.voxpupuli.org',
       })
 
-    result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
+    result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
   end
 
@@ -47,7 +47,7 @@ describe 'plan: install_openvox' do
         'yum_source' => 'https://yum.voxpupuli.org',
       })
 
-    result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
+    result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
   end
 
@@ -62,7 +62,7 @@ describe 'plan: install_openvox' do
         'artifacts_source' => 'https://artifacts.voxpupuli.org',
       })
 
-    result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
+    result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
   end
 
@@ -78,7 +78,7 @@ describe 'plan: install_openvox' do
         'artifacts_source' => 'https://some.other',
       })
 
-    result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
+    result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
   end
 end
