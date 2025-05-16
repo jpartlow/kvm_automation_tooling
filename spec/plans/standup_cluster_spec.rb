@@ -146,7 +146,7 @@ describe 'plan: standup_cluster' do
       end
 
       it 'adds host root access when requsted' do
-        expect_plan('kvm_automation_tooling::subplans::install_openvox')
+        expect_plan('kvm_automation_tooling::install_openvox')
 
         public_key_path = "#{tempdir}/ssh_rspec.pub"
         File.write(public_key_path, 'rspec-public-key')
@@ -204,7 +204,7 @@ describe 'plan: standup_cluster' do
             'path' => 'ubuntu-2204-amd64',
           )
 
-        expect_plan('kvm_automation_tooling::subplans::install_openvox')
+        expect_plan('kvm_automation_tooling::install_openvox')
       end
 
       it 'manages all platforms' do

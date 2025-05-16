@@ -26,7 +26,7 @@
 #   OpenVox from the given collection using OS package managers, or
 #   to install a pre-release version from a build artifact.
 # @param openvox_artifacts_url The URL to the OpenVox artifacts.
-plan kvm_automation_tooling::subplans::install_openvox(
+plan kvm_automation_tooling::install_openvox(
   Array[Target] $targets,
   Optional[Target] $puppetserver_target = undef,
   Optional[Target] $puppetdb_target = undef,
