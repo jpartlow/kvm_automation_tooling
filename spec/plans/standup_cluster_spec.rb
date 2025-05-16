@@ -129,6 +129,24 @@ describe 'plan: standup_cluster' do
             'yum_source' => 'https://yum.voxpupuli.org',
           })
         expect_plan('facts')
+        expect_task('openvox_bootstrap::install')
+          .with_targets(['spec-primary-1.vm'])
+          .with_params({
+            'package'    => 'openvox-server',
+            'version'    => 'latest',
+            'collection' => 'openvox8',
+            'apt_source' => 'https://apt.voxpupuli.org',
+            'yum_source' => 'https://yum.voxpupuli.org',
+          })
+        expect_task('openvox_bootstrap::install')
+          .with_targets(['spec-primary-1.vm'])
+          .with_params({
+            'package'    => 'openvoxdb',
+            'version'    => 'latest',
+            'collection' => 'openvox8',
+            'apt_source' => 'https://apt.voxpupuli.org',
+            'yum_source' => 'https://yum.voxpupuli.org',
+          })
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)

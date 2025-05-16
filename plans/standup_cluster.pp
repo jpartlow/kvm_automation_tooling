@@ -86,9 +86,9 @@
 # @param install_openvox Whether to install openvox Puppet(TM) on the
 #   vms in the cluster.
 # @param install_openvox_params A hash of parameters to pass to the
-#   kvm_automation_tooling::subplans::install_openvox plan if
+#   kvm_automation_tooling::install_openvox plan if
 #   installing something other than the latest agent package from
-#   the latest collection. See the subplan for parameter details.
+#   the latest collection.
 plan kvm_automation_tooling::standup_cluster(
   Pattern['[[a-z][A-Z][0-9]-]+'] $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
@@ -110,7 +110,12 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $host_root_access = false,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
-  Kvm_automation_tooling::Openvox_install_params
+  Struct[{
+    Optional[openvox_agent_params]  => Kvm_automation_tooling::Openvox_install_params,
+    Optional[openvox_server_params] => Kvm_automation_tooling::Openvox_install_params,
+    Optional[openvox_db_params]     => Kvm_automation_tooling::Openvox_install_params,
+    Optional[install_defaults]      => Kvm_automation_tooling::Openvox_install_params,
+  }]
   $install_openvox_params = {},
 ) {
   $terraform_dir = './terraform'
@@ -240,13 +245,12 @@ plan kvm_automation_tooling::standup_cluster(
   }
 
   if $install_openvox {
-    $primary_target = $target_map.dig('primary', 0)
+    $primary_targets = $target_map['primary']
     run_plan('kvm_automation_tooling::install_openvox',
       $install_openvox_params + {
-        'targets' => $all_targets,
-        'puppetserver_target' => $primary_target,
-        'puppetdb_target' => $primary_target,
-        'postgresql_target' => $primary_target,
+        'openvox_agent_targets'  => $all_targets,
+        'openvox_server_targets' => $primary_targets,
+        'openvox_db_targets'     => $primary_targets,
       }
     )
   }

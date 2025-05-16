@@ -185,10 +185,17 @@ runs:
           "vms": ${VMS},
           "install_openvox": ${INSTALL_OPENVOX},
           "install_openvox_params": {
-            "openvox_collection": "${OPENVOX_COLLECTION}",
-            "openvox_version": "${OPENVOX_VERSION}",
-            "openvox_released": ${OPENVOX_RELEASED},
-            "openvox_artifacts_url": "${OPENVOX_ARTIFACTS_URL}"
+            "openvox_agent_params": {
+              "openvox_collection": "${OPENVOX_COLLECTION}",
+              "openvox_version": "${OPENVOX_VERSION}",
+              "openvox_released": ${OPENVOX_RELEASED},
+              "openvox_artifacts_url": "${OPENVOX_ARTIFACTS_URL}"
+            },
+            "install_defaults": {
+              "openvox_version": "latest",
+              "openvox_collection": "${OPENVOX_COLLECTION}",
+              "openvox_released": true
+            }
           }
         }
         EOF

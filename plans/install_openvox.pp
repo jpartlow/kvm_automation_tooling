@@ -1,7 +1,5 @@
-# Install OpenVox Puppet agents and primary services on the cluster.
-#
-# This plan takes Bolt Target objects for parameters and is not
-# intended to be called manually.
+# Install OpenVox Puppet agents and primary services on the cluster
+# without any attempts at configuration.
 #
 # The openvox_* install parameters are passed to tasks in the
 # openvox_bootstrap module.
@@ -10,72 +8,99 @@
 # feature, and facts are collected and added to the targets after
 # agent installation.
 #
-# @param targets The targets to install the Puppet agent on.
-# @param puppetserver_target The target to install the Puppet server on.
-# @param puppetdb_target The target to install the PuppetDB on.
-# @param postgresql_target The target to install PostgreSQL on.
-# @param openvox_version The version of OpenVox to install, or
-#   'latest' to install the latest released version in the given
-#   openvox_collection.
-# @param openvox_collection The OpenVox collection to install from.
-#   This should match up with the openvox_version major (e.g. if
-#   installing openvox 8.15.0, the collection should be openvox8) if
-#   you are installing a release version. For pre-release versions, it
-#   is ignored.
-# @param openvox_released Whether to install a released version of
-#   OpenVox from the given collection using OS package managers, or
-#   to install a pre-release version from a build artifact.
-# @param openvox_artifacts_url The URL to the OpenVox artifacts.
+# NOTE: The agent will be installed on server and db targets as well.
+#
+# @param openvox_agent_targets The targets to install the OpenVox
+#   Puppet agent on.
+# @param openvox_server_targets The target to install the OpenVox
+#   Puppet server on.
+# @param openvox_db_targets The target to install the OpenVox PuppetDB
+#   on.
+# @param openvox_agent_params The set of
+#   Kvm_automation_tooling::Openvox_install_params defining source
+#   and version for the openvox-agent package to install on all
+#   $targets.
+# @param openvox_server_params The install params for the
+#   openvox-server package to install on the $openvox_server_targets.
+# @param openvox_db_params The install params for the
+#   openvoxdb package to install on the $openvox_db_targets.
+# @param install_defaults The default parameters to include
+#   in each of the $openvox_*_params hashes.
 plan kvm_automation_tooling::install_openvox(
-  Array[Target] $targets,
-  Optional[Target] $puppetserver_target = undef,
-  Optional[Target] $puppetdb_target = undef,
-  Optional[Target] $postgresql_target = undef,
-  Optional[Kvm_automation_tooling::Openvox_version]
-    $openvox_version = 'latest',
-  Optional[Kvm_automation_tooling::Openvox_collection]
-    $openvox_collection = 'openvox8',
-  Boolean $openvox_released = true,
-  Optional[Stdlib::HTTPUrl] $openvox_artifacts_url = undef,
+  TargetSpec $openvox_agent_targets,
+  TargetSpec $openvox_server_targets = [],
+  TargetSpec $openvox_db_targets = [],
+  Kvm_automation_tooling::Openvox_install_params
+    $openvox_agent_params = {},
+  Kvm_automation_tooling::Openvox_install_params
+    $openvox_server_params = {},
+  Kvm_automation_tooling::Openvox_install_params
+    $openvox_db_params = {},
+  Kvm_automation_tooling::Openvox_install_params
+    $install_defaults = {
+      'openvox_version'       => 'latest',
+      'openvox_collection'    => 'openvox8',
+      'openvox_released'      => true,
+    },
 ) {
-  $install_params = kvm_automation_tooling::validate_openvox_version_parameters(
-    'openvox_version'       => $openvox_version,
-    'openvox_collection'    => $openvox_collection,
-    'openvox_released'      => $openvox_released,
-    'openvox_artifacts_url' => $openvox_artifacts_url,
-  )
+  # Resolve targets in case we were given hostname or inventory group
+  # name references instead of Target objects.
+  $agent_targets  = get_targets($openvox_agent_targets)
+  $server_targets = get_targets($openvox_server_targets)
+  $db_targets     = get_targets($openvox_db_targets)
+  $all_targets    = [$agent_targets, $server_targets, $db_targets].flatten().unique()
 
-  if $openvox_released {
-    run_task('openvox_bootstrap::install', $targets,
-      'version'    => $install_params['openvox_version'],
-      'collection' => $install_params['openvox_collection'],
+  [
+    [$all_targets, 'openvox-agent', $openvox_agent_params],
+    [$server_targets, 'openvox-server', $openvox_server_params],
+    [$db_targets, 'openvoxdb', $openvox_db_params],
+  ].each |$i| {
+    $targets = $i[0]
+    $package = $i[1]
+    $params  = $i[2]
+
+    if $targets.empty() { next() }
+
+    $install_params = kvm_automation_tooling::validate_openvox_version_parameters(
+      $install_defaults + $params,
     )
-  } else {
-    $_artifacts_url = $install_params['openvox_artifacts_url']
-    $install_build_params = $_artifacts_url =~ NotUndef ? {
-      true    => {
-        'artifacts_source' => $_artifacts_url,
-      },
-      default => {},
-    } + {
-      'version' => $install_params['openvox_version'],
+
+    out::message("Installing ${package}")
+
+    if $install_params['openvox_released'] {
+      run_task(
+        'openvox_bootstrap::install',
+        $targets,
+        'package'    => $package,
+        'version'    => $install_params['openvox_version'],
+        'collection' => $install_params['openvox_collection'],
+      )
+    } else {
+      $_artifacts_url = $install_params['openvox_artifacts_url']
+      $install_build_params = $_artifacts_url =~ NotUndef ? {
+        true    => {
+          'artifacts_source' => $_artifacts_url,
+        },
+        default => {},
+      } + {
+        'package' => $package,
+        'version' => $install_params['openvox_version'],
+      }
+      run_task(
+        'openvox_bootstrap::install_build_artifact',
+        $targets,
+        $install_build_params
+      )
     }
-    run_task(
-      'openvox_bootstrap::install_build_artifact',
-      $targets,
-      $install_build_params
-    )
+
+    if $package == 'openvox-agent' {
+      # Mark each target as having the puppet-agent.
+      $targets.each |$target| {
+        set_feature($target, 'puppet-agent', true)
+      }
+
+      # Collect facts and add them to the targets.
+      run_plan('facts', 'targets' => $targets)
+    }
   }
-
-  # Mark each target as having the puppet-agent.
-  $targets.each |$target| {
-    set_feature($target, 'puppet-agent', true)
-  }
-
-  # Collect facts and add them to the targets.
-  run_plan('facts', 'targets' => $targets)
-
-  # TODO: Apply manifests to standup the server services.
-  # Probably split this out as a separate install_openvox_services
-  # plan, to call either from here or standup_cluster directly?
 }
