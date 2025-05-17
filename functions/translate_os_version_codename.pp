@@ -38,7 +38,6 @@ function kvm_automation_tooling::translate_os_version_codename(
   }
 
   case $os {
-
     'debian','ubuntu': {
       if $version_or_codename =~ Kvm_automation_tooling::Version {
         $_version = ($os == 'debian') ? {

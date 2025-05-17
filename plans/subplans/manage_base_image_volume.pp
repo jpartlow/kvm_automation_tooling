@@ -5,7 +5,6 @@ plan kvm_automation_tooling::subplans::manage_base_image_volume(
   Kvm_automation_tooling::Os_spec $os_spec,
   String $image_download_dir,
 ) {
-
   $platform = kvm_automation_tooling::platform($os_spec)
 
   run_command("mkdir -p ${image_download_dir}", 'localhost')
