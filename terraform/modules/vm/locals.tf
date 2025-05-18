@@ -1,4 +1,7 @@
 locals {
+  role = split(".", var.vm_id)[0]
+  hostname = split(".", var.vm_id)[1]
+  platform = split(".", var.vm_id)[2]
   # The path to the cloud-init configuration templates
   cloud_init_path = "${path.module}/../../../cloud-init"
   user_data = templatefile(
@@ -20,7 +23,7 @@ locals {
     "${local.cloud_init_path}/meta-data.yaml.tftpl",
     {
       instance_id = "i-${uuid()}",
-      hostname = var.hostname,
+      hostname = local.hostname,
     }
   )
   gigabyte = 1024 * 1024 * 1024

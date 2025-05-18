@@ -8,7 +8,8 @@ plan kvm_automation_tooling::dev::generate_beaker_hosts_file(
   String[1] $hosts_yaml = '/tmp/hosts.yaml',
 ) {
   $host_targets = get_targets($hosts)
-  # This has the side effect of setting a 'platform' variable on each agent target.
+  # This has the side effect of setting a 'platform' variable on each
+  # agent target, if not already set.
   run_plan('kvm_automation_tooling::subplans::lookup_platform', 'targets' => $host_targets)
 
   $host_targets.each |$t| {

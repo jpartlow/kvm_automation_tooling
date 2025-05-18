@@ -38,7 +38,7 @@ variable "user_password" {
 }
 
 variable "vm_specs" {
-  description = "A map of vm specifications to use for generating VMs with the vm module. The keys are the unique hostname string for each VM, and the values are an object with configuration details for the vm module."
+  description = "A map of vm specifications to use for generating VMs with the vm module. The keys are the unique role.hostname.platform string for each class of VMs, and the values are an object with configuration details for the vm module."
   type = map(object({
     # Identifier for the libvirt image pool to use for the VM images.
     pool_name = string

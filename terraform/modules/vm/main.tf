@@ -8,7 +8,7 @@ terraform {
 }
 
 resource "libvirt_volume" "volume_qcow2" {
-  name   = "vm-image.${var.hostname}.qcow2"
+  name   = "vm-image.${local.hostname}.qcow2"
   pool   = var.pool_name
   base_volume_name = var.base_volume_name
   base_volume_pool = "default"
@@ -21,7 +21,7 @@ resource "libvirt_volume" "volume_qcow2" {
 # Use CloudInit to add our ssh-key to the instance
 # you can add also meta_data field
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name           = "commoninit.iso.${var.hostname}"
+  name           = "commoninit.iso.${local.hostname}"
   user_data      = local.user_data
   network_config = local.network_config
   meta_data      = local.meta_data
@@ -30,10 +30,11 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 
 # Create the machine
 resource "libvirt_domain" "domain" {
-  name   = var.hostname
+  name   = local.hostname
   memory = var.mem_mb
   vcpu   = var.cpus
   qemu_agent = true
+  metadata = local.platform
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
@@ -47,7 +48,7 @@ resource "libvirt_domain" "domain" {
 
   network_interface {
     network_id = var.network_id
-    hostname = var.hostname
+    hostname = local.hostname
     wait_for_lease = true
   }
 
@@ -73,5 +74,10 @@ resource "libvirt_domain" "domain" {
 
 output "ip_address" {
   description = "The IP address of the vm."
-  value = length(libvirt_domain.domain.network_interface) > 0 && length(libvirt_domain.domain.network_interface.0.addresses) > 0 ? libvirt_domain.domain.network_interface[0].addresses[0] : null
+  value = {for d in libvirt_domain.domain[*]:
+    d.name => (length(d.network_interface) > 0) &&
+              (length(d.network_interface.0.addresses) > 0) ?
+                d.network_interface[0].addresses[0] :
+                null
+  }
 }

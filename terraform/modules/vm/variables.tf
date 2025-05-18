@@ -1,5 +1,5 @@
-variable "hostname" {
-  description = "The hostname to set for the VM."
+variable "vm_id" {
+  description = "A tripartite id for the vm made up of role.hostname.platform strings."
   type = string
 }
 

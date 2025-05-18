@@ -1,4 +1,4 @@
 output "vm_ip_addresses" {
-  description = "An array of the IP addresses of the vms."
-  value = module.vmdomain
+  description = "A hash of vm ip addresses indexed by hostname."
+  value = merge([for o in module.vmdomain: o.ip_address]...)
 }
