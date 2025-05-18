@@ -87,7 +87,8 @@ describe 'plan: standup_cluster' do
       {
         'vm_ip_addresses' => {
           'value' => {
-            'spec-primary-1' => { 'ip_address' => '1.2.3.4', },
+            'spec-primary-1' => '10.2.3.4',
+            'spec-agent-1' => '10.2.3.5',
           },
         },
       }

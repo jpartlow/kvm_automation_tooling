@@ -4,11 +4,12 @@
 # @param hosts The hosts to include in the hosts.yaml file.
 # @param hosts_yaml An absolute path of the hosts file to generate.
 plan kvm_automation_tooling::dev::generate_beaker_hosts_file(
-  TargetSpec $hosts = 'puppet',
+  TargetSpec $hosts = 'all',
   String[1] $hosts_yaml = '/tmp/hosts.yaml',
 ) {
   $host_targets = get_targets($hosts)
-  # This has the side effect of setting a 'platform' variable on each agent target.
+  # This has the side effect of setting a 'platform' variable on each
+  # agent target, if not already set.
   run_plan('kvm_automation_tooling::subplans::lookup_platform', 'targets' => $host_targets)
 
   $host_targets.each |$t| {

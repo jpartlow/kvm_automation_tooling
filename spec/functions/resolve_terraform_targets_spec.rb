@@ -4,22 +4,21 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
   include BoltSpec::BoltContext
 
   let(:tempdir) { Dir.mktmpdir('rspec-kat-resolve-terraform-targets') }
+  let(:targets) do
+    [
+      {
+        'name' => 'spec-agent-1',
+        'uri'  => '192.168.100.200',
+      },
+    ]
+  end
 
   # Mock out functions coming from other Bolt modules
   let(:pre_cond) do
     <<~PRECOND
       function resolve_references(Hash $group) {
         {
-          'targets' => [
-            {
-              'name' => 'spec-primary-1',
-              'uri'  => '192.168.100.100',
-            },
-            {
-              'name' => 'spec-agent-1',
-              'uri'  => '192.168.100.200',
-            },
-          ],
+          'targets' => #{targets}
         }
       }
     PRECOND
@@ -38,7 +37,7 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
       <<~YAML
         ---
         groups:
-          - name: puppet
+          - name: agent
             vars:
               domain_name: some.domain
             targets:
@@ -62,11 +61,11 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
     end
 
     it 'resolves the terraform targets matching role in the given inventory file' do
-      result = call_function('kvm_automation_tooling::resolve_terraform_targets', "#{tempdir}/inventory-spec.yaml", 'primary')
+      result = call_function('kvm_automation_tooling::resolve_terraform_targets', "#{tempdir}/inventory-spec.yaml", 'agent')
       expect(result).to match_array(
         have_attributes(
-          name: 'spec-primary-1.some.domain',
-          uri: '192.168.100.100',
+          name: 'spec-agent-1.some.domain',
+          uri: '192.168.100.200',
           user: 'spec',
           vars: {},
           config: {'ssh' => {'user' => 'spec', 'run-as' => 'root'}},
@@ -74,19 +73,25 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
       )
     end
 
+    it 'raises an error if the group cannot be found' do
+      expect do
+        call_function('kvm_automation_tooling::resolve_terraform_targets', "#{tempdir}/inventory-spec.yaml", 'non_existent_group')
+      end.to(raise_error(Puppet::ParseError, /Did not find group 'non_existent_group' in inventory/))
+    end
+
     context 'but no matching targets' do
+      let(:targets) { [] }
+
       it 'returns an empty array' do
-        is_expected.to run.with_params("#{tempdir}/inventory-spec.yaml", 'notfound').and_return([])
+        is_expected.to run.with_params("#{tempdir}/inventory-spec.yaml", 'agent').and_return([])
       end
     end
 
     context 'that is empty' do
-      let(:inventory_yaml) { '' }
-
-      it 'raises an error the group is not in the inventory file' do
+      it 'raises an error that the group is not in the inventory file' do
         is_expected.to(
           run.with_params('/non_existent_file.yaml', 'primary')
-            .and_raise_error(%r{Did not find group 'puppet' in inventory})
+            .and_raise_error(%r{Did not find group 'primary' in inventory})
         )
       end
     end
@@ -95,7 +100,7 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
   it 'raises an error if there is no inventory file' do
     is_expected.to(
       run.with_params('/non_existent_file.yaml', 'primary')
-        .and_raise_error(%r{Did not find group 'puppet' in inventory})
+        .and_raise_error(%r{Did not find group 'primary' in inventory})
     )
   end
 end

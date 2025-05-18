@@ -1,10 +1,15 @@
-# Given a TargetSpec, obtain platform details from each and set a
-# *platform* variable on each Target.
+# Given a TargetSpec, for each Target that does not yet have a
+# *platform* variable set, obtain platform details and set the
+# *platform* variable.
 #
 # This plan takes advantage of the fact that Target state is
 # preserved in the inventory in memory, so a calling plan will see the
 # *platform* variables so long as it is working with actual Target
 # objects.
+#
+# NOTE: If an inventory.<cluster_id>.yaml file has been given to Bolt,
+# the targets should already have *platform* set from the domain
+# metadata values.
 #
 # @param targets The targets to lookup platform details for.
 plan kvm_automation_tooling::subplans::lookup_platform(
@@ -13,7 +18,11 @@ plan kvm_automation_tooling::subplans::lookup_platform(
   $_targets = get_targets($targets)
   run_plan('facts', 'targets' => $_targets)
 
-  $targets_with_platforms = $_targets.map |$target| {
+  $_targets.each |$target| {
+    if $target.vars['platform'] =~ NotUndef {
+      # This target already has a platform variable set.
+      next()
+    }
     # The facts plan will always provide these values, regardless
     # of whether puppet/facter are present on the target:
     $os = downcase(dig($target.facts, 'os', 'name'))
@@ -44,5 +53,5 @@ plan kvm_automation_tooling::subplans::lookup_platform(
     $target.set_var('platform', $platform)
   }
 
-  return $targets_with_platforms
+  return $_targets
 }

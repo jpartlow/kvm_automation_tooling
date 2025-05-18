@@ -27,7 +27,7 @@ resource "libvirt_network" "network" {
 module "vmdomain" {
   source = "./modules/vm"
   for_each = var.vm_specs
-  hostname = each.key
+  vm_id = each.key
   pool_name = each.value.pool_name
   base_volume_name = each.value.base_volume_name
   os = each.value.os
