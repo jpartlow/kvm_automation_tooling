@@ -24,7 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install libvirt-dev library for ruby-libvirt gem
-        run: sudo apt-get install libvirt-dev
+        run: |-
+          sudo apt update
+          sudo apt install libvirt-dev
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
