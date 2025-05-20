@@ -38,7 +38,6 @@ plan kvm_automation_tooling::subplans::setup_cluster_ssh(
   if $controllers.empty() {
     out::message('No controller VMs found. Skipping internal cluster ssh setup.')
   } else {
-
     $ssh_results = run_task('kvm_automation_tooling::generate_keypair',
       'localhost',
       'type' => $key_type,

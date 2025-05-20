@@ -45,6 +45,7 @@ plan kvm_automation_tooling::dev::openvox_agent_acceptance(
       }
       'RedHat': {
         $packages = [
+          'redhat-rpm-config', # for building bcrypt_pbkdf gem
           'ruby-devel',
           'rubygem-bundler',
           'make',

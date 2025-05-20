@@ -53,7 +53,7 @@ plan kvm_automation_tooling::subplans::install_openvox(
   } else {
     $_artifacts_url = $install_params['openvox_artifacts_url']
     $install_build_params = $_artifacts_url =~ NotUndef ? {
-      'true' => {
+      true    => {
         'artifacts_source' => $_artifacts_url,
       },
       default => {},

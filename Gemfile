@@ -10,6 +10,8 @@ gem 'bcrypt_pbkdf', ['>= 1.0', '< 2.0']
 group :development do
   gem 'bolt', '~> 4.0' # provides bolt_spec for tests
   gem 'pry-byebug'
+  gem 'puppet-lint'
+  gem 'voxpupuli-puppet-lint-plugins', '~> 5.0'
   gem 'rspec', '~> 3.0'
   gem 'rspec-puppet', '~> 5.0'
 end

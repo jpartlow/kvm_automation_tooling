@@ -24,7 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install libvirt-dev library for ruby-libvirt gem
-        run: sudo apt-get install libvirt-dev
+        run: |-
+          sudo apt update
+          sudo apt install libvirt-dev
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -36,3 +38,13 @@ jobs:
           ln -s kvm_automation_tooling/.modules/ruby_task_helper ../ruby_task_helper
       - name: Run RSpec
         run: bundle exec rspec
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Run puppet-lint
+        run: bundle exec puppet-lint manifests functions plans templates
