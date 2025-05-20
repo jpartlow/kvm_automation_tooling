@@ -65,4 +65,20 @@ describe 'plan: install_openvox' do
     result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
   end
+
+  it 'installs from a different artifacts_source' do
+    params['openvox_version'] = '9.0.0'
+    params['openvox_released'] = false
+    params['openvox_artifacts_url'] = 'https://some.other'
+    expect_task('openvox_bootstrap::install_build_artifact')
+      .with_targets(targets)
+      .with_params({
+        'version'    => '9.0.0',
+        'package'    => 'openvox-agent',
+        'artifacts_source' => 'https://some.other',
+      })
+
+    result = run_plan('kvm_automation_tooling::subplans::install_openvox', params)
+    expect(result.ok?).to(eq(true), result.value.to_s)
+  end
 end
