@@ -9,18 +9,18 @@ Principally intended as a development/ci tool for OpenVox stack testing.
 TODO:
 
 * Add support for other OSes
-  * EL, Alma
   * Fedora
   * SLES
   * ?
-* Add support for other architectures?
-* Finish OpenVox stack setup (openvox-server, openvox-db, postgresql)
+* Add support for other architectures
+* Finish OpenVox stack installation, and possibly setup (openvox-server, openvox-db, postgresql)
 
 ## OS Support
 
-* Debian 12, 11, 10
+* Almalinux 9, 8
+* Debian 13, 12, 11, 10
 * Rocky 9, 8
-* Ubuntu 24.04, 22.04, 20.04
+* Ubuntu 24.04, 22.04
 
 ## Dependencies
 
