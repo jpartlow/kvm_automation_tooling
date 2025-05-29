@@ -11,6 +11,7 @@ spec/fixtures/modules/kvm_automation_tooling
 .rerun.json
 .resource_types
 .task_cache.json
+.yardoc
 
 # terraform
 .terraform*

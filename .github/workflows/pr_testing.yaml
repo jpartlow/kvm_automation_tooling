@@ -42,9 +42,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install libvirt-dev library for ruby-libvirt gem
+        run: |-
+          sudo apt update
+          sudo apt install libvirt-dev
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.3'
           bundler-cache: true
       - name: Run puppet-lint
         run: bundle exec puppet-lint manifests functions plans templates
+  reference-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install libvirt-dev library for ruby-libvirt gem
+        run: |-
+          sudo apt update
+          sudo apt install libvirt-dev
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Regenerate REFERENCE.md
+        run: bundle exec puppet strings generate --format markdown
+      - name: Check whether REFERENCE.md has uncommitted changes
+        run: git diff --exit-code REFERENCE.md

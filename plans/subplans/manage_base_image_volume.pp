@@ -1,6 +1,11 @@
 # Ensure that the base image is downloaded for the given platform and
 # imported into libvirt as a volume. Ensure that a libvirt pool for
 # platform images based on this volume is created as well.
+#
+# @param os_spec The operating system specification for the base
+#   image.
+# @param image_download_dir The directory where the base image will be
+#   downloaded and stored.
 plan kvm_automation_tooling::subplans::manage_base_image_volume(
   Kvm_automation_tooling::Os_spec $os_spec,
   String $image_download_dir,

@@ -9,18 +9,18 @@ Principally intended as a development/ci tool for OpenVox stack testing.
 TODO:
 
 * Add support for other OSes
-  * EL, Alma
   * Fedora
   * SLES
   * ?
-* Add support for other architectures?
-* Finish OpenVox stack setup (openvox-server, openvox-db, postgresql)
+* Add support for other architectures
+* Finish OpenVox stack installation, and possibly setup (openvox-server, openvox-db, postgresql)
 
 ## OS Support
 
-* Debian 12, 11, 10
+* Almalinux 9, 8
+* Debian 13, 12, 11, 10
 * Rocky 9, 8
-* Ubuntu 24.04, 22.04, 20.04
+* Ubuntu 24.04, 22.04
 
 ## Dependencies
 
@@ -232,14 +232,14 @@ other repository workflows to standup a nested cluster using this module.
 Copyright (C) 2025 Joshua Partlow
 
 This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Affero General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
