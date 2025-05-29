@@ -100,9 +100,10 @@
 #   To bypass url generation entirely, set
 #   *os_spec.image_url_override* to the complete URL of the desired
 #   image.
+# @return The URL of the cloud image for the specified platform.
 function kvm_automation_tooling::get_image_url(
   Kvm_automation_tooling::Os_spec $os_spec,
-) {
+) >> String[1] {
   $image_url_override = $os_spec['image_url_override']
   if $image_url_override =~ NotUndef {
     log::warn(@("EOS"/L))

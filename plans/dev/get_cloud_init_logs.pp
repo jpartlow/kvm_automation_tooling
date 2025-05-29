@@ -1,4 +1,7 @@
 # Download cloud-init logs from a set of targets for local review.
+#
+# @param targets The targets to download cloud-init logs from.
+# @param local_log_dir The local directory to store the logs in.
 plan kvm_automation_tooling::dev::get_cloud_init_logs(
   TargetSpec $targets,
   String $local_log_dir = './tmp',

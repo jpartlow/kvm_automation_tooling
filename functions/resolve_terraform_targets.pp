@@ -6,7 +6,7 @@
 #   targets for.
 # @param role The role to filter targets by (filters against the name,
 #   which is set by hostname).
-# @param group The name of the inventory group to pass to the
+# @param group_name The name of the inventory group to pass to the
 #   resolve_references function.
 # @return [Array<Hash>] An array of target hashes.
 function kvm_automation_tooling::resolve_terraform_targets(

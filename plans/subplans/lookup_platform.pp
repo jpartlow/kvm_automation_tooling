@@ -5,6 +5,8 @@
 # preserved in the inventory in memory, so a calling plan will see the
 # *platform* variables so long as it is working with actual Target
 # objects.
+#
+# @param targets The targets to lookup platform details for.
 plan kvm_automation_tooling::subplans::lookup_platform(
   TargetSpec $targets,
 ) {

@@ -8,10 +8,13 @@
 # Missing values for cpus, mem_mb, disk_gb and cpu_mode are provided
 # by terraform modules/vm defaults.
 #
-# @param $cluster_id The unique identifier for the cluster.
-# @param $vm_specs The compact vm specification used by the plan.
-# @param $image_results The results of each manage_base_image_volume
+# @param cluster_id The unique identifier for the cluster.
+# @param vm_specs The compact vm specification used by the plan.
+# @param image_results The results of each manage_base_image_volume
 #   plan run for each platform in the specs.
+# @return A map of terraform objects (hashes) representing vm
+#   parameters for the terraform/modules/vm module, keyed by unique
+#   hostname.
 function kvm_automation_tooling::generate_terraform_vm_spec_set(
   String $cluster_id,
   Array[Kvm_automation_tooling::Vm_spec] $vm_specs,

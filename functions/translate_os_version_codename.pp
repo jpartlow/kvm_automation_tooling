@@ -7,15 +7,16 @@
 # If given something for an *os* other than debian or ubuntu, it
 # returns what it was given.
 #
-# @param $os The operating system name (debian or ubuntu).
-# @param $version_or_codename The version number (e.g., 10, 11, 12,
+# @param os The operating system name (debian or ubuntu).
+# @param version_or_codename The version number (e.g., 10, 11, 12,
 #   18.04, 20.04), or codename string (trixie, noble, etc.) to
 #   translate.
+# @return The translated version number or codename.
 function kvm_automation_tooling::translate_os_version_codename(
   Kvm_automation_tooling::Operating_system $os,
   Variant[Kvm_automation_tooling::Version,Pattern[/[a-z]+/]]
     $version_or_codename,
-) {
+) >> String[1] {
   # Assuming that debian/ubuntu versions and codenames will never
   # overlap.
   $codenames = {
