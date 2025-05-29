@@ -50,14 +50,6 @@ function kvm_automation_tooling::translate_os_version_codename(
       }
     }
 
-    'ubuntu': {
-      if $version_or_codename =~ Kvm_automation_tooling::Version {
-        $translation = $ubuntu_codenames[$_version]
-      } else {
-        $translation = $ubuntu_version_numbers[$version_or_codename]
-      }
-    }
-
     default: {
       $translation = $version_or_codename
     }
