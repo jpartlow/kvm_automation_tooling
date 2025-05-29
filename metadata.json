@@ -1,6 +1,6 @@
 {
   "name": "jpartlow-kvm_automation_tooling",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "summary": "KVM virtual machine management",
   "description": "A bolt project and supporting puppet code for automating KVM virtual machine management for OpenVox development work",
   "author": "Josh Partlow",
