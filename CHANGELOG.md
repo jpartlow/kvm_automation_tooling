@@ -1,6 +1,6 @@
 # Changelog
 
-# 1.0.0 (2025-05-29)
+## 1.0.0 (2025-05-29)
 
 * (maint) Pin to puppet-openvox_bootstrap < 1.0 via the forge
 * (maint) Tighten license to AGPL 3
