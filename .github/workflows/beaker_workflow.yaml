@@ -54,7 +54,7 @@ jobs:
       - name: Run openvox_acceptance plan
         working-directory: kvm_automation_tooling
         run: |-
-          bundle exec bolt plan run kvm_automation_tooling::dev::openvox_acceptance --inventory terraform/instances/inventory.test.yaml runner="test-runner-1" agents="test-agent-1" --stream --no-verbose
+          bundle exec bolt plan run kvm_automation_tooling::dev::openvox_acceptance --inventory terraform/instances/inventory.test.yaml runner="test-runner-1" subjects="test-agent-1" --stream --no-verbose
   test-beaker-on-debian-pre-release:
     runs-on: ubuntu-latest
     steps:
@@ -94,4 +94,4 @@ jobs:
       - name: Run openvox_acceptance plan
         working-directory: kvm_automation_tooling
         run: |-
-          bundle exec bolt plan run kvm_automation_tooling::dev::openvox_acceptance --inventory terraform/instances/inventory.test.yaml runner="test-runner-1" agents="test-agent-1" --stream --no-verbose
+          bundle exec bolt plan run kvm_automation_tooling::dev::openvox_acceptance --inventory terraform/instances/inventory.test.yaml runner="test-runner-1" subjects="test-agent-1" --stream --no-verbose

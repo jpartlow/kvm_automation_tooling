@@ -46,7 +46,7 @@
 
 * [`kvm_automation_tooling::dev::generate_beaker_hosts_file`](#kvm_automation_tooling--dev--generate_beaker_hosts_file): Convert the puppet inventory group into a hosts.yaml file for use with Beaker.
 * [`kvm_automation_tooling::dev::get_cloud_init_logs`](#kvm_automation_tooling--dev--get_cloud_init_logs): Download cloud-init logs from a set of targets for local review.
-* [`kvm_automation_tooling::dev::openvox_acceptance`](#kvm_automation_tooling--dev--openvox_acceptance): Dev plan to run openvox-agent acceptance tests from a runner VM on a set of agent vms.  This plan assumes that something has already installe
+* [`kvm_automation_tooling::dev::openvox_acceptance`](#kvm_automation_tooling--dev--openvox_acceptance): Dev plan to run an openvox agent, server or db Beaker acceptance test suite from a runner VM against a set of subject test vms.  This plan as
 * [`kvm_automation_tooling::dev::prep_vm_for_module_testing`](#kvm_automation_tooling--dev--prep_vm_for_module_testing): This is a dev plan used to test kvm_automation_tooling in a clean environment. It goes one turtle down and nests libvirt within a VM, then se
 * [`kvm_automation_tooling::standup_cluster`](#kvm_automation_tooling--standup_cluster): Standup one cluster of KVM virtual machines for a particular OS Puppet architecture.  Makes use of terraform under the hood for vm initializa
 * [`kvm_automation_tooling::subplans::install_openvox`](#kvm_automation_tooling--subplans--install_openvox): Install OpenVox Puppet agents and primary services on the cluster.  This plan takes Bolt Target objects for parameters and is not intended to
@@ -889,54 +889,62 @@ Default value: `'./tmp'`
 
 ### <a name="kvm_automation_tooling--dev--openvox_acceptance"></a>`kvm_automation_tooling::dev::openvox_acceptance`
 
-Dev plan to run openvox-agent acceptance tests from a runner VM
-on a set of agent vms.
+Dev plan to run an openvox agent, server or db Beaker acceptance
+test suite from a runner VM against a set of subject test vms.
 
 This plan assumes that something has already installed the
-version of openvox-agent we want to test on the agent VMs.
-It does not use beaker-puppet installation utilities, since
-they can't handle agent packages outside of the default
-puppet-agent package names and repositories.
+version of openvox-agent, openv-server and openvoxdb we want to test
+on the agent VMs. It does not use beaker-puppet installation
+utilities, since they can't handle packages outside of the
+default Perforce package names and repositories.
 
 #### Parameters
 
 The following parameters are available in the `kvm_automation_tooling::dev::openvox_acceptance` plan:
 
 * [`runner`](#-kvm_automation_tooling--dev--openvox_acceptance--runner)
-* [`agents`](#-kvm_automation_tooling--dev--openvox_acceptance--agents)
-* [`openvox_agent_url`](#-kvm_automation_tooling--dev--openvox_acceptance--openvox_agent_url)
+* [`subjects`](#-kvm_automation_tooling--dev--openvox_acceptance--subjects)
+* [`project`](#-kvm_automation_tooling--dev--openvox_acceptance--project)
+* [`namespace`](#-kvm_automation_tooling--dev--openvox_acceptance--namespace)
 * [`branch`](#-kvm_automation_tooling--dev--openvox_acceptance--branch)
 * [`user`](#-kvm_automation_tooling--dev--openvox_acceptance--user)
+* [`subject_ssh_key`](#-kvm_automation_tooling--dev--openvox_acceptance--subject_ssh_key)
 
 ##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--runner"></a>`runner`
 
 Data type: `TargetSpec`
 
 The target spec for the runner VM that will run
-the oenvox-agent acceptance tests.
+the acceptance tests.
 
-##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--agents"></a>`agents`
+##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--subjects"></a>`subjects`
 
 Data type: `TargetSpec`
 
-The target spec for the agent VMs that will be
-teste by the openvox-agent acceptance tests.
+The target spec for the VMs that will be
+tested by the acceptance tests.
 
-##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--openvox_agent_url"></a>`openvox_agent_url`
+##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--project"></a>`project`
+
+Data type: `Enum[openvox-agent,openvox-server,openvoxdb]`
+
+The name of the project to test.
+
+Default value: `'openvox-agent'`
+
+##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--namespace"></a>`namespace`
 
 Data type: `String`
 
-The url of the openvox-agent git
-repostory.
+The Github namespace of the project to test.
 
-Default value: `'https://github.com/OpenVoxProject/openvox-agent'`
+Default value: `'OpenVoxProject'`
 
 ##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--branch"></a>`branch`
 
 Data type: `String`
 
-The branch of the openvox-agent git repository
-to chckout.
+The branch of the repository to checkout.
 
 Default value: `'main'`
 
@@ -944,10 +952,22 @@ Default value: `'main'`
 
 Data type: `String`
 
-The user ssh account on the VMs where openv-agent
-will be checked out and beaker run.
+The user ssh account to access the runner target for
+running Beaker.
 
 Default value: `system::env('USER')`
+
+##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--subject_ssh_key"></a>`subject_ssh_key`
+
+Data type: `String`
+
+The SSH key Beaker will use to reach
+the subject targets. (The default assumes the key generated
+by kvm_automation_tooling::standup_cluster::setup_cluster_ssh=true.
+Also note that setup_cluster_root_ssh should usually be true
+for Beaker to be able to test the subjects correctly.)
+
+Default value: `"/home/${user}/.ssh/id_ed25519"`
 
 ### <a name="kvm_automation_tooling--dev--prep_vm_for_module_testing"></a>`kvm_automation_tooling::dev::prep_vm_for_module_testing`
 
