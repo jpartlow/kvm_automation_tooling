@@ -29,6 +29,16 @@ plan kvm_automation_tooling::dev::generate_beaker_hosts_file(
       }
     }
     $t.set_var('beaker_platform', $beaker_platform)
+
+    case $t.vars['role'] {
+      'primary': {
+        $beaker_roles = ['master', 'agent']
+      }
+      default: {
+        $beaker_roles = ['agent']
+      }
+    }
+    $t.set_var('beaker_roles', $beaker_roles)
   }
 
   $hosts_yaml_content = epp('kvm_automation_tooling/beaker-hosts.yaml.epp', {
