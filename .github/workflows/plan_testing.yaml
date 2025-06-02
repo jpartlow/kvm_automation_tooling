@@ -17,12 +17,15 @@ jobs:
         os:
           - ['almalinux', '8', 'x86_64']
           - ['almalinux', '9', 'x86_64']
+          - ['debian', '10', 'x86_64']
           - ['debian', '11', 'x86_64']
           - ['debian', '12', 'x86_64']
           # debian 13 is not released yet, but we can get dailies...
           - ['debian', '13', 'x86_64', 'daily-latest']
           - ['rocky', '8', 'x86_64']
           - ['rocky', '9', 'x86_64']
+          - ['ubuntu', '18.04', 'x86_64']
+          - ['ubuntu', '20.04', 'x86_64']
           - ['ubuntu', '22.04', 'x86_64']
           - ['ubuntu', '24.04', 'x86_64']
     steps:

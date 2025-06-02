@@ -20,7 +20,7 @@ TODO:
 * Almalinux 9, 8
 * Debian 13, 12, 11, 10
 * Rocky 9, 8
-* Ubuntu 24.04, 22.04
+* Ubuntu 24.04, 22.04, 20.04, 18.04
 
 ## Dependencies
 
