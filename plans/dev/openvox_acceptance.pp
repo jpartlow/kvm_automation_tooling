@@ -17,7 +17,7 @@
 #   to chckout.
 # @param user The user ssh account on the VMs where openv-agent
 #   will be checked out and beaker run.
-plan kvm_automation_tooling::dev::openvox_agent_acceptance(
+plan kvm_automation_tooling::dev::openvox_acceptance(
   TargetSpec $runner,
   TargetSpec $agents,
   String $openvox_agent_url = 'https://github.com/OpenVoxProject/openvox-agent',
