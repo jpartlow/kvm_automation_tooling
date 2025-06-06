@@ -37,6 +37,7 @@ module "vmdomain" {
   disk_gb = each.value.disk_gb
   gateway_ip = local.gateway_ip
   network_id = libvirt_network.network.id
+  domain_name = var.domain_name
   user_name = var.user_name
   user_password = var.user_password
   ssh_public_key = local.ssh_public_key

@@ -70,3 +70,8 @@ variable "network_id" {
   description = "The libvirt network to attach the VM to."
   type = string
 }
+
+variable "domain_name" {
+  description = "The domain name to use for the VM."
+  type = string
+}

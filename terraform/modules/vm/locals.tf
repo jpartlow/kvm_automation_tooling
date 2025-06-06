@@ -10,6 +10,8 @@ locals {
       user_name          = var.user_name,
       ssh_authorized_key = var.ssh_public_key,
       user_password      = var.user_password,
+      os                 = var.os,
+      domain_name        = var.domain_name,
     }
   )
   network_config = templatefile(

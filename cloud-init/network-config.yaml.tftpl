@@ -23,8 +23,8 @@ network:
 %{ else ~}
     # For Rocky and Almalinux, at least, attempting to configure the
     # network interface via cloud-init seems to lead to partially broken
-    # ipv6 dns resolution that causes delays for `getent host
-    # $HOSTNAME` but not `getent ahost $HOSTNAME` or `getent host
+    # ipv6 dns resolution that causes delays for `getent hosts
+    # $HOSTNAME` but not `getent ahosts $HOSTNAME` or `getent hosts
     # $HOSTNAME.vm`.
     #
     # Skipping cloud-init network configuration and
