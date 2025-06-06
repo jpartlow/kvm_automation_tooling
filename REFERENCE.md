@@ -11,14 +11,15 @@
 ### Functions
 
 * [`kvm_automation_tooling::fill_vm_spec`](#kvm_automation_tooling--fill_vm_spec): Expand a VM specification hash by filling in defaults from a given Hash.
-* [`kvm_automation_tooling::generate_terraform_vm_spec_set`](#kvm_automation_tooling--generate_terraform_vm_spec_set): Expands the compact vm specification used by the plan into a map of terraform objects (hashes) keyed by unique hostname, that map one to one 
+* [`kvm_automation_tooling::generate_terraform_vm_spec_set`](#kvm_automation_tooling--generate_terraform_vm_spec_set): Transforms the array of vm specifications received by the plan into a map of terraform objects (hashes) keyed by a unique "$role.$hostname.$p
 * [`kvm_automation_tooling::get_image_url`](#kvm_automation_tooling--get_image_url): Returns the URL of the cloud image for the specified platform.  # NOTES  These are the structure of the URLs for the various platforms as of 
 * [`kvm_automation_tooling::get_normalized_os_arch`](#kvm_automation_tooling--get_normalized_os_arch): Return the expected architecture strings for the given os. (amd64, arm64 for debian/ubuntu, and x86_64, aarch64 for others)
 * [`kvm_automation_tooling::get_normalized_ubuntu_version`](#kvm_automation_tooling--get_normalized_ubuntu_version): Returns the Ubuntu version number without delimiters.
 * [`kvm_automation_tooling::platform`](#kvm_automation_tooling--platform): Generic function to produce a canonical descriptive platform string from a set of os, version and cpu arch values.  Examples:   kvm_automatio
-* [`kvm_automation_tooling::resolve_terraform_targets`](#kvm_automation_tooling--resolve_terraform_targets): Manually resolve target references from the given *inventory_file* and return those with the given *role*.
+* [`kvm_automation_tooling::resolve_terraform_targets`](#kvm_automation_tooling--resolve_terraform_targets): Manually resolve target references from the given *inventory_file* and return those from the given *group*.
 * [`kvm_automation_tooling::translate_os_version_codename`](#kvm_automation_tooling--translate_os_version_codename): Translates a Debian or Ubuntu version number to codename, or codename to version number, depending on what it is given.  Raises an error if u
 * [`kvm_automation_tooling::validate_openvox_version_parameters`](#kvm_automation_tooling--validate_openvox_version_parameters): Validates the given set of OpenVox install parameters and raises an error for any problems.  If we're installing a released version, then col
+* [`kvm_automation_tooling::validate_vm_ip_addresses`](#kvm_automation_tooling--validate_vm_ip_addresses): Check whether ip addresses returned by the terraform apply are all valid ipv4 addresses.  A Bolt::Target.uri needs an ipv4 address when we re
 
 ### Data types
 
@@ -48,9 +49,9 @@
 * [`kvm_automation_tooling::dev::get_cloud_init_logs`](#kvm_automation_tooling--dev--get_cloud_init_logs): Download cloud-init logs from a set of targets for local review.
 * [`kvm_automation_tooling::dev::openvox_acceptance`](#kvm_automation_tooling--dev--openvox_acceptance): Dev plan to run an openvox agent, server or db Beaker acceptance test suite from a runner VM against a set of subject test vms.  This plan as
 * [`kvm_automation_tooling::dev::prep_vm_for_module_testing`](#kvm_automation_tooling--dev--prep_vm_for_module_testing): This is a dev plan used to test kvm_automation_tooling in a clean environment. It goes one turtle down and nests libvirt within a VM, then se
-* [`kvm_automation_tooling::standup_cluster`](#kvm_automation_tooling--standup_cluster): Standup one cluster of KVM virtual machines for a particular OS Puppet architecture.  Makes use of terraform under the hood for vm initializa
-* [`kvm_automation_tooling::subplans::install_openvox`](#kvm_automation_tooling--subplans--install_openvox): Install OpenVox Puppet agents and primary services on the cluster.  This plan takes Bolt Target objects for parameters and is not intended to
-* [`kvm_automation_tooling::subplans::lookup_platform`](#kvm_automation_tooling--subplans--lookup_platform): Given a TargetSpec, obtain platform details from each and set a *platform* variable on each Target.  This plan takes advantage of the fact th
+* [`kvm_automation_tooling::install_openvox`](#kvm_automation_tooling--install_openvox): Install OpenVox Puppet agents and primary services on the cluster without any attempts at configuration.  The openvox_* install parameters ar
+* [`kvm_automation_tooling::standup_cluster`](#kvm_automation_tooling--standup_cluster): Standup one cluster of KVM virtual machines based on a given Kvm_automation_tooling::Vm_spec structure.  Makes use of terraform under the hoo
+* [`kvm_automation_tooling::subplans::lookup_platform`](#kvm_automation_tooling--subplans--lookup_platform): Given a TargetSpec, for each Target that does not yet have a *platform* variable set, obtain platform details and set the *platform* variable
 * [`kvm_automation_tooling::subplans::manage_base_image_volume`](#kvm_automation_tooling--subplans--manage_base_image_volume): Ensure that the base image is downloaded for the given platform and imported into libvirt as a volume. Ensure that a libvirt pool for platfor
 * [`kvm_automation_tooling::subplans::setup_cluster_ssh`](#kvm_automation_tooling--subplans--setup_cluster_ssh): This plan manages two aspects of ssh access within the cluster.  1. SSH between *controller* and *destination* vms as *user*. 2. SSH between 
 * [`kvm_automation_tooling::teardown_cluster`](#kvm_automation_tooling--teardown_cluster): This plan is just a wrapper around the terraform::destroy plan that automatically sets the dir, state and vars_file parameters based on the g
@@ -94,9 +95,12 @@ The defaults to override.
 
 Type: Puppet Language
 
-Expands the compact vm specification used by the plan into a
-map of terraform objects (hashes) keyed by unique hostname,
-that map one to one with each vm we want terraform to create.
+Transforms the array of vm specifications received by the plan into
+a map of terraform objects (hashes) keyed by a unique
+"$role.$hostname.$platform" string with os image parameters injected.
+
+The hostname values are generated as "${cluster_id}-${role}-${index}"
+where the index is the 1-based index of the vm in the set.
 
 See the spec/functions/generate_terraform_vm_spec_set_spec.rb for
 a concrete example.
@@ -106,9 +110,12 @@ by terraform modules/vm defaults.
 
 #### `kvm_automation_tooling::generate_terraform_vm_spec_set(String $cluster_id, Array[Kvm_automation_tooling::Vm_spec] $vm_specs, Array[Hash] $image_results)`
 
-Expands the compact vm specification used by the plan into a
-map of terraform objects (hashes) keyed by unique hostname,
-that map one to one with each vm we want terraform to create.
+Transforms the array of vm specifications received by the plan into
+a map of terraform objects (hashes) keyed by a unique
+"$role.$hostname.$platform" string with os image parameters injected.
+
+The hostname values are generated as "${cluster_id}-${role}-${index}"
+where the index is the 1-based index of the vm in the set.
 
 See the spec/functions/generate_terraform_vm_spec_set_spec.rb for
 a concrete example.
@@ -124,13 +131,13 @@ hostname.
 
 Data type: `String`
 
-The unique identifier for the cluster.
+The identifier for the cluster.
 
 ##### `vm_specs`
 
 Data type: `Array[Kvm_automation_tooling::Vm_spec]`
 
-The compact vm specification used by the plan.
+The array of vm specifications received by the plan.
 
 ##### `image_results`
 
@@ -450,12 +457,12 @@ and architecture.
 Type: Puppet Language
 
 Manually resolve target references from the given *inventory_file* and
-return those with the given *role*.
+return those from the given *group*.
 
-#### `kvm_automation_tooling::resolve_terraform_targets(Stdlib::AbsolutePath $inventory_file, String $role, String $group_name = 'puppet')`
+#### `kvm_automation_tooling::resolve_terraform_targets(Stdlib::AbsolutePath $inventory_file, String $group_name)`
 
 Manually resolve target references from the given *inventory_file* and
-return those with the given *role*.
+return those from the given *group*.
 
 Returns: `Array<Hash>` An array of target hashes.
 
@@ -466,13 +473,6 @@ Data type: `Stdlib::AbsolutePath`
 Absolute path to a Bolt inventory file
 configured with the tfstate files for the cluster we are resolving
 targets for.
-
-##### `role`
-
-Data type: `String`
-
-The role to filter targets by (filters against the name,
-which is set by hostname).
 
 ##### `group_name`
 
@@ -555,6 +555,33 @@ openvox_collection updated to match version as necessary.
 Data type: `Kvm_automation_tooling::Openvox_install_params`
 
 The OpenVox install parameters to validate.
+
+### <a name="kvm_automation_tooling--validate_vm_ip_addresses"></a>`kvm_automation_tooling::validate_vm_ip_addresses`
+
+Type: Puppet Language
+
+Check whether ip addresses returned by the terraform apply
+are all valid ipv4 addresses.
+
+A Bolt::Target.uri needs an ipv4 address when we resolve references.
+
+#### `kvm_automation_tooling::validate_vm_ip_addresses(Hash $terraform_apply_result)`
+
+Check whether ip addresses returned by the terraform apply
+are all valid ipv4 addresses.
+
+A Bolt::Target.uri needs an ipv4 address when we resolve references.
+
+Returns: `Boolean` Boolean true if all ip addresses are valid ipv4 addresses,
+false if any are missing or ipv6.
+
+##### `terraform_apply_result`
+
+Data type: `Hash`
+
+A Hash returned from the
+terraform::apply plan (this is the hash from a parsed
+`terraform output -json` result).
 
 ## Data types
 
@@ -852,7 +879,7 @@ Data type: `TargetSpec`
 
 The hosts to include in the hosts.yaml file.
 
-Default value: `'puppet'`
+Default value: `'all'`
 
 ##### <a name="-kvm_automation_tooling--dev--generate_beaker_hosts_file--hosts_yaml"></a>`hosts_yaml`
 
@@ -893,10 +920,10 @@ Dev plan to run an openvox agent, server or db Beaker acceptance
 test suite from a runner VM against a set of subject test vms.
 
 This plan assumes that something has already installed the
-version of openvox-agent, openv-server and openvoxdb we want to test
-on the agent VMs. It does not use beaker-puppet installation
-utilities, since they can't handle packages outside of the
-default Perforce package names and repositories.
+version of openvox-agent, openvox-server and openvoxdb we want to
+test on the agent VMs. It does not use beaker-puppet installation
+utilities, since they can't handle packages outside of the default
+Perforce package names and repositories.
 
 #### Parameters
 
@@ -909,6 +936,7 @@ The following parameters are available in the `kvm_automation_tooling::dev::open
 * [`branch`](#-kvm_automation_tooling--dev--openvox_acceptance--branch)
 * [`user`](#-kvm_automation_tooling--dev--openvox_acceptance--user)
 * [`subject_ssh_key`](#-kvm_automation_tooling--dev--openvox_acceptance--subject_ssh_key)
+* [`begin_test_execution`](#-kvm_automation_tooling--dev--openvox_acceptance--begin_test_execution)
 
 ##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--runner"></a>`runner`
 
@@ -926,7 +954,7 @@ tested by the acceptance tests.
 
 ##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--project"></a>`project`
 
-Data type: `Enum[openvox-agent,openvox-server,openvoxdb]`
+Data type: `Enum[openvox-agent,openvox-server,openvoxdb,puppet]`
 
 The name of the project to test.
 
@@ -968,6 +996,15 @@ Also note that setup_cluster_root_ssh should usually be true
 for Beaker to be able to test the subjects correctly.)
 
 Default value: `"/home/${user}/.ssh/id_ed25519"`
+
+##### <a name="-kvm_automation_tooling--dev--openvox_acceptance--begin_test_execution"></a>`begin_test_execution`
+
+Data type: `Boolean`
+
+Whether to start Beaker test execution,
+or just prep for it.
+
+Default value: `true`
 
 ### <a name="kvm_automation_tooling--dev--prep_vm_for_module_testing"></a>`kvm_automation_tooling::dev::prep_vm_for_module_testing`
 
@@ -1036,10 +1073,107 @@ which will usually be 192.168.122.0/24).
 
 Default value: `'192.168.123'`
 
+### <a name="kvm_automation_tooling--install_openvox"></a>`kvm_automation_tooling::install_openvox`
+
+Install OpenVox Puppet agents and primary services on the cluster
+without any attempts at configuration.
+
+The openvox_* install parameters are passed to tasks in the
+openvox_bootstrap module.
+
+Similarly to apply_prep, targets are marked with the puppet-agent
+feature, and facts are collected and added to the targets after
+agent installation.
+
+NOTE: The agent will be installed on server and db targets as well.
+
+#### Parameters
+
+The following parameters are available in the `kvm_automation_tooling::install_openvox` plan:
+
+* [`openvox_agent_targets`](#-kvm_automation_tooling--install_openvox--openvox_agent_targets)
+* [`openvox_server_targets`](#-kvm_automation_tooling--install_openvox--openvox_server_targets)
+* [`openvox_db_targets`](#-kvm_automation_tooling--install_openvox--openvox_db_targets)
+* [`openvox_agent_params`](#-kvm_automation_tooling--install_openvox--openvox_agent_params)
+* [`openvox_server_params`](#-kvm_automation_tooling--install_openvox--openvox_server_params)
+* [`openvox_db_params`](#-kvm_automation_tooling--install_openvox--openvox_db_params)
+* [`install_defaults`](#-kvm_automation_tooling--install_openvox--install_defaults)
+
+##### <a name="-kvm_automation_tooling--install_openvox--openvox_agent_targets"></a>`openvox_agent_targets`
+
+Data type: `TargetSpec`
+
+The targets to install the OpenVox
+Puppet agent on.
+
+##### <a name="-kvm_automation_tooling--install_openvox--openvox_server_targets"></a>`openvox_server_targets`
+
+Data type: `TargetSpec`
+
+The target to install the OpenVox
+Puppet server on.
+
+Default value: `[]`
+
+##### <a name="-kvm_automation_tooling--install_openvox--openvox_db_targets"></a>`openvox_db_targets`
+
+Data type: `TargetSpec`
+
+The target to install the OpenVox PuppetDB
+on.
+
+Default value: `[]`
+
+##### <a name="-kvm_automation_tooling--install_openvox--openvox_agent_params"></a>`openvox_agent_params`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The set of
+Kvm_automation_tooling::Openvox_install_params defining source
+and version for the openvox-agent package to install on all
+$targets.
+
+Default value: `{}`
+
+##### <a name="-kvm_automation_tooling--install_openvox--openvox_server_params"></a>`openvox_server_params`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The install params for the
+openvox-server package to install on the $openvox_server_targets.
+
+Default value: `{}`
+
+##### <a name="-kvm_automation_tooling--install_openvox--openvox_db_params"></a>`openvox_db_params`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The install params for the
+openvoxdb package to install on the $openvox_db_targets.
+
+Default value: `{}`
+
+##### <a name="-kvm_automation_tooling--install_openvox--install_defaults"></a>`install_defaults`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The default parameters to include
+in each of the $openvox_*_params hashes.
+
+Default value:
+
+```puppet
+{
+      'openvox_version'       => 'latest',
+      'openvox_collection'    => 'openvox8',
+      'openvox_released'      => true,
+    }
+```
+
 ### <a name="kvm_automation_tooling--standup_cluster"></a>`kvm_automation_tooling::standup_cluster`
 
-Standup one cluster of KVM virtual machines for a particular OS Puppet
-architecture.
+Standup one cluster of KVM virtual machines based on a given
+Kvm_automation_tooling::Vm_spec structure.
 
 Makes use of terraform under the hood for vm initialization.
 
@@ -1176,7 +1310,7 @@ Default value: `'vm'`
 Data type: `Kvm_automation_tooling::Architecture`
 
 The Puppet services architecture of the cluster
-(see docs/ARCHITECTURE.md).
+(see docs/ARCHITECTURE.md). (Currently unused.)
 
 Default value: `'singular'`
 
@@ -1288,121 +1422,38 @@ Default value: `true`
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--install_openvox_params"></a>`install_openvox_params`
 
-Data type: `Kvm_automation_tooling::Openvox_install_params`
+Data type:
+
+```puppet
+Struct[{
+    Optional[openvox_agent_params]  => Kvm_automation_tooling::Openvox_install_params,
+    Optional[openvox_server_params] => Kvm_automation_tooling::Openvox_install_params,
+    Optional[openvox_db_params]     => Kvm_automation_tooling::Openvox_install_params,
+    Optional[install_defaults]      => Kvm_automation_tooling::Openvox_install_params,
+  }]
+```
 
 A hash of parameters to pass to the
-kvm_automation_tooling::subplans::install_openvox plan if
+kvm_automation_tooling::install_openvox plan if
 installing something other than the latest agent package from
-the latest collection. See the subplan for parameter details.
+the latest collection.
 
 Default value: `{}`
 
-### <a name="kvm_automation_tooling--subplans--install_openvox"></a>`kvm_automation_tooling::subplans::install_openvox`
-
-Install OpenVox Puppet agents and primary services on the cluster.
-
-This plan takes Bolt Target objects for parameters and is not
-intended to be called manually.
-
-The openvox_* install parameters are passed to tasks in the
-openvox_bootstrap module.
-
-Similarly to apply_prep, targets are marked with the puppet-agent
-feature, and facts are collected and added to the targets after
-agent installation.
-
-#### Parameters
-
-The following parameters are available in the `kvm_automation_tooling::subplans::install_openvox` plan:
-
-* [`targets`](#-kvm_automation_tooling--subplans--install_openvox--targets)
-* [`puppetserver_target`](#-kvm_automation_tooling--subplans--install_openvox--puppetserver_target)
-* [`puppetdb_target`](#-kvm_automation_tooling--subplans--install_openvox--puppetdb_target)
-* [`postgresql_target`](#-kvm_automation_tooling--subplans--install_openvox--postgresql_target)
-* [`openvox_version`](#-kvm_automation_tooling--subplans--install_openvox--openvox_version)
-* [`openvox_collection`](#-kvm_automation_tooling--subplans--install_openvox--openvox_collection)
-* [`openvox_released`](#-kvm_automation_tooling--subplans--install_openvox--openvox_released)
-* [`openvox_artifacts_url`](#-kvm_automation_tooling--subplans--install_openvox--openvox_artifacts_url)
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--targets"></a>`targets`
-
-Data type: `Array[Target]`
-
-The targets to install the Puppet agent on.
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--puppetserver_target"></a>`puppetserver_target`
-
-Data type: `Optional[Target]`
-
-The target to install the Puppet server on.
-
-Default value: `undef`
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--puppetdb_target"></a>`puppetdb_target`
-
-Data type: `Optional[Target]`
-
-The target to install the PuppetDB on.
-
-Default value: `undef`
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--postgresql_target"></a>`postgresql_target`
-
-Data type: `Optional[Target]`
-
-The target to install PostgreSQL on.
-
-Default value: `undef`
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--openvox_version"></a>`openvox_version`
-
-Data type: `Optional[Kvm_automation_tooling::Openvox_version]`
-
-The version of OpenVox to install, or
-'latest' to install the latest released version in the given
-openvox_collection.
-
-Default value: `'latest'`
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--openvox_collection"></a>`openvox_collection`
-
-Data type: `Optional[Kvm_automation_tooling::Openvox_collection]`
-
-The OpenVox collection to install from.
-This should match up with the openvox_version major (e.g. if
-installing openvox 8.15.0, the collection should be openvox8) if
-you are installing a release version. For pre-release versions, it
-is ignored.
-
-Default value: `'openvox8'`
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--openvox_released"></a>`openvox_released`
-
-Data type: `Boolean`
-
-Whether to install a released version of
-OpenVox from the given collection using OS package managers, or
-to install a pre-release version from a build artifact.
-
-Default value: `true`
-
-##### <a name="-kvm_automation_tooling--subplans--install_openvox--openvox_artifacts_url"></a>`openvox_artifacts_url`
-
-Data type: `Optional[Stdlib::HTTPUrl]`
-
-The URL to the OpenVox artifacts.
-
-Default value: `undef`
-
 ### <a name="kvm_automation_tooling--subplans--lookup_platform"></a>`kvm_automation_tooling::subplans::lookup_platform`
 
-Given a TargetSpec, obtain platform details from each and set a
-*platform* variable on each Target.
+Given a TargetSpec, for each Target that does not yet have a
+*platform* variable set, obtain platform details and set the
+*platform* variable.
 
 This plan takes advantage of the fact that Target state is
 preserved in the inventory in memory, so a calling plan will see the
 *platform* variables so long as it is working with actual Target
 objects.
+
+NOTE: If an inventory.<cluster_id>.yaml file has been given to Bolt,
+the targets should already have *platform* set from the domain
+metadata values.
 
 #### Parameters
 
