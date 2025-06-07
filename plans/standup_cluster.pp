@@ -246,13 +246,15 @@ plan kvm_automation_tooling::standup_cluster(
 
   if $install_openvox {
     $primary_targets = $target_map['primary']
-    run_plan('kvm_automation_tooling::install_openvox',
+    $version_map = run_plan('kvm_automation_tooling::install_openvox',
       $install_openvox_params + {
         'openvox_agent_targets'  => $all_targets,
         'openvox_server_targets' => $primary_targets,
         'openvox_db_targets'     => $primary_targets,
       }
     )
+
+    out::message("Installed versions: ${stdlib::to_json_pretty($version_map)}")
   }
 
   return($target_map)

@@ -50,16 +50,17 @@ plan kvm_automation_tooling::install_openvox(
   $db_targets     = get_targets($openvox_db_targets)
   $all_targets    = [$agent_targets, $server_targets, $db_targets].flatten().unique()
 
-  [
+  $installations = [
     [$all_targets, 'openvox-agent', $openvox_agent_params],
     [$server_targets, 'openvox-server', $openvox_server_params],
     [$db_targets, 'openvoxdb', $openvox_db_params],
-  ].each |$i| {
+  ]
+  $version_map = $installations.reduce({}) |$map, $i| {
     $targets = $i[0]
     $package = $i[1]
     $params  = $i[2]
 
-    if $targets.empty() { next() }
+    if $targets.empty() { next($map) }
 
     $install_params = kvm_automation_tooling::validate_openvox_version_parameters(
       $install_defaults + $params,
@@ -102,5 +103,30 @@ plan kvm_automation_tooling::install_openvox(
       # Collect facts and add them to the targets.
       run_plan('facts', 'targets' => $targets)
     }
+
+    $version_results = run_task('package', $targets, {
+      'name'    => $package,
+      'action'  => 'status',
+    })
+
+    $version_results.reduce($map) |$m, $result| {
+      $host = $result.target().name()
+      $package_version = (empty($result['version'])) ? {
+        true     => 'unknown',
+        default  => $result['version'],
+      }
+      $host_versions = $m[$host] =~ NotUndef ? {
+        true    => $m[$host],
+        default => {},
+      }
+
+      $m + {
+        $host => $host_versions + {
+          $package => $package_version,
+        }
+      }
+    }
   }
+
+  return($version_map)
 }

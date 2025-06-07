@@ -31,9 +31,23 @@ describe 'plan: install_openvox' do
         'apt_source' => 'https://apt.voxpupuli.org',
         'yum_source' => 'https://yum.voxpupuli.org',
       })
+    expect_task('package')
+      .with_targets(all_targets)
+      .always_return({
+        'status' => 'installed',
+        'version' => '8.0.0',
+      })
+
 
     result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
+
+    version_map = result.value
+    expect(version_map).to eq({
+      'agent-1.rspec' => {
+        'openvox-agent' => '8.0.0',
+      }
+    })
   end
 
   it 'installs specific agent on targets' do
@@ -50,6 +64,7 @@ describe 'plan: install_openvox' do
         'apt_source' => 'https://apt.voxpupuli.org',
         'yum_source' => 'https://yum.voxpupuli.org',
       })
+    expect_task('package')
 
     result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
@@ -68,6 +83,7 @@ describe 'plan: install_openvox' do
         'package'    => 'openvox-agent',
         'artifacts_source' => 'https://artifacts.voxpupuli.org',
       })
+    expect_task('package')
 
     result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
@@ -87,6 +103,7 @@ describe 'plan: install_openvox' do
         'package'    => 'openvox-agent',
         'artifacts_source' => 'https://some.other',
       })
+    expect_task('package')
 
     result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
@@ -135,9 +152,47 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
         })
+      expect_task('package')
+        .with_targets(all_targets)
+        .always_return({
+          'status' => 'installed',
+          'version' => '8.0.0',
+        })
+      expect_task('package')
+        .with_targets(primary_targets)
+        .with_params({
+          'name'   => 'openvox-server',
+          'action' => 'status',
+        })
+        .always_return({
+          'status' => 'installed',
+          'version' => '8.1.0',
+        })
+      expect_task('package')
+        .with_targets(primary_targets)
+        .with_params({
+          'name'   => 'openvoxdb',
+          'action' => 'status',
+        })
+        .always_return({
+          'status' => 'installed',
+          'version' => '8.2.0',
+        })
 
       result = run_plan('kvm_automation_tooling::install_openvox', params)
       expect(result.ok?).to(eq(true), result.value.to_s)
+
+      version_map = result.value
+      expect(version_map).to eq({
+        'agent-1.rspec' => {
+          'openvox-agent' => '8.0.0',
+        },
+        'primary-1.rspec' => {
+          'openvox-agent'  => '8.0.0',
+          'openvox-server' => '8.1.0',
+          'openvoxdb'      => '8.2.0',
+        }
+      })
     end
 
     it 'installs specific agent and server packages to targets' do
@@ -171,6 +226,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
         })
+      expect_task('package').be_called_times(3)
 
       result = run_plan('kvm_automation_tooling::install_openvox', params)
       expect(result.ok?).to(eq(true), result.value.to_s)

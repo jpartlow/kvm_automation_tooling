@@ -147,6 +147,7 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
           })
+        expect_task('package').be_called_times(3)
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
