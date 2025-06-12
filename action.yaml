@@ -1,7 +1,7 @@
 ---
 # https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action
-name: 'Standup Nested VM Cluster'
-description: 'Standup a cluster of local nested virtual machines via libvirt with the help of the Bolt kvm_automation_tooling module.'
+name: '(DEPRECATED) Standup Nested VM Cluster'
+description: 'This action is deprecated; use https://github.com/jpartlow/nested_vms/ instead.'
 
 inputs:
   os:
