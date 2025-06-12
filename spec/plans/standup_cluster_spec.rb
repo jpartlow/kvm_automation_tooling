@@ -87,7 +87,8 @@ describe 'plan: standup_cluster' do
       {
         'vm_ip_addresses' => {
           'value' => {
-            'spec-primary-1' => { 'ip_address' => '1.2.3.4', },
+            'spec-primary-1' => '10.2.3.4',
+            'spec-agent-1' => '10.2.3.5',
           },
         },
       }
@@ -128,6 +129,25 @@ describe 'plan: standup_cluster' do
             'yum_source' => 'https://yum.voxpupuli.org',
           })
         expect_plan('facts')
+        expect_task('openvox_bootstrap::install')
+          .with_targets(['spec-primary-1.vm'])
+          .with_params({
+            'package'    => 'openvox-server',
+            'version'    => 'latest',
+            'collection' => 'openvox8',
+            'apt_source' => 'https://apt.voxpupuli.org',
+            'yum_source' => 'https://yum.voxpupuli.org',
+          })
+        expect_task('openvox_bootstrap::install')
+          .with_targets(['spec-primary-1.vm'])
+          .with_params({
+            'package'    => 'openvoxdb',
+            'version'    => 'latest',
+            'collection' => 'openvox8',
+            'apt_source' => 'https://apt.voxpupuli.org',
+            'yum_source' => 'https://yum.voxpupuli.org',
+          })
+        expect_task('package').be_called_times(3)
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
@@ -145,7 +165,7 @@ describe 'plan: standup_cluster' do
       end
 
       it 'adds host root access when requsted' do
-        expect_plan('kvm_automation_tooling::subplans::install_openvox')
+        expect_plan('kvm_automation_tooling::install_openvox')
 
         public_key_path = "#{tempdir}/ssh_rspec.pub"
         File.write(public_key_path, 'rspec-public-key')
@@ -203,7 +223,7 @@ describe 'plan: standup_cluster' do
             'path' => 'ubuntu-2204-amd64',
           )
 
-        expect_plan('kvm_automation_tooling::subplans::install_openvox')
+        expect_plan('kvm_automation_tooling::install_openvox')
       end
 
       it 'manages all platforms' do

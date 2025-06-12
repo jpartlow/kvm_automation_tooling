@@ -3,10 +3,12 @@
 HOSTS:
 <%- $agents.each |$agent| {-%>
   <%= $agent.name %>:
-    vmhostname: '<%= "${agent.name}.vm" %>'
+    vmhostname: '<%= "${agent.name}.${agent.vars['domain_name']}" %>'
     ip: '<%= $agent.uri %>'
     roles:
-      - agent
+    <%- $agent.vars['beaker_roles'].each |$role| { -%>
+      - <%= $role %>
+    <%- } -%>
     platform: '<%= $agent.vars['beaker_platform'] %>'
     # Setting the hypervisor to none is paradoxically still important.
     # It corresponds to a sort of default Beaker::Hypervisor, and it's

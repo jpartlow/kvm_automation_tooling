@@ -1,18 +1,15 @@
 # Manually resolve target references from the given *inventory_file* and
-# return those with the given *role*.
+# return those from the given *group*.
 #
 # @param inventory_file Absolute path to a Bolt inventory file
 #   configured with the tfstate files for the cluster we are resolving
 #   targets for.
-# @param role The role to filter targets by (filters against the name,
-#   which is set by hostname).
 # @param group_name The name of the inventory group to pass to the
 #   resolve_references function.
 # @return [Array<Hash>] An array of target hashes.
 function kvm_automation_tooling::resolve_terraform_targets(
   Stdlib::AbsolutePath $inventory_file,
-  String $role,
-  String $group_name = 'puppet',
+  String $group_name,
 ) {
   log::debug("Inventory file: ${inventory_file}")
 
@@ -22,28 +19,23 @@ function kvm_automation_tooling::resolve_terraform_targets(
   $config = $inventory.dig('config')
   log::debug("Config: ${config}")
 
-  $puppet_group = $inventory.dig('groups').then |$groups| {
+  $group = $inventory.dig('groups').then |$groups| {
     $groups.filter |$group| {
       $group['name'] == $group_name
     }[0]
   }
-  if $puppet_group =~ Undef {
+  if $group =~ Undef {
     fail("Did not find group '${group_name}' in inventory:\n${inventory}")
   }
-  log::debug("Puppet group: ${puppet_group}")
+  log::debug("The ${group_name} group: ${group}")
 
-  $domain = $puppet_group['vars']['domain_name']
+  $domain = $group['vars']['domain_name']
   log::debug("Domain: ${domain}")
 
-  $refs = resolve_references($puppet_group)
-  log::debug("Resolved references for 'puppet': ${refs}")
+  $refs = resolve_references($group)
+  log::debug("Resolved references for '${group_name}': ${refs}")
 
-  $refs_in_role = $refs['targets'].filter |$r| {
-    $r['name'] =~ "-${role}-[0-9]+$"
-  }
-  log::debug("Resolved references in role ${role}: ${refs_in_role}")
-
-  $refs_in_role_with_fqdn = $refs_in_role.map |$r| {
+  $refs_with_fqdn = $refs['targets'].map |$r| {
     $_r = $r + {
       'name' => "${r['name']}.${domain}",
     }
@@ -52,9 +44,9 @@ function kvm_automation_tooling::resolve_terraform_targets(
       default => $_r,
     }
   }
-  log::debug("Updated references: ${refs_in_role_with_fqdn}")
+  log::debug("Updated references: ${refs_with_fqdn}")
 
-  $targets = $refs_in_role_with_fqdn.map |$r| {
+  $targets = $refs_with_fqdn.map |$r| {
     Target.new($r)
   }
   log::debug($targets.map |$t| {

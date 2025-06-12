@@ -1,5 +1,5 @@
-# Standup one cluster of KVM virtual machines for a particular OS Puppet
-# architecture.
+# Standup one cluster of KVM virtual machines based on a given
+# Kvm_automation_tooling::Vm_spec structure.
 #
 # Makes use of terraform under the hood for vm initialization.
 #
@@ -48,7 +48,7 @@
 #   appended to the hostnames of the VMs in the cluster, and will
 #   resolve locally within the cluster.
 # @param architecture The Puppet services architecture of the cluster
-#   (see docs/ARCHITECTURE.md).
+#   (see docs/ARCHITECTURE.md). (Currently unused.)
 # @param image_download_dir The directory where base os images are
 #   downloaded to. This should be an absolute path.
 # @param terraform_state_dir The directory where terraform state files,
@@ -86,9 +86,9 @@
 # @param install_openvox Whether to install openvox Puppet(TM) on the
 #   vms in the cluster.
 # @param install_openvox_params A hash of parameters to pass to the
-#   kvm_automation_tooling::subplans::install_openvox plan if
+#   kvm_automation_tooling::install_openvox plan if
 #   installing something other than the latest agent package from
-#   the latest collection. See the subplan for parameter details.
+#   the latest collection.
 plan kvm_automation_tooling::standup_cluster(
   Pattern['[[a-z][A-Z][0-9]-]+'] $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
@@ -110,7 +110,12 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $host_root_access = false,
   Optional[String] $user_password = undef,
   Boolean $install_openvox = true,
-  Kvm_automation_tooling::Openvox_install_params
+  Struct[{
+    Optional[openvox_agent_params]  => Kvm_automation_tooling::Openvox_install_params,
+    Optional[openvox_server_params] => Kvm_automation_tooling::Openvox_install_params,
+    Optional[openvox_db_params]     => Kvm_automation_tooling::Openvox_install_params,
+    Optional[install_defaults]      => Kvm_automation_tooling::Openvox_install_params,
+  }]
   $install_openvox_params = {},
 ) {
   $terraform_dir = './terraform'
@@ -178,7 +183,8 @@ plan kvm_automation_tooling::standup_cluster(
   # Ensure terraform dependencies are installed.
   run_task('terraform::initialize', 'localhost', 'dir' => $terraform_dir)
 
-  # Terraform apply.
+  # Terraform apply until the output indicates we have valid ipv4
+  # addreses for all hosts.
   ctrl::do_until(limit => 10, interval => 5) || {
     $apply_result = run_plan('terraform::apply',
       'dir'      => $terraform_dir,
@@ -186,24 +192,7 @@ plan kvm_automation_tooling::standup_cluster(
       'state'    => $tfstate_file,
       'return_output' => true,
     )
-    $ip_addresses = $apply_result.dig('vm_ip_addresses', 'value')
-    if $ip_addresses =~ Undef {
-      log::warn("Terraform apply did not return an ip address list:\n${apply_result}")
-      $valid_addresses = false
-    } else {
-      out::message("VM IP addresses: ${stdlib::to_json_pretty($ip_addresses)}")
-      $valid_addresses = $ip_addresses.all |$i| {
-        $host_map = $i[1]
-        # Check that the ip address is an ipv4 address, because a
-        # Bolt::Target.uri needs an ipv4 address when we resolve
-        # references below.
-        $host_map['ip_address'] =~ Stdlib::Ip::Address::V4
-      }
-      if !$valid_addresses {
-        log::warn('Some hosts missing valid IPv4 addresses; refreshing state.')
-      }
-    }
-    $valid_addresses
+    kvm_automation_tooling::validate_vm_ip_addresses($apply_result)
   }
 
   # Generate an inventory file for the cluster.
@@ -213,6 +202,7 @@ plan kvm_automation_tooling::standup_cluster(
     'ssh_user_name'     => $user,
     'ssh_key_file'      => $ssh_private_key_path,
     'domain_name'       => $domain_name,
+    'roles'             => $roles,
   }))
 
   $target_map = $roles.reduce({}) |$map, $role| {
@@ -255,15 +245,16 @@ plan kvm_automation_tooling::standup_cluster(
   }
 
   if $install_openvox {
-    $primary_target = $target_map.dig('primary', 0)
-    run_plan('kvm_automation_tooling::subplans::install_openvox',
+    $primary_targets = $target_map['primary']
+    $version_map = run_plan('kvm_automation_tooling::install_openvox',
       $install_openvox_params + {
-        'targets' => $all_targets,
-        'puppetserver_target' => $primary_target,
-        'puppetdb_target' => $primary_target,
-        'postgresql_target' => $primary_target,
+        'openvox_agent_targets'  => $all_targets,
+        'openvox_server_targets' => $primary_targets,
+        'openvox_db_targets'     => $primary_targets,
       }
     )
+
+    out::message("Installed versions: ${stdlib::to_json_pretty($version_map)}")
   }
 
   return($target_map)

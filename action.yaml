@@ -1,7 +1,7 @@
 ---
 # https://docs.github.com/en/actions/sharing-automations/creating-actions/creating-a-composite-action
-name: 'Standup Nested VM Cluster'
-description: 'Standup a cluster of local nested virtual machines via libvirt with the help of the Bolt kvm_automation_tooling module.'
+name: '(DEPRECATED) Standup Nested VM Cluster'
+description: 'This action is deprecated; use https://github.com/jpartlow/nested_vms/ instead.'
 
 inputs:
   os:
@@ -185,10 +185,17 @@ runs:
           "vms": ${VMS},
           "install_openvox": ${INSTALL_OPENVOX},
           "install_openvox_params": {
-            "openvox_collection": "${OPENVOX_COLLECTION}",
-            "openvox_version": "${OPENVOX_VERSION}",
-            "openvox_released": ${OPENVOX_RELEASED},
-            "openvox_artifacts_url": "${OPENVOX_ARTIFACTS_URL}"
+            "openvox_agent_params": {
+              "openvox_collection": "${OPENVOX_COLLECTION}",
+              "openvox_version": "${OPENVOX_VERSION}",
+              "openvox_released": ${OPENVOX_RELEASED},
+              "openvox_artifacts_url": "${OPENVOX_ARTIFACTS_URL}"
+            },
+            "install_defaults": {
+              "openvox_version": "latest",
+              "openvox_collection": "${OPENVOX_COLLECTION}",
+              "openvox_released": true
+            }
           }
         }
         EOF

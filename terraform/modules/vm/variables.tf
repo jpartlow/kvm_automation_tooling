@@ -1,5 +1,5 @@
-variable "hostname" {
-  description = "The hostname to set for the VM."
+variable "vm_id" {
+  description = "A tripartite id for the vm made up of role.hostname.platform strings."
   type = string
 }
 
@@ -68,5 +68,10 @@ variable "gateway_ip" {
 
 variable "network_id" {
   description = "The libvirt network to attach the VM to."
+  type = string
+}
+
+variable "domain_name" {
+  description = "The domain name to use for the VM."
   type = string
 }

@@ -27,6 +27,12 @@ packages:
   - qemu-guest-agent
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd
 runcmd:
+%{ if os == "ubuntu" || os == "debian" ~}
+  # Fiddle with systemd-resolved to set the DNS domain since it
+  # doesn't seem to pick it up from dhcp.
+  - [ sed, -i, -E, -e, 's/ *#?Domains=.*/Domains=${domain_name}/', /etc/systemd/resolved.conf ]
+  - [ systemctl, restart, systemd-resolved.service ]
+%{ endif ~}
   - [ systemctl, daemon-reload ]
   - [ systemctl, enable, qemu-guest-agent.service ]
   - [ systemctl, start, --no-block, qemu-guest-agent.service ]

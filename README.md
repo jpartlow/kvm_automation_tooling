@@ -161,6 +161,14 @@ Failed on localhost:
 (I know you can grow partitionts with cloud-init; I'm not certain if
 it's feasible to shrink them.)
 
+Practically, this doesn't mean that 10GB are instantly claimed by the
+image, for example a standard Github runner has 14GB of disk space,
+but you can standup two vms with 10GB disk sizes, nonetheless.
+
+I'm sure at some point there would be contention for disk space, but
+for quick gha test operations that don't involve GBs of data, it seems
+to work fine.
+
 ### Teardown Cluster
 
 To teardown the cluster, run the teardown_cluster plan with the cluster_id:
@@ -225,7 +233,10 @@ bundle exec rspec spec
 The module is tested via Github Actions. The actions are in the .github/workflows.
 
 The module also provides a Github [action](./action.yaml) that can be used in
-other repository workflows to standup a nested cluster using this module.
+other repository workflows to standup a nested cluster using this
+module. However, this has been superseded by the
+[nested_vms](https://github.com/jpartlow/nested_vms/) action, and the
+local action will be dropped in a future update.
 
 ## License
 
