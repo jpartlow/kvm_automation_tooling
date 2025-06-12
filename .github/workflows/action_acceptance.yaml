@@ -9,6 +9,9 @@ on:
     branches:
       - main
 
+env:
+  # Suppress warnings about Bolt gem versus package use.
+  BOLT_GEM: true
 
 jobs:
   install-openvox-collection:
@@ -20,14 +23,18 @@ jobs:
           - ['ubuntu', '2404', 'amd64']
     steps:
       - uses: actions/checkout@v4
-      - id: local-action
-        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          path: 'kvm_automation_tooling'
+      - id: vm-cluster
+        uses: jpartlow/nested_vms@main
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
           os-arch: ${{ matrix.os[2] }}
           setup-cluster-root-ssh: true
           debug: true
+          # Use our local branch instead
+          checkout: false
           install-openvox: true
           openvox-collection: 'openvox7'
           vms: |-
@@ -41,9 +48,6 @@ jobs:
             ]
       - name: Verify openvox-agent is installed
         working-directory: kvm_automation_tooling
-        env:
-          # Suppress warnings about Bolt gem versus package use.
-          BOLT_GEM: true
         shell: bash
         run: |-
           set +e
@@ -68,14 +72,18 @@ jobs:
           - ['ubuntu', '2404', 'amd64']
     steps:
       - uses: actions/checkout@v4
-      - id: local-action
-        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          path: 'kvm_automation_tooling'
+      - id: vm-cluster
+        uses: jpartlow/nested_vms@main
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
           os-arch: ${{ matrix.os[2] }}
           setup-cluster-root-ssh: true
           debug: true
+          # Use our local branch instead
+          checkout: false
           install-openvox: true
           openvox-version: '8.13.0'
           vms: |-
@@ -89,9 +97,6 @@ jobs:
             ]
       - name: Verify openvox-agent is installed
         working-directory: kvm_automation_tooling
-        env:
-          # Suppress warnings about Bolt gem versus package use.
-          BOLT_GEM: true
         shell: bash
         run: |-
           set +e
@@ -116,14 +121,18 @@ jobs:
           - ['ubuntu', '2404', 'amd64']
     steps:
       - uses: actions/checkout@v4
-      - id: local-action
-        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          path: 'kvm_automation_tooling'
+      - id: vm-cluster
+        uses: jpartlow/nested_vms@main
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
           os-arch: ${{ matrix.os[2] }}
           setup-cluster-root-ssh: true
           debug: true
+          # Use our local branch instead
+          checkout: false
           install-openvox: true
           openvox-released: false
           openvox-version: '8.13.0'
@@ -138,9 +147,6 @@ jobs:
             ]
       - name: Verify openvox-agent is installed
         working-directory: kvm_automation_tooling
-        env:
-          # Suppress warnings about Bolt gem versus package use.
-          BOLT_GEM: true
         shell: bash
         run: |-
           set +e
