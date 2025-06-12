@@ -1,5 +1,42 @@
 # Changelog
 
+## 2.0.0 (2025-06-12)
+
+* (plans) Change standup_cluster to return a hash of
+  vm hostname to a hash of vm ip, platform, role and openvox
+  versions (if installed).
+* (gha) Remove action.yaml and pin workflows to nested_vms.
+  The local action.yaml has been moved to jpartlow/nested_vms.
+  Internal testing of this module is now using nested_vms as well.
+* (plans) Return installed versions from install_openvox plan.
+* (plans) The openvox_acceptance plan can be run for openvox-agent,
+  openvox-server or openvox/puppet acceptance testing.
+* (tf) Set domain for debian systems using systemd-resolved.
+  During cloud-init, on Debian systems, update
+  /etc/systemd/resolved.conf to include Domains=vm. Resolves fqdn and
+  slow resolution on Debian systems.
+* (plans) Generate beaker roles based on inventory role.
+  The kvm_automation_tooling::dev::generate_beaker_hosts_file plan
+  will set 'master,agent' roles for a beaker host that is
+  generated with the Vm_spec inventory role of 'primary', and will
+  set 'agent' role for a beaker host generated with the Vm_spec role
+  of 'agent'.
+* (plans,gha) Rename openvox_agent_acceptance openvox_acceptance.
+  kvm_automation_tooling::dev::openvox_agent_acceptance ->
+  kvm_automation_tooling::dev::openvox_acceptance
+* (plans) Install openvox server packages. The install_openvox plan
+  can now install openvox-server and openvoxdb packages.
+* (plans) Graduate install_openvox to a main plan.
+  kvm_automation_tooling::subplan::install_openvox ->
+  kvm_automation_tooling::install_openvox
+* (plans,tf) Generate per role inventory groups based on
+  standup_cluster::vms Vm_spec roles.
+* (maint) Switch puppetlabs-terraform branch to include module:
+  jpartlow/puppetlabs-terraform#include-module-when-resolving-references
+  This branch includes the terraform module name as part of the
+  resource_type key used to resolve references. This in turn supports
+  resolving inventory groups by role.
+
 ## 1.0.0 (2025-05-29)
 
 * (maint) Pin to puppet-openvox_bootstrap < 1.0 via the forge

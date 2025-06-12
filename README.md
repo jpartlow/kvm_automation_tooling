@@ -1,10 +1,17 @@
 # kvm_automation_tooling
 
 A Bolt module for creating and destroying kvm vm clusters via libvirt.
-Uses Terraform and the puppetlabs-terraform module to manage vm creation.
-Uses cloud-init to configure user account, ssh keys and network.
+Uses Terraform and the puppetlabs-terraform module to manage vm
+creation. Uses cloud-init to configure user account, ssh keys and
+network.
 
-Principally intended as a development/ci tool for OpenVox stack testing.
+Principally intended as a development/ci tool for OpenVox stack
+testing, but is generally useful for quickly standing up local test
+clusters of different os platforms.
+
+Provides additional plans for installing the OpenVox stack, and for
+preparing for OpenVox acceptance testing with
+[Beaker](https://github.com/voxpupuli/beaker).
 
 TODO:
 
@@ -39,10 +46,19 @@ so installing those system packages is not strictly necessary.
 
 ## Usage
 
+### Github Actions
+
+To use this module in Github Actions, use [nested_vms].
+
+### Local Development
+
+The module is also helpful for generating sets of kvm test clusters
+for local development.
+
 Note: build-essential and libvirt-dev must be installed before the
-ruby-libvirt gem and other gems that compile native libraries will build.
-You may also need ruby-dev if you are using a system ruby package rather than
-say an rbenv ruby.
+ruby-libvirt gem and other gems that compile native libraries will
+build. You may also need ruby-dev if you are using a system ruby
+package rather than say an rbenv ruby.
 
 If you are using an rbenv ruby, setup will look something like:
 
@@ -76,21 +92,21 @@ Example:
 ```json
 {
   "cluster_id": "foo",
-  "network_addresses": "192.168.100.0/24",
+  "network_addresses": "192.168.102.0/24",
   "ssh_public_key_path": "/some/path/to/ssh/id_for_vms.pub",
   "os": "ubuntu",
-  "os_version": "2404",
+  "os_version": "24.04",
   "os_arch": "x86_64",
   "vms": [
     {
       "role": "primary",
       "cpus": 8,
       "mem_mb": 8192,
-      "disk_gb": 20,
+      "disk_gb": 20
     },
     {
       "role": "agent",
-      "count": 2,
+      "count": 2
     }
   ]
 }
@@ -105,11 +121,17 @@ Then run the plan via Bolt:
 bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @cluster_params.json
 ```
 
-This will produce a cluster of a primary and one agent with a cluster_id string
-of 'foo', and hostnames 'foo-primary-1' and 'foo-agent-1'
-respectively. The terraform state files and a bolt inventory file
-(distinguished by the cluster_id) will be found under the
-terraform/instances/ directory.
+This will produce a cluster of a primary and one agent with a
+cluster_id string of 'foo', and hostnames 'foo-primary-1' and
+'foo-agent-1' respectively. The terraform state files and a bolt
+inventory file (distinguished by the cluster_id) will be found under
+the terraform/instances/ directory. (See [Inventory](#inventory)
+below.)
+
+#### DNS Resolution
+
+One solution for dns resolution from your dev host to your vms, is
+to use libvirt's [nss module](https://libvirt.org/nss.html).
 
 #### RedHat Issues
 
@@ -169,6 +191,47 @@ I'm sure at some point there would be contention for disk space, but
 for quick gha test operations that don't involve GBs of data, it seems
 to work fine.
 
+### Install OpenVox Stack
+
+By default, the standup_cluster plan will install openvox-agent on all
+vms in the cluster, and will install openvox-server and openvoxdb on
+any vm with the role 'primary'. Set standup_cluster::install_openvox
+to false to skip this behavior. To control the versions to install,
+use standup_cluster::install_openvox_params.
+
+However, you can also run
+[kvm_automation_tooling::install_openvox](plans/install_openvox.pp)
+separately after the cluster is up, using the inventory file to
+locate the vms. This allows more fine grained control of openvox
+installation.
+
+Example install_openvox.json file:
+
+```json
+{
+  "openvox_agent_targets": "agent",
+  "openvox_server_targets": "primary",
+  "openvox_agent_params": {
+    "openvox_version": "8.18.0"
+  }
+}
+```
+
+Given the [Standup Cluster](#standup-cluster) example installation,
+you would then run the plan via Bolt:
+
+```bash
+bundle exec bolt plan run kvm_automation_tooling::install_openvox --inventory terraform/instances/inventory.foo.yaml --params @install_openvox.json
+```
+
+This would install openvox-agent 8.18.0 on the two agents in the
+'agent' group, and the latest openvox8 collection openvox-server on
+the vm in the 'primary' group, but not openvoxdb.
+
+The plan can be configured to install any released version, or a
+pre-release version from an artifacts server such as
+https://artifacts.voxpupuli.org.
+
 ### Teardown Cluster
 
 To teardown the cluster, run the teardown_cluster plan with the cluster_id:
@@ -177,19 +240,21 @@ To teardown the cluster, run the teardown_cluster plan with the cluster_id:
 bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id=foo
 ```
 
-Note: You may need the vms active to run the teardown plan so that terraform
-can read the network_interface.addresses.
+Note: You may need the vms active to run the teardown plan so that
+terraform can read the network_interface.addresses.
 
 ### Inventory
 
 The inventory file is generated by the standup_cluster plan and is
 located in the terraform/instances/ as `inventory.<cluster_id>.yaml`.
-The inventory file is a standard Bolt inventory file that relies on the
-puppetlabs-terraform module's plugin to resolve inventory references from the
-associated `terraform/instances/<cluster_id>.tfstate` file.
+The inventory file is a standard Bolt inventory file that relies on
+the puppetlabs-terraform module's plugin to resolve inventory
+references from the associated
+`terraform/instances/<cluster_id>.tfstate` file.
 
-You can use this inventory file to run other Bolt plans, tasks or commands
-against the cluster. Given the 'foo' cluster example above, you could run:
+You can use this inventory file to run other Bolt plans, tasks or
+commands against the cluster. Given the 'foo' cluster example above,
+you could run:
 
 ```bash
 jpartlow@archimedes:~/work/src/kvm_automation_tooling$ be bolt command run --inventory terraform/instances/inventory.foo.yaml --targets foo-primary-1 'echo hi'
@@ -215,8 +280,8 @@ rm ~/images/debian-13-generic-amd64.qcow2
 
 ## Tests
 
-The modules must have been installed first via 'bolt module install' so that
-the spec modulepath in spec/spec_helper.rb can find them. The
+The modules must have been installed first via 'bolt module install'
+so that the spec modulepath in spec/spec_helper.rb can find them. The
 spec/fixtures/modulepath/kvm_automation_tooling symlink is managed by
 rspec-puppet itself.
 
@@ -230,13 +295,12 @@ bundle exec rspec spec
 
 ## Github Actions
 
-The module is tested via Github Actions. The actions are in the .github/workflows.
+The module is tested via Github Actions.
 
-The module also provides a Github [action](./action.yaml) that can be used in
-other repository workflows to standup a nested cluster using this
-module. However, this has been superseded by the
-[nested_vms](https://github.com/jpartlow/nested_vms/) action, and the
-local action will be dropped in a future update.
+The workflows that validate plan acceptance use the [nested_vms]
+action. This action manages preparing a Github Actions vm with libvirt
+and then calling kvm_automation_tooling::standup_cluster to create a
+nested cluster for testing.
 
 ## License
 
@@ -254,3 +318,5 @@ GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+[nested_vms]: https://github.com/jpartlow/nested_vms
