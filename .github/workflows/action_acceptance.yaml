@@ -9,6 +9,9 @@ on:
     branches:
       - main
 
+env:
+  # Suppress warnings about Bolt gem versus package use.
+  BOLT_GEM: true
 
 jobs:
   install-openvox-collection:
@@ -45,9 +48,6 @@ jobs:
             ]
       - name: Verify openvox-agent is installed
         working-directory: kvm_automation_tooling
-        env:
-          # Suppress warnings about Bolt gem versus package use.
-          BOLT_GEM: true
         shell: bash
         run: |-
           set +e
@@ -97,9 +97,6 @@ jobs:
             ]
       - name: Verify openvox-agent is installed
         working-directory: kvm_automation_tooling
-        env:
-          # Suppress warnings about Bolt gem versus package use.
-          BOLT_GEM: true
         shell: bash
         run: |-
           set +e
@@ -150,9 +147,6 @@ jobs:
             ]
       - name: Verify openvox-agent is installed
         working-directory: kvm_automation_tooling
-        env:
-          # Suppress warnings about Bolt gem versus package use.
-          BOLT_GEM: true
         shell: bash
         run: |-
           set +e

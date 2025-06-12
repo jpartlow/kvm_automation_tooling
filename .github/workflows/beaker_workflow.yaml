@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+env:
+  # Suppress warnings about Bolt gem versus package use.
+  BOLT_GEM: true
+
 jobs:
   standup-cluster-and-run-beaker:
     runs-on: ubuntu-latest
