@@ -21,14 +21,18 @@ jobs:
           - ['ubuntu', '24.04', 'x86_64']
     steps:
       - uses: actions/checkout@v4
-      - id: local-action
-        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          path: 'kvm_automation_tooling'
+      - id: vm-cluster
+        uses: jpartlow/nested_vms@main
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
           os-arch: ${{ matrix.os[2] }}
           setup-cluster-root-ssh: true
           debug: true
+          # Use our local branch instead
+          checkout: false
           install-openvox: true
           vms: |-
             [
@@ -48,7 +52,7 @@ jobs:
       - name: Display inventory details
         working-directory: kvm_automation_tooling
         env:
-          INVENTORY_JSON: ${{ steps.local-action.outputs.cluster-details }}
+          INVENTORY_JSON: ${{ steps.vm-cluster.outputs.cluster-details }}
         run: |-
           jq . <<< $INVENTORY_JSON
       - name: Run openvox_acceptance plan
@@ -59,8 +63,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - id: local-action
-        uses: ./ # Use kvm_automation_tooling's own standup-cluster action.yaml...
+        with:
+          path: 'kvm_automation_tooling'
+      - id: vm-cluster
+        uses: jpartlow/nested_vms@main
         with:
           os: debian
           os-version: '13'
@@ -68,6 +74,8 @@ jobs:
           image_version: 'daily-latest'
           setup-cluster-root-ssh: true
           debug: true
+          # Use our local branch instead
+          checkout: false
           install-openvox: true
           openvox-released: false
           openvox-version: '8.17.0'
@@ -88,7 +96,7 @@ jobs:
       - name: Display inventory details
         working-directory: kvm_automation_tooling
         env:
-          INVENTORY_JSON: ${{ steps.local-action.outputs.cluster-details }}
+          INVENTORY_JSON: ${{ steps.vm-cluster.outputs.cluster-details }}
         run: |-
           jq . <<< $INVENTORY_JSON
       - name: Run openvox_acceptance plan
