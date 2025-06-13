@@ -255,7 +255,18 @@ plan kvm_automation_tooling::standup_cluster(
     )
 
     out::message("Installed versions: ${stdlib::to_json_pretty($version_map)}")
+  } else {
+    $version_map = {}
   }
 
-  return($target_map)
+  $output = $all_targets.reduce({}) |$map, $target| {
+    $map + {
+      $target.name => {
+        'ip'       => $target.uri,
+        'role'     => $target.vars['role'],
+        'platform' => $target.vars['platform'],
+      } + $version_map.get($target.name, {})
+    }
+  }
+  return($output)
 }

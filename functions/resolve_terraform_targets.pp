@@ -16,7 +16,7 @@ function kvm_automation_tooling::resolve_terraform_targets(
   $inventory = loadyaml($inventory_file, {})
   log::debug("Loaded inventory: ${inventory}")
 
-  $config = $inventory.dig('config')
+  $config = $inventory.get('config', {})
   log::debug("Config: ${config}")
 
   $group = $inventory.dig('groups').then |$groups| {
@@ -29,34 +29,31 @@ function kvm_automation_tooling::resolve_terraform_targets(
   }
   log::debug("The ${group_name} group: ${group}")
 
-  $domain = $group['vars']['domain_name']
-  log::debug("Domain: ${domain}")
+  $group_vars = $group.get('vars', {})
+  log::debug("Group vars: ${group_vars}")
 
   $refs = resolve_references($group)
   log::debug("Resolved references for '${group_name}': ${refs}")
 
-  $refs_with_fqdn = $refs['targets'].map |$r| {
-    $_r = $r + {
-      'name' => "${r['name']}.${domain}",
-    }
-    $config =~ NotUndef ? {
-      true    => $_r + { 'config' => $config },
-      default => $_r,
+  $updated_refs = $refs['targets'].map |$r| {
+    $r + {
+      'vars'   => $group_vars + $r.get('vars', {}),
+      'config' => $config + $r.get('config', {}),
     }
   }
-  log::debug("Updated references: ${refs_with_fqdn}")
+  log::debug("Updated references: ${updated_refs}")
 
-  $targets = $refs_with_fqdn.map |$r| {
+  $targets = $updated_refs.map |$r| {
     Target.new($r)
   }
   log::debug($targets.map |$t| {
     {
-      name => $t.name,
-      host => $t.host,
-      uri  => $t.uri,
-      user => $t.user,
+      name   => $t.name,
+      host   => $t.host,
+      uri    => $t.uri,
+      user   => $t.user,
       config => $t.config,
-      vars => $t.vars,
+      vars   => $t.vars,
     }
   })
 
