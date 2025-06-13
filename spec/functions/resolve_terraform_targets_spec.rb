@@ -9,6 +9,7 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
       {
         'name' => 'spec-agent-1',
         'uri'  => '192.168.100.200',
+        'vars' => {'platform' => 'ubuntu'},
       },
     ]
   end
@@ -48,6 +49,8 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
             target_mapping:
               name: network_interface.0.hostname
               uri: network_interface.0.addresses.0
+              vars:
+                platform: metadata
         config:
           ssh:
             user: spec
@@ -62,15 +65,17 @@ describe 'kvm_automation_tooling::resolve_terraform_targets' do
 
     it 'resolves the terraform targets matching role in the given inventory file' do
       result = call_function('kvm_automation_tooling::resolve_terraform_targets', "#{tempdir}/inventory-spec.yaml", 'agent')
-      expect(result).to match_array(
-        have_attributes(
-          name: 'spec-agent-1.some.domain',
-          uri: '192.168.100.200',
-          user: 'spec',
-          vars: {},
-          config: {'ssh' => {'user' => 'spec', 'run-as' => 'root'}},
-        )
-      )
+
+      expect(result.count).to eq(1)
+      target = result.first
+      expect(target.name).to eq('spec-agent-1')
+      expect(target.uri).to eq('192.168.100.200')
+      expect(target.user).to eq('spec')
+      expect(target.vars).to eq({
+        'domain_name' => 'some.domain',
+        'platform'    => 'ubuntu',
+      })
+      expect(target.config).to eq({'ssh' => {'user' => 'spec', 'run-as' => 'root'}})
     end
 
     it 'raises an error if the group cannot be found' do

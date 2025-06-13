@@ -120,7 +120,7 @@ describe 'plan: standup_cluster' do
 
       it 'terraforms and installs openvox' do
         expect_task('openvox_bootstrap::install')
-          .with_targets(['spec-primary-1.vm', 'spec-agent-1.vm'])
+          .with_targets(['spec-primary-1', 'spec-agent-1'])
           .with_params({
             'package'    => 'openvox-agent',
             'version'    => 'latest',
@@ -130,7 +130,7 @@ describe 'plan: standup_cluster' do
           })
         expect_plan('facts')
         expect_task('openvox_bootstrap::install')
-          .with_targets(['spec-primary-1.vm'])
+          .with_targets(['spec-primary-1'])
           .with_params({
             'package'    => 'openvox-server',
             'version'    => 'latest',
@@ -139,7 +139,7 @@ describe 'plan: standup_cluster' do
             'yum_source' => 'https://yum.voxpupuli.org',
           })
         expect_task('openvox_bootstrap::install')
-          .with_targets(['spec-primary-1.vm'])
+          .with_targets(['spec-primary-1'])
           .with_params({
             'package'    => 'openvoxdb',
             'version'    => 'latest',
@@ -147,21 +147,53 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
           })
-        expect_task('package').be_called_times(3)
+        expect_task('package')
+          .be_called_times(3)
+          .always_return({'version' => '1.0.0'})
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
 
         target_map = result.value
-        expect(target_map.keys).to match_array(['primary', 'agent'])
-        expect(target_map['primary'].map(&:name)).to eq(["spec-primary-1.vm"])
-        expect(target_map['agent'].map(&:name)).to eq(["spec-agent-1.vm"])
+        expect(target_map).to match(
+          {
+            'spec-primary-1' => {
+              'ip'             => '192.168.100.224',
+              'role'           => 'primary',
+              'platform'       => 'ubuntu-2404-amd64',
+              'openvox-agent'  => '1.0.0',
+              'openvox-server' => '1.0.0',
+              'openvoxdb'      => '1.0.0',
+            },
+            'spec-agent-1' => {
+              'ip'             => '192.168.100.37',
+              'role'           => 'agent',
+              'platform'       => 'ubuntu-2404-amd64',
+              'openvox-agent'  => '1.0.0',
+            },
+          }
+        )
       end
 
       it 'just terraforms when install_openvox is false' do
         params['install_openvox'] = false
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
+        target_map = result.value
+        expect(target_map).to match(
+          {
+            'spec-primary-1' => {
+              'ip'       => '192.168.100.224',
+              'platform' => 'ubuntu-2404-amd64',
+              'role'     => 'primary',
+            },
+            'spec-agent-1' => {
+              'ip'       => '192.168.100.37',
+              'platform' => 'ubuntu-2404-amd64',
+              'role'     => 'agent',
+            },
+          }
+        )
       end
 
       it 'adds host root access when requsted' do
@@ -172,7 +204,7 @@ describe 'plan: standup_cluster' do
         params['ssh_public_key_path'] = public_key_path
         params['host_root_access'] = true
         expect_task('kvm_automation_tooling::add_ssh_authorized_key')
-          .with_targets(['spec-primary-1.vm', 'spec-agent-1.vm'])
+          .with_targets(['spec-primary-1', 'spec-agent-1'])
           .with_params({
             'user' => 'root',
             'ssh_public_key' => 'rspec-public-key',
