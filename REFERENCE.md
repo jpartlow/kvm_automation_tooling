@@ -7,6 +7,7 @@
 ### Classes
 
 * [`kvm_automation_tooling`](#kvm_automation_tooling): ATM this is just a placeholder for the module so that rspec-puppet can get_module_name and setup the spec/fixtures/modules link correctly.
+* [`kvm_automation_tooling::server::package_prerequisites`](#kvm_automation_tooling--server--package_prerequisites): Ensures package dependencies for openvox-server or openvoxdb.  This class can be used for cases where openvox-server or openvoxdb packages ar
 
 ### Functions
 
@@ -17,6 +18,7 @@
 * [`kvm_automation_tooling::get_normalized_ubuntu_version`](#kvm_automation_tooling--get_normalized_ubuntu_version): Returns the Ubuntu version number without delimiters.
 * [`kvm_automation_tooling::platform`](#kvm_automation_tooling--platform): Generic function to produce a canonical descriptive platform string from a set of os, version and cpu arch values.  Examples:   kvm_automatio
 * [`kvm_automation_tooling::resolve_terraform_targets`](#kvm_automation_tooling--resolve_terraform_targets): Manually resolve target references from the given *inventory_file* and return those from the given *group*.
+* [`kvm_automation_tooling::transform_openvox_host_version_results`](#kvm_automation_tooling--transform_openvox_host_version_results): Transform the PlanResult ResultSet of package version hashes returned by the kvm_automation_tooling::subplans::install_component plan into a 
 * [`kvm_automation_tooling::translate_os_version_codename`](#kvm_automation_tooling--translate_os_version_codename): Translates a Debian or Ubuntu version number to codename, or codename to version number, depending on what it is given.  Raises an error if u
 * [`kvm_automation_tooling::validate_openvox_version_parameters`](#kvm_automation_tooling--validate_openvox_version_parameters): Validates the given set of OpenVox install parameters and raises an error for any problems.  If we're installing a released version, then col
 * [`kvm_automation_tooling::validate_vm_ip_addresses`](#kvm_automation_tooling--validate_vm_ip_addresses): Check whether ip addresses returned by the terraform apply are all valid ipv4 addresses.  A Bolt::Target.uri needs an ipv4 address when we re
@@ -51,6 +53,8 @@
 * [`kvm_automation_tooling::dev::prep_vm_for_module_testing`](#kvm_automation_tooling--dev--prep_vm_for_module_testing): This is a dev plan used to test kvm_automation_tooling in a clean environment. It goes one turtle down and nests libvirt within a VM, then se
 * [`kvm_automation_tooling::install_openvox`](#kvm_automation_tooling--install_openvox): Install OpenVox Puppet agents and primary services on the cluster without any attempts at configuration.  The openvox_* install parameters ar
 * [`kvm_automation_tooling::standup_cluster`](#kvm_automation_tooling--standup_cluster): Standup one cluster of KVM virtual machines based on a given Kvm_automation_tooling::Vm_spec structure.  Makes use of terraform under the hoo
+* [`kvm_automation_tooling::subplans::install_component`](#kvm_automation_tooling--subplans--install_component): Installs a single openvox component on behalf of the caller.  Uses puppet-openvox_bootstrap tasks.
+* [`kvm_automation_tooling::subplans::install_server_prerequisites`](#kvm_automation_tooling--subplans--install_server_prerequisites): Installs the platform specific set of package dependencies for the openvox-server and openvoxdb packages if the installation parameters indic
 * [`kvm_automation_tooling::subplans::lookup_platform`](#kvm_automation_tooling--subplans--lookup_platform): Given a TargetSpec, for each Target that does not yet have a *platform* variable set, obtain platform details and set the *platform* variable
 * [`kvm_automation_tooling::subplans::manage_base_image_volume`](#kvm_automation_tooling--subplans--manage_base_image_volume): Ensure that the base image is downloaded for the given platform and imported into libvirt as a volume. Ensure that a libvirt pool for platfor
 * [`kvm_automation_tooling::subplans::setup_cluster_ssh`](#kvm_automation_tooling--subplans--setup_cluster_ssh): This plan manages two aspects of ssh access within the cluster.  1. SSH between *controller* and *destination* vms as *user*. 2. SSH between 
@@ -62,6 +66,14 @@
 
 ATM this is just a placeholder for the module so that rspec-puppet can
 get_module_name and setup the spec/fixtures/modules link correctly.
+
+### <a name="kvm_automation_tooling--server--package_prerequisites"></a>`kvm_automation_tooling::server::package_prerequisites`
+
+Ensures package dependencies for openvox-server or openvoxdb.
+
+This class can be used for cases where openvox-server or openvoxdb
+packages are downloaded and installed directly, bypassing dependency
+handling by package managers like apt or dnf.
 
 ## Functions
 
@@ -480,6 +492,41 @@ Data type: `String`
 
 The name of the inventory group to pass to the
 resolve_references function.
+
+### <a name="kvm_automation_tooling--transform_openvox_host_version_results"></a>`kvm_automation_tooling::transform_openvox_host_version_results`
+
+Type: Puppet Language
+
+Transform the PlanResult ResultSet of package version hashes
+returned by the kvm_automation_tooling::subplans::install_component
+plan into a Hash of host names to package version hashes.
+
+#### `kvm_automation_tooling::transform_openvox_host_version_results(String $package, PlanResult $results, Hash $initial = {})`
+
+Transform the PlanResult ResultSet of package version hashes
+returned by the kvm_automation_tooling::subplans::install_component
+plan into a Hash of host names to package version hashes.
+
+Returns: `Hash[String, Hash[String, String]]`
+
+##### `results`
+
+Data type: `PlanResult`
+
+The PlanResult containing the results of the
+kvm_automation_tooling::subplans::install_component plan.
+
+##### `initial`
+
+Data type: `Hash`
+
+The initial Hash to reduce the results into.
+
+##### `package`
+
+Data type: `String`
+
+
 
 ### <a name="kvm_automation_tooling--translate_os_version_codename"></a>`kvm_automation_tooling::translate_os_version_codename`
 
@@ -1039,6 +1086,7 @@ The following parameters are available in the `kvm_automation_tooling::dev::prep
 * [`kvm_module_url`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--kvm_module_url)
 * [`branch`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--branch)
 * [`virbr0_network_prefix`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix)
+* [`ruby_version`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version)
 
 ##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--dev_vm"></a>`dev_vm`
 
@@ -1073,6 +1121,14 @@ which will usually be 192.168.122.0/24).
 
 Default value: `'192.168.123'`
 
+##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version"></a>`ruby_version`
+
+Data type: `String`
+
+
+
+Default value: `'3.3.0'`
+
 ### <a name="kvm_automation_tooling--install_openvox"></a>`kvm_automation_tooling::install_openvox`
 
 Install OpenVox Puppet agents and primary services on the cluster
@@ -1087,6 +1143,9 @@ agent installation.
 
 NOTE: The agent will be installed on server and db targets as well.
 
+NOTE: The openvoxdb-termini package will be installed on all server
+targets by default. Set $install_termini to false to skip this.
+
 #### Parameters
 
 The following parameters are available in the `kvm_automation_tooling::install_openvox` plan:
@@ -1098,6 +1157,8 @@ The following parameters are available in the `kvm_automation_tooling::install_o
 * [`openvox_server_params`](#-kvm_automation_tooling--install_openvox--openvox_server_params)
 * [`openvox_db_params`](#-kvm_automation_tooling--install_openvox--openvox_db_params)
 * [`install_defaults`](#-kvm_automation_tooling--install_openvox--install_defaults)
+* [`install_termini`](#-kvm_automation_tooling--install_openvox--install_termini)
+* [`version_file_path`](#-kvm_automation_tooling--install_openvox--version_file_path)
 
 ##### <a name="-kvm_automation_tooling--install_openvox--openvox_agent_targets"></a>`openvox_agent_targets`
 
@@ -1169,6 +1230,30 @@ Default value:
       'openvox_released'      => true,
     }
 ```
+
+##### <a name="-kvm_automation_tooling--install_openvox--install_termini"></a>`install_termini`
+
+Data type: `Boolean`
+
+Whether to install the openvoxdb-termini
+package on the $openvox_server_targets. The openvoxdb-termini
+package contains Puppet terminus classes, functions and faces for
+interacting with openvoxdb and is typically used to configure
+openvox-server for communicating with openvoxdb.
+
+Default value: `true`
+
+##### <a name="-kvm_automation_tooling--install_openvox--version_file_path"></a>`version_file_path`
+
+Data type: `Optional[String[1]]`
+
+Optional path to write an
+openox_versions.<cluster_id>.json file containing the version map
+of all installed OpenVox components. Useful for debugging in
+automated pipelines. If undef (default), the file will not
+be written.
+
+Default value: `undef`
 
 ### <a name="kvm_automation_tooling--standup_cluster"></a>`kvm_automation_tooling::standup_cluster`
 
@@ -1439,6 +1524,95 @@ installing something other than the latest agent package from
 the latest collection.
 
 Default value: `{}`
+
+### <a name="kvm_automation_tooling--subplans--install_component"></a>`kvm_automation_tooling::subplans::install_component`
+
+Installs a single openvox component on behalf of the caller.
+
+Uses puppet-openvox_bootstrap tasks.
+
+#### Parameters
+
+The following parameters are available in the `kvm_automation_tooling::subplans::install_component` plan:
+
+* [`targets`](#-kvm_automation_tooling--subplans--install_component--targets)
+* [`package`](#-kvm_automation_tooling--subplans--install_component--package)
+* [`params`](#-kvm_automation_tooling--subplans--install_component--params)
+* [`defaults`](#-kvm_automation_tooling--subplans--install_component--defaults)
+
+##### <a name="-kvm_automation_tooling--subplans--install_component--targets"></a>`targets`
+
+Data type: `TargetSpec`
+
+The targets to install the component on.
+
+##### <a name="-kvm_automation_tooling--subplans--install_component--package"></a>`package`
+
+Data type: `String`
+
+The name of the package to install.
+
+##### <a name="-kvm_automation_tooling--subplans--install_component--params"></a>`params`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The parameters for the openvox installation.
+
+##### <a name="-kvm_automation_tooling--subplans--install_component--defaults"></a>`defaults`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The default parameters for the openvox installation.
+
+### <a name="kvm_automation_tooling--subplans--install_server_prerequisites"></a>`kvm_automation_tooling::subplans::install_server_prerequisites`
+
+Installs the platform specific set of package dependencies for
+the openvox-server and openvoxdb packages if the installation
+parameters indicate we are install a pre-release package from
+artifacts.
+
+The pre-release packages are downloaded directly from the artifacts
+server and installed with rpm or dpkg, so no package dependencies
+are automatically installed by a higher layer like apt or dnf, which
+is why we need this subplan.
+
+#### Parameters
+
+The following parameters are available in the `kvm_automation_tooling::subplans::install_server_prerequisites` plan:
+
+* [`targets`](#-kvm_automation_tooling--subplans--install_server_prerequisites--targets)
+* [`package`](#-kvm_automation_tooling--subplans--install_server_prerequisites--package)
+* [`params`](#-kvm_automation_tooling--subplans--install_server_prerequisites--params)
+* [`defaults`](#-kvm_automation_tooling--subplans--install_server_prerequisites--defaults)
+
+##### <a name="-kvm_automation_tooling--subplans--install_server_prerequisites--targets"></a>`targets`
+
+Data type: `TargetSpec`
+
+The targets to install the packages on.
+
+##### <a name="-kvm_automation_tooling--subplans--install_server_prerequisites--package"></a>`package`
+
+Data type: `String`
+
+The name of the package to install. The subplan
+will do nothing if the package does not match one needing
+pre-requisite packages.
+
+##### <a name="-kvm_automation_tooling--subplans--install_server_prerequisites--params"></a>`params`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The parameters for the openvox installation.
+If evaluation of params and defaults does not indicate that
+the package is a pre-release package, then this plan will
+do nothing.
+
+##### <a name="-kvm_automation_tooling--subplans--install_server_prerequisites--defaults"></a>`defaults`
+
+Data type: `Kvm_automation_tooling::Openvox_install_params`
+
+The default parameters for the openvox installation.
 
 ### <a name="kvm_automation_tooling--subplans--lookup_platform"></a>`kvm_automation_tooling::subplans::lookup_platform`
 
