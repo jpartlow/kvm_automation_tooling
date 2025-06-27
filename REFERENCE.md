@@ -1087,6 +1087,9 @@ agent installation.
 
 NOTE: The agent will be installed on server and db targets as well.
 
+NOTE: The openvoxdb-termini package will be installed on all server
+targets by default. Set $install_termini to false to skip this.
+
 #### Parameters
 
 The following parameters are available in the `kvm_automation_tooling::install_openvox` plan:
@@ -1098,6 +1101,7 @@ The following parameters are available in the `kvm_automation_tooling::install_o
 * [`openvox_server_params`](#-kvm_automation_tooling--install_openvox--openvox_server_params)
 * [`openvox_db_params`](#-kvm_automation_tooling--install_openvox--openvox_db_params)
 * [`install_defaults`](#-kvm_automation_tooling--install_openvox--install_defaults)
+* [`install_termini`](#-kvm_automation_tooling--install_openvox--install_termini)
 
 ##### <a name="-kvm_automation_tooling--install_openvox--openvox_agent_targets"></a>`openvox_agent_targets`
 
@@ -1169,6 +1173,18 @@ Default value:
       'openvox_released'      => true,
     }
 ```
+
+##### <a name="-kvm_automation_tooling--install_openvox--install_termini"></a>`install_termini`
+
+Data type: `Boolean`
+
+Whether to install the openvoxdb-termini
+package on the $openvox_server_targets. The openvoxdb-termini
+package contains Puppet terminus classes, functions and faces for
+interacting with openvoxdb and is typically used to configure
+openvox-server for communicating with openvoxdb.
+
+Default value: `true`
 
 ### <a name="kvm_automation_tooling--standup_cluster"></a>`kvm_automation_tooling::standup_cluster`
 

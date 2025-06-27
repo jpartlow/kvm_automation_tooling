@@ -10,6 +10,9 @@
 #
 # NOTE: The agent will be installed on server and db targets as well.
 #
+# NOTE: The openvoxdb-termini package will be installed on all server
+# targets by default. Set $install_termini to false to skip this.
+#
 # @param openvox_agent_targets The targets to install the OpenVox
 #   Puppet agent on.
 # @param openvox_server_targets The target to install the OpenVox
@@ -26,6 +29,11 @@
 #   openvoxdb package to install on the $openvox_db_targets.
 # @param install_defaults The default parameters to include
 #   in each of the $openvox_*_params hashes.
+# @param install_termini Whether to install the openvoxdb-termini
+#   package on the $openvox_server_targets. The openvoxdb-termini
+#   package contains Puppet terminus classes, functions and faces for
+#   interacting with openvoxdb and is typically used to configure
+#   openvox-server for communicating with openvoxdb.
 plan kvm_automation_tooling::install_openvox(
   TargetSpec $openvox_agent_targets,
   TargetSpec $openvox_server_targets = [],
@@ -42,18 +50,24 @@ plan kvm_automation_tooling::install_openvox(
       'openvox_collection'    => 'openvox8',
       'openvox_released'      => true,
     },
+  Boolean $install_termini = true,
 ) {
   # Resolve targets in case we were given hostname or inventory group
   # name references instead of Target objects.
   $agent_targets  = get_targets($openvox_agent_targets)
   $server_targets = get_targets($openvox_server_targets)
   $db_targets     = get_targets($openvox_db_targets)
+  $db_termini_targets = $install_termini ? {
+    true    => $server_targets,
+    default => [],
+  }
   $all_targets    = [$agent_targets, $server_targets, $db_targets].flatten().unique()
 
   $installations = [
     [$all_targets, 'openvox-agent', $openvox_agent_params],
     [$server_targets, 'openvox-server', $openvox_server_params],
     [$db_targets, 'openvoxdb', $openvox_db_params],
+    [$db_termini_targets, 'openvoxdb-termini', $openvox_db_params],
   ]
   $version_map = $installations.reduce({}) |$map, $i| {
     $targets = $i[0]

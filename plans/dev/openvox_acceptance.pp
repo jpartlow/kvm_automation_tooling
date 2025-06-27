@@ -47,14 +47,12 @@ plan kvm_automation_tooling::dev::openvox_acceptance(
     },
     'openvox-server' => {
       'pre-suite' => [
+        'suites/pre_suite/openvox/configure_type_defaults.rb',
         'suites/pre_suite/foss/00_setup_environment.rb',
         'suites/pre_suite/foss/070_InstallCACerts.rb',
         'suites/pre_suite/foss/10_update_ca_certs.rb',
-        'suites/pre_suite/openvox/configure_type_defaults.rb',
-#        'suites/pre_suite/foss/20_install_released_puppet.rb',
-#        'suites/pre_suite/foss/30_install_dev_repos.rb',
-#        'suites/pre_suite/foss/40_install_jvmpuppet_deps.rb',
-#        'suites/pre_suite/foss/70_install_puppet.rb',
+        'suites/pre_suite/foss/15_prep_locales.rb',
+        # ... skipping the pre_suite steps that install puppet packages
         'suites/pre_suite/foss/71_smoke_test_puppetserver.rb',
         'suites/pre_suite/foss/80_configure_puppet.rb',
         'suites/pre_suite/foss/85_configure_sut.rb',
@@ -66,8 +64,9 @@ plan kvm_automation_tooling::dev::openvox_acceptance(
         'suites/tests',
       ],
       'helper' => 'lib/helper.rb',
+      'load-path' => 'lib',
       'type' => 'aio',
-      'options_file' => 'config/beaker/options.rb',
+      'options-file' => 'config/beaker/options.rb',
     },
     'puppet' => {
       'pre-suite' => [

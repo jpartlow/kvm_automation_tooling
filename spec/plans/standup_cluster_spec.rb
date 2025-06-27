@@ -147,8 +147,17 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
           })
+        expect_task('openvox_bootstrap::install')
+          .with_targets(['spec-primary-1'])
+          .with_params({
+            'package'    => 'openvoxdb-termini',
+            'version'    => 'latest',
+            'collection' => 'openvox8',
+            'apt_source' => 'https://apt.voxpupuli.org',
+            'yum_source' => 'https://yum.voxpupuli.org',
+          })
         expect_task('package')
-          .be_called_times(3)
+          .be_called_times(4)
           .always_return({'version' => '1.0.0'})
 
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
@@ -158,12 +167,13 @@ describe 'plan: standup_cluster' do
         expect(target_map).to match(
           {
             'spec-primary-1' => {
-              'ip'             => '192.168.100.224',
-              'role'           => 'primary',
-              'platform'       => 'ubuntu-2404-amd64',
-              'openvox-agent'  => '1.0.0',
-              'openvox-server' => '1.0.0',
-              'openvoxdb'      => '1.0.0',
+              'ip'                => '192.168.100.224',
+              'role'              => 'primary',
+              'platform'          => 'ubuntu-2404-amd64',
+              'openvox-agent'     => '1.0.0',
+              'openvox-server'    => '1.0.0',
+              'openvoxdb'         => '1.0.0',
+              'openvoxdb-termini' => '1.0.0',
             },
             'spec-agent-1' => {
               'ip'             => '192.168.100.37',
