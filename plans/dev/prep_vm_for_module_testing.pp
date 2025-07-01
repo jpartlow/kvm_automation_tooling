@@ -32,6 +32,7 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
   TargetSpec $dev_vm,
   String $kvm_module_url = 'https://github.com/jpartlow/kvm_automation_tooling.git',
   String $branch = 'main',
+  String $ruby_version = '3.3.0',
   String $virbr0_network_prefix = '192.168.123',
 ) {
   # I'm leaving this as script strings executed through run_command
@@ -51,7 +52,7 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
     | EOS
 
   out::message('Rebooting the VM to apply group changes.')
-  run_command('sudo reboot', $dev_vm)
+  run_command("virsh reboot --domain ${dev_vm}", 'localhost')
   # Wait a few seconds for the VM to have shutdown, otherwise the
   # wait_until_available function may successfully connect before the
   # reboot has really begun, and the next command may fail to connect
@@ -80,14 +81,36 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
     sudo apt update && sudo apt install -y terraform
     | EOS
 
-  out::message('Install ruby and packages required for rubygem native builds.')
+  out::message('Install rbenv.')
   run_command(@(EOS), $dev_vm)
-    sudo apt install -y ruby ruby-bundler libvirt-dev ruby-dev build-essential
+    set -e
+    curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+    | EOS
+
+  out::message('Install packages required for rubygem native builds.')
+  run_command(@(EOS), $dev_vm)
+    # For building ruby
+    sudo apt-get install -y build-essential autoconf libssl-dev libyaml-dev zlib1g-dev libffi-dev libgmp-dev rustc
+    # For gems related to libvirt
+    sudo apt-get install -y libvirt-dev
+    | EOS
+
+  out::message('Install a ruby using rbenv.')
+  run_command(@("EOS"), $dev_vm)
+    set -e
+    # Repeating this in every invocation because the Ubuntu .bashrc
+    # exits early if it detects a non-interactive session.
+    eval "$(~/.rbenv/bin/rbenv init - --no-rehash bash)"
+    rbenv install --skip-existing "${ruby_version}"
+    rbenv global "${ruby_version}"
     | EOS
 
   out::message('Checkout an instance of kvm_automation_tooling, install the gem bundle and checkout the supporting Puppet modules.')
   run_command(@("EOS"), $dev_vm)
     set -e
+    # Repeating this in every invocation because the Ubuntu .bashrc
+    # exits early if it detects a non-interactive session.
+    eval "$(~/.rbenv/bin/rbenv init - --no-rehash bash)"
     if ! [ -d kvm_automation_tooling ]; then
       git clone "${kvm_module_url}"
     fi
@@ -103,6 +126,9 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
   out::message('Create a libvirt directory pool for the default images.')
   run_command(@(EOS), $dev_vm)
     set -e
+    # Repeating this in every invocation because the Ubuntu .bashrc
+    # exits early if it detects a non-interactive session.
+    eval "$(~/.rbenv/bin/rbenv init - --no-rehash bash)"
     cd kvm_automation_tooling
     bundle exec bolt task run kvm_automation_tooling::create_libvirt_image_pool \
       --targets=localhost name=default path='/var/lib/libvirt/images'
@@ -117,31 +143,5 @@ plan kvm_automation_tooling::dev::prep_vm_for_module_testing(
     fi
     | EOS
 
-  out::message('Standup a test cluster using the VM libvirt.')
-  run_command(@("EOS"), $dev_vm,)
-    set -e
-    cd kvm_automation_tooling
-    cat > standup_cluster_params.json <<EOF
-    {
-      "cluster_id": "test",
-      "network_addresses": "192.168.200.0/24",
-      "ssh_public_key_path": "${ssh_key_file}.pub",
-      "os": "ubuntu",
-      "os_version": "2404",
-      "os_arch": "x86_64",
-      "vms": [
-        {
-          "role": "primary",
-          "cpus": 2,
-          "mem_mb": 4096,
-          "disk_gb": 5
-        },
-        {
-          "role": "agent"
-        }
-      ]
-    }
-    EOF
-    bundle exec bolt plan run kvm_automation_tooling::standup_cluster --params @standup_cluster_params.json
-    | EOS
+  out::message('You should now be able to stand up a cluster using the kvm_automation_tooling module on the VM.')
 }
