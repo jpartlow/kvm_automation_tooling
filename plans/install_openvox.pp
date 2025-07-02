@@ -63,83 +63,72 @@ plan kvm_automation_tooling::install_openvox(
   }
   $all_targets    = [$agent_targets, $server_targets, $db_targets].flatten().unique()
 
-  $installations = [
-    [$all_targets, 'openvox-agent', $openvox_agent_params],
+  $agent_version_results = run_plan(
+    'kvm_automation_tooling::subplans::install_component',
+    'targets'  => $all_targets,
+    'package'  => 'openvox-agent',
+    'params'   => $openvox_agent_params,
+    'defaults' => $install_defaults,
+  )
+  $agent_version_map = kvm_automation_tooling::transform_openvox_host_version_results(
+    'openvox-agent',
+    $agent_version_results,
+  )
+
+  # Mark each target as having the puppet-agent.
+  $all_targets.each |$target| {
+    set_feature($target, 'puppet-agent', true)
+  }
+
+  # Collect facts and add them to the targets.
+  run_plan('facts', 'targets' => $all_targets)
+
+  # Install pre-requisite packages for the openvox-server
+  # and openvoxdb packages if required (pre-release packages).
+  [
+    [$server_targets, 'openvox-server', $openvox_server_params],
+    [($db_targets - $server_targets), 'openvoxdb', $openvox_db_params],
+  ].each |$i| {
+    $targets = $i[0]
+    $package = $i[1]
+    $params  = $i[2]
+
+    if $targets.empty() { next() }
+
+    run_plan(
+      'kvm_automation_tooling::subplans::install_server_prerequisites',
+      'targets'  => $targets,
+      'package'  => $package,
+      'params'   => $params,
+      'defaults' => $install_defaults,
+    )
+  }
+
+  $server_installations = [
     [$server_targets, 'openvox-server', $openvox_server_params],
     [$db_targets, 'openvoxdb', $openvox_db_params],
     [$db_termini_targets, 'openvoxdb-termini', $openvox_db_params],
   ]
-  $version_map = $installations.reduce({}) |$map, $i| {
+  $version_map = $server_installations.reduce($agent_version_map) |$map, $i| {
     $targets = $i[0]
     $package = $i[1]
     $params  = $i[2]
 
     if $targets.empty() { next($map) }
 
-    $install_params = kvm_automation_tooling::validate_openvox_version_parameters(
-      $install_defaults + $params,
+    $version_results = run_plan(
+      'kvm_automation_tooling::subplans::install_component',
+      'targets'  => $targets,
+      'package'  => $package,
+      'params'   => $params,
+      'defaults' => $install_defaults,
     )
 
-    out::message("Installing ${package}")
-
-    if $install_params['openvox_released'] {
-      run_task(
-        'openvox_bootstrap::install',
-        $targets,
-        'package'    => $package,
-        'version'    => $install_params['openvox_version'],
-        'collection' => $install_params['openvox_collection'],
-      )
-    } else {
-      $_artifacts_url = $install_params['openvox_artifacts_url']
-      $install_build_params = $_artifacts_url =~ NotUndef ? {
-        true    => {
-          'artifacts_source' => $_artifacts_url,
-        },
-        default => {},
-      } + {
-        'package' => $package,
-        'version' => $install_params['openvox_version'],
-      }
-      run_task(
-        'openvox_bootstrap::install_build_artifact',
-        $targets,
-        $install_build_params
-      )
-    }
-
-    if $package == 'openvox-agent' {
-      # Mark each target as having the puppet-agent.
-      $targets.each |$target| {
-        set_feature($target, 'puppet-agent', true)
-      }
-
-      # Collect facts and add them to the targets.
-      run_plan('facts', 'targets' => $targets)
-    }
-
-    $version_results = run_task('package', $targets, {
-      'name'    => $package,
-      'action'  => 'status',
-    })
-
-    $version_results.reduce($map) |$m, $result| {
-      $host = $result.target().name()
-      $package_version = (empty($result['version'])) ? {
-        true     => 'unknown',
-        default  => $result['version'],
-      }
-      $host_versions = $m[$host] =~ NotUndef ? {
-        true    => $m[$host],
-        default => {},
-      }
-
-      $m + {
-        $host => $host_versions + {
-          $package => $package_version,
-        }
-      }
-    }
+    kvm_automation_tooling::transform_openvox_host_version_results(
+      $package,
+      $version_results,
+      $map,
+    )
   }
 
   return($version_map)

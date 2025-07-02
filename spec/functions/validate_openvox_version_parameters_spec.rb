@@ -34,8 +34,7 @@ describe 'kvm_automation_tooling::validate_openvox_version_parameters' do
     it 'allows a version of "latest"' do
       params['openvox_version'] = 'latest'
       is_expected.to(
-        run.with_params(params)
-          .and_return(params.merge('openvox_version' => 'latest'))
+        run.with_params(params).and_return(params)
       )
     end
 
@@ -64,6 +63,59 @@ describe 'kvm_automation_tooling::validate_openvox_version_parameters' do
       is_expected.to(
         run.with_params(params)
           .and_raise_error(/must supply an explicit version/)
+      )
+    end
+  end
+
+  context 'when parameters are missing' do
+    let(:default) do
+      {
+        'openvox_released'   => true,
+        'openvox_version'    => 'latest',
+        'openvox_collection' => 'openvox8',
+      }
+    end
+
+    it 'returns defaults if given nothing' do
+      is_expected.to(
+        run.with_params({}).and_return(default)
+      )
+    end
+
+    it 'adds defaults if given partial parameters' do
+      is_expected.to(
+        run.with_params('openvox_version' => '7.0.0')
+          .and_return(
+            default.merge(
+              'openvox_version' => '7.0.0',
+              'openvox_collection' => 'openvox7'
+            )
+          )
+      )
+      is_expected.to(
+        run.with_params('openvox_collection' => 'openvox7')
+          .and_return(
+            default.merge(
+              'openvox_collection' => 'openvox7'
+            )
+          )
+      )
+    end
+
+    it 'raises if given just openvox_released false' do
+      is_expected.to(
+        run.with_params('openvox_released' => false)
+          .and_raise_error(/must supply an explicit version/)
+      )
+    end
+
+    it 'does not touch artifacts_url' do
+      artifacts = 'https://spec/artifacts'
+      p = { 'openvox_artifacts_url' => artifacts }
+      is_expected.to(
+        run.with_params(p).and_return(
+          default.merge(p)
+        )
       )
     end
   end

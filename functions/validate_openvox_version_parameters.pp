@@ -14,9 +14,9 @@
 function kvm_automation_tooling::validate_openvox_version_parameters(
   Kvm_automation_tooling::Openvox_install_params $params,
 ) >> Kvm_automation_tooling::Openvox_install_params {
-  $released = $params['openvox_released']
-  $version = $params['openvox_version']
-  $collection = $params['openvox_collection']
+  $released = pick($params['openvox_released'], true)
+  $version = pick($params['openvox_version'], 'latest')
+  $collection = pick($params['openvox_collection'], 'openvox8')
 
   if $released {
     # Collection must match version
@@ -52,6 +52,8 @@ function kvm_automation_tooling::validate_openvox_version_parameters(
   }
 
   $result = $params + {
+    'openvox_released'   => $released,
+    'openvox_version'    => $version,
     'openvox_collection' => $matched_collection,
   }
 

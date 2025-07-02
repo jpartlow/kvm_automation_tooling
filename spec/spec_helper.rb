@@ -46,7 +46,7 @@ RSpec.shared_context 'plan_init' do
   end
 
   before(:all) do
-    # suppress warnings about constant redefinition in loggin gem:
+    # suppress warnings about constant redefinition in logging gem:
     # (logging-2.4.0/lib/logging.rb)
     verbosity = $VERBOSE
     $VERBOSE = nil

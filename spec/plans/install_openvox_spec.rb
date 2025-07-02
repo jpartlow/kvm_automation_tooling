@@ -38,7 +38,6 @@ describe 'plan: install_openvox' do
         'version' => '8.0.0',
       })
 
-
     result = run_plan('kvm_automation_tooling::install_openvox', params)
     expect(result.ok?).to(eq(true), result.value.to_s)
 
@@ -227,6 +226,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
         })
+      allow_apply
       expect_task('openvox_bootstrap::install_build_artifact')
         .with_targets(primary_targets)
         .with_params({
