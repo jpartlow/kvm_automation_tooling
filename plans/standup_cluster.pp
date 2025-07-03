@@ -170,7 +170,7 @@ plan kvm_automation_tooling::standup_cluster(
 
   # Write cluster specific tfvars.json file to a separate directory to
   # keep different cluster instances separated.
-  file::write($tfvars_file, stdlib::to_json({
+  file::write($tfvars_file, stdlib::to_json_pretty({
     'cluster_id'          => $cluster_id,
     'network_addresses'   => $network_addresses,
     'domain_name'         => $domain_name,
@@ -202,6 +202,7 @@ plan kvm_automation_tooling::standup_cluster(
     'ssh_user_name'     => $user,
     'ssh_key_file'      => $ssh_private_key_path,
     'domain_name'       => $domain_name,
+    'cluster_id'        => $cluster_id,
     'roles'             => $roles,
   }))
 
