@@ -14,7 +14,7 @@ env:
   BOLT_GEM: true
 
 jobs:
-  standup-cluster:
+  standup-cluster-and-install-openvox:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,14 +24,23 @@ jobs:
           - ['debian', '10', 'x86_64']
           - ['debian', '11', 'x86_64']
           - ['debian', '12', 'x86_64']
-          # debian 13 is not released yet, but we can get dailies...
-          - ['debian', '13', 'x86_64', 'daily-latest']
           - ['rocky', '8', 'x86_64']
           - ['rocky', '9', 'x86_64']
           - ['ubuntu', '18.04', 'x86_64']
           - ['ubuntu', '20.04', 'x86_64']
           - ['ubuntu', '22.04', 'x86_64']
           - ['ubuntu', '24.04', 'x86_64']
+        install:
+          - agent-version: 'latest'
+            server-version: 'latest'
+            db-version: 'latest'
+            released: true
+            collection: openvox8
+          - agent-version: 8.18.1
+            server-version: 8.8.0
+            db-version: 8.9.0
+            released: false
+            collection: openvox8
     steps:
       - uses: actions/checkout@v4
         with:
@@ -67,6 +76,152 @@ jobs:
           INVENTORY_JSON: ${{ steps.vm-cluster.outputs.cluster-details }}
         run: |-
           jq . <<< $INVENTORY_JSON
+      - name: Write Install OpenVox Params
+        working-directory: kvm_automation_tooling
+        env:
+          OPENVOX_RELEASED: ${{ matrix.install.released }}
+          OPENVOX_AGENT_VERSION: ${{ matrix.install.agent-version }}
+          OPENVOX_SERVER_VERSION: ${{ matrix.install.server-version }}
+          OPENVOX_DB_VERSION: ${{ matrix.install.db-version }}
+          OPENVOX_COLLECTION: ${{ matrix.install.collection }}
+        run: |-
+          cat > install_openvox_params.json <<EOF
+          {
+            "openvox_agent_targets": "agent",
+            "openvox_server_targets": "primary",
+            "openvox_db_targets": "primary",
+            "openvox_agent_params": {
+              "openvox_version": "${OPENVOX_AGENT_VERSION}"
+            },
+            "openvox_server_params": {
+              "openvox_version": "${OPENVOX_SERVER_VERSION}"
+            },
+            "openvox_db_params": {
+              "openvox_version": "${OPENVOX_DB_VERSION}"
+            },
+            "install_defaults": {
+              "openvox_collection": "${OPENVOX_COLLECTION}",
+              "openvox_released": ${OPENVOX_RELEASED}
+            },
+            "version_file_path": "/tmp"
+          }
+          EOF
+          cat install_openvox_params.json
+      - name: Run install_openvox plan
+        working-directory: kvm_automation_tooling
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::install_openvox \
+            --inventory terraform/instances/inventory.test.yaml \
+            --params=@install_openvox_params.json
+      - name: Validate versions
+        if: ${{ matrix.install.released == false }}
+        env:
+          OPENVOX_AGENT_VERSION: ${{ matrix.install.agent-version }}
+          OPENVOX_SERVER_VERSION: ${{ matrix.install.server-version }}
+          OPENVOX_DB_VERSION: ${{ matrix.install.db-version }}
+        run: |-
+          set -e
+          # Validate the agent versions
+          jq -e '."test-agent-1"."openvox-agent" | test("^'${OPENVOX_AGENT_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-agent-1" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
+          # Validate the server versions
+          jq -e '."test-primary-1"."openvox-agent" | test("^'${OPENVOX_AGENT_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1"."openvox-server" | test("^'${OPENVOX_SERVER_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1"."openvoxdb" | test("^'${OPENVOX_DB_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1"."openvoxdb-termini" | test("^'${OPENVOX_DB_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+      - name: Validate packages
+        if: ${{ matrix.install.released == true }}
+        env:
+          OPENVOX_AGENT_VERSION: ${{ matrix.install.agent-version }}
+          OPENVOX_SERVER_VERSION: ${{ matrix.install.server-version }}
+          OPENVOX_DB_VERSION: ${{ matrix.install.db-version }}
+        run: |-
+          set -e
+          # Validate the agent packages present
+          jq -e '."test-agent-1" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
+          # Validate the server packages present
+          jq -e '."test-primary-1" | keys == ["openvox-agent", "openvox-server", "openvoxdb", "openvoxdb-termini"]' /tmp/openvox_versions.test.json
+      - name: Run teardown_cluster plan
+        working-directory: kvm_automation_tooling
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id="test"
+  standup-cluster-and-install-openvox-on-unreleased-os:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          # debian 13 is not released yet, but we can get dailies...
+          - ['debian', '13', 'x86_64', 'daily-latest']
+        install:
+          # However, we only have openvox-agent built atm
+          - agent-version: 'latest'
+            released: true
+            collection: openvox8
+          - agent-version: 8.18.1
+            released: false
+            collection: openvox8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: 'kvm_automation_tooling'
+      - id: vm-cluster
+        uses: jpartlow/nested_vms@main
+        with:
+          os: ${{ matrix.os[0] }}
+          os-version: ${{ matrix.os[1] }}
+          os-arch: ${{ matrix.os[2] }}
+          image_version: ${{ matrix.os[3] }}
+          debug: true
+          # Use our local branch instead
+          checkout: false
+          # Setting cpu_mode to host-model is necessary for redhat9
+          # x86_64-v2 requirements (see README.md)
+          vms: |-
+            [
+              {
+                "role": "agent",
+                "cpu_mode": "host-model"
+              }
+            ]
+      - name: Display inventory details
+        working-directory: kvm_automation_tooling
+        env:
+          INVENTORY_JSON: ${{ steps.vm-cluster.outputs.cluster-details }}
+        run: |-
+          jq . <<< $INVENTORY_JSON
+      - name: Write Install OpenVox Params
+        working-directory: kvm_automation_tooling
+        env:
+          OPENVOX_RELEASED: ${{ matrix.install.released }}
+          OPENVOX_AGENT_VERSION: ${{ matrix.install.agent-version }}
+          OPENVOX_COLLECTION: ${{ matrix.install.collection }}
+        run: |-
+          cat > install_openvox_params.json <<EOF
+          {
+            "openvox_agent_targets": "agent",
+            "openvox_agent_params": {
+              "openvox_version": "${OPENVOX_AGENT_VERSION}"
+            },
+            "install_defaults": {
+              "openvox_collection": "${OPENVOX_COLLECTION}",
+              "openvox_released": ${OPENVOX_RELEASED}
+            },
+            "version_file_path": "/tmp"
+          }
+          EOF
+          cat install_openvox_params.json
+      - name: Run install_openvox plan
+        working-directory: kvm_automation_tooling
+        run: |-
+          bundle exec bolt plan run kvm_automation_tooling::install_openvox \
+            --inventory terraform/instances/inventory.test.yaml \
+            --params=@install_openvox_params.json
+      - name: Validate openvox-agent version
+        if: ${{ matrix.install.released == false }}
+        run: |-
+          set -e
+          # Validate the agent versions
+          jq -e '."test-agent-1"."openvox-agent" | test("^8\\.")' /tmp/openvox_versions.test.json
       - name: Run teardown_cluster plan
         working-directory: kvm_automation_tooling
         run: |-

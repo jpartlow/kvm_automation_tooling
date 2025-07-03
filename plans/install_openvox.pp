@@ -34,6 +34,11 @@
 #   package contains Puppet terminus classes, functions and faces for
 #   interacting with openvoxdb and is typically used to configure
 #   openvox-server for communicating with openvoxdb.
+# @param version_file_path Optional path to write an
+#   openox_versions.<cluster_id>.json file containing the version map
+#   of all installed OpenVox components. Useful for debugging in
+#   automated pipelines. If undef (default), the file will not
+#   be written.
 plan kvm_automation_tooling::install_openvox(
   TargetSpec $openvox_agent_targets,
   TargetSpec $openvox_server_targets = [],
@@ -51,6 +56,7 @@ plan kvm_automation_tooling::install_openvox(
       'openvox_released'      => true,
     },
   Boolean $install_termini = true,
+  Optional[String[1]] $version_file_path = undef,
 ) {
   # Resolve targets in case we were given hostname or inventory group
   # name references instead of Target objects.
@@ -128,6 +134,13 @@ plan kvm_automation_tooling::install_openvox(
       $package,
       $version_results,
       $map,
+    )
+  }
+
+  if $version_file_path =~ NotUndef {
+    $cluster_id = $all_targets[0].vars['cluster_id']
+    file::write("${version_file_path}/openvox_versions.${cluster_id}.json",
+      stdlib::to_json_pretty($version_map),
     )
   }
 
