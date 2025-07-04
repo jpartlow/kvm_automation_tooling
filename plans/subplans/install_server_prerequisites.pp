@@ -35,29 +35,7 @@ plan kvm_automation_tooling::subplans::install_server_prerequisites(
     # so we expect the caller to have installed it already and can
     # rely on apply here.
     apply($targets) {
-      case $facts['os']['family'] {
-        'RedHat': {
-          $packages = [
-            'java-17-openjdk-headless',
-            'net-tools',
-            'procps-ng',
-            'which',
-          ]
-        }
-        'Debian': {
-          $packages = [
-            'openjdk-17-jre-headless',
-            'net-tools',
-            'procps',
-          ]
-        }
-        default: {
-          fail("Unsupported os: ${facts['os']}")
-        }
-      }
-      package { $packages:
-        ensure => installed,
-      }
+      include kvm_automation_tooling::server::package_prerequisites
     }
   }
 }

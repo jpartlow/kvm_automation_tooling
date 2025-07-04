@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rspec-puppet'
+require 'rspec-puppet-facts'
 
 module KatRspec
   def self.fixture_path
@@ -25,6 +26,7 @@ RSpec.configure do |c|
   c.module_path     = KatRspec.modulepath.join(File::PATH_SEPARATOR)
   c.manifest        = File.join(KatRspec.fixture_path, 'manifests', 'site.pp')
   c.environmentpath = File.join(Dir.pwd, 'spec', 'environments')
+  c.facterdb_string_keys = true
 end
 
 require 'bolt_spec/plans'
