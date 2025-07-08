@@ -3,6 +3,7 @@
       String $ssh_user_name,
       String $ssh_key_file,
       String $domain_name,
+      String $cluster_id,
       Array[String] $roles,
 | -%>
 groups:
@@ -11,6 +12,7 @@ groups:
     vars:
       domain_name: <%= $domain_name %>
       role: <%= $role %>
+      cluster_id: <%= $cluster_id %>
     targets:
       _plugin: terraform
       dir: <%= $tfstate_dir %>

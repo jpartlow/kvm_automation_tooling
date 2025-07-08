@@ -194,10 +194,11 @@ to work fine.
 ### Install OpenVox Stack
 
 By default, the standup_cluster plan will install openvox-agent on all
-vms in the cluster, and will install openvox-server and openvoxdb on
-any vm with the role 'primary'. Set standup_cluster::install_openvox
-to false to skip this behavior. To control the versions to install,
-use standup_cluster::install_openvox_params.
+vms in the cluster, and will install openvox-server, openvoxdb and
+openvoxdb-termini on any vm with the role 'primary'. Set
+standup_cluster::install_openvox to false to skip this behavior. To
+control the versions to install, use
+standup_cluster::install_openvox_params.
 
 However, you can also run
 [kvm_automation_tooling::install_openvox](plans/install_openvox.pp)
@@ -225,8 +226,8 @@ bundle exec bolt plan run kvm_automation_tooling::install_openvox --inventory te
 ```
 
 This would install openvox-agent 8.18.0 on the two agents in the
-'agent' group, and the latest openvox8 collection openvox-server on
-the vm in the 'primary' group, but not openvoxdb.
+'agent' group, and the latest openvox8 collection openvox-server and
+openvoxdb-termini on the vm in the 'primary' group, but not openvoxdb.
 
 The plan can be configured to install any released version, or a
 pre-release version from an artifacts server such as
