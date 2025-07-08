@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0 (2025-07-08)
+
+* (plans) Install correct jdk on Deb 10/13 as a prereq for
+  openvox server packages
+* (plans) Add testing of install_openvox to main plan workflow.
+* (plans) Add cluster_id to the inventory target vars.
+* (plans) Install prereqs for openvox-server and openvoxdb when
+  installing pre-release packages directly from artifacts server.
+* (plans) Install rbenv in dev::prep_vm_for_module_testing
+  so the ruby version is selectable.
+* (plans) Install openvoxdb-termini on server targets when running 
+  the install_openvox plan.
+* (plans) Add Beaker lib load-path to dev::openvox_acceptance for
+  openvox-server testing.
+
 ## 2.0.0 (2025-06-12)
 
 * (plans) Change standup_cluster to return a hash of
