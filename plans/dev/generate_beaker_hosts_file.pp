@@ -32,7 +32,7 @@ plan kvm_automation_tooling::dev::generate_beaker_hosts_file(
 
     case $t.vars['role'] {
       'primary': {
-        $beaker_roles = ['master', 'agent']
+        $beaker_roles = ['master', 'database', 'agent']
       }
       default: {
         $beaker_roles = ['agent']

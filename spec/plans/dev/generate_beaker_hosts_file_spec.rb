@@ -131,6 +131,7 @@ describe 'plan: kvm_automation_tooling::dev::generate_beaker_hosts_file' do
             'ip' => '1.2.3.1',
             'roles' => [
               'master',
+              'database',
               'agent',
             ],
             'platform' => 'ubuntu-2404-amd64',
