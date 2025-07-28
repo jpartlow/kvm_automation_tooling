@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.0 (2025-07-28)
+
+* (plans) Add database to roles given to beaker host primary
+* (maint) Drop debian-10 from testing matrix (image sources.list
+  no longer works correctly due to archived packages)
+
 ## 2.1.0 (2025-07-08)
 
 * (plans) Install correct jdk on Deb 10/13 as a prereq for
@@ -10,7 +16,7 @@
   installing pre-release packages directly from artifacts server.
 * (plans) Install rbenv in dev::prep_vm_for_module_testing
   so the ruby version is selectable.
-* (plans) Install openvoxdb-termini on server targets when running 
+* (plans) Install openvoxdb-termini on server targets when running
   the install_openvox plan.
 * (plans) Add Beaker lib load-path to dev::openvox_acceptance for
   openvox-server testing.
