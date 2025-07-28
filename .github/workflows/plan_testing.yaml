@@ -17,6 +17,7 @@ jobs:
   standup-cluster-and-install-openvox:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ['almalinux', '8', 'x86_64']
