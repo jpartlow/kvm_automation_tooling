@@ -152,6 +152,12 @@ jobs:
         os:
           # debian 13 is not released yet, but we can get dailies...
           - ['debian', '13', 'x86_64', 'daily-latest']
+          # TODO: Move these back to standup-cluster-and-install-openvox
+          # once the openvox-server/openvoxdb java dependencies are
+          # updated to require openjdk 21 instead of 17 (which isn't
+          # available in the el10 repos).
+          - ['almalinux', '10', 'x86_64']
+          - ['rocky', '10', 'x86_64']
         install:
           # However, we only have openvox-agent built atm
           - agent-version: 'latest'
