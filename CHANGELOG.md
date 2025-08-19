@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.0 (2025-08-19)
+
+* (plans) Drop unused allowed_platforms type
+* (maint) Add alma/rocky el 10 platforms to test matrix
+* (maint) Move comment in beaker hosts template to reduce duplication
+
 ## 2.2.0 (2025-07-28)
 
 * (plans) Add database to roles given to beaker host primary
