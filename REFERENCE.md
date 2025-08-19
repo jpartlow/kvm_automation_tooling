@@ -25,7 +25,6 @@
 
 ### Data types
 
-* [`Kvm_automation_tooling::Allowed_platforms`](#Kvm_automation_tooling--Allowed_platforms): Enumeration of platforms that the module can pull images for.
 * [`Kvm_automation_tooling::Architecture`](#Kvm_automation_tooling--Architecture): Enumeration of possible OS architectures. See docs/ARCHITECTURE.md for more information.
 * [`Kvm_automation_tooling::Openvox_collection`](#Kvm_automation_tooling--Openvox_collection): Strings identifying an openvox collection (packages associated with a major version of OpenVox).
 * [`Kvm_automation_tooling::Openvox_install_params`](#Kvm_automation_tooling--Openvox_install_params): Parameters defining OpenVox agent version for the kvm_automation_tooling::subplans::install_openvox subplan.  Keys: - openvox_version: The ve
@@ -631,12 +630,6 @@ terraform::apply plan (this is the hash from a parsed
 `terraform output -json` result).
 
 ## Data types
-
-### <a name="Kvm_automation_tooling--Allowed_platforms"></a>`Kvm_automation_tooling::Allowed_platforms`
-
-Enumeration of platforms that the module can pull images for.
-
-Alias of `Enum['almalinux-8-x86_64', 'almalinux-9-x86_64', 'almalinux-10-x86_64', 'debian-10-amd64', 'debian-11-amd64', 'debian-12-amd64', 'debian-13-amd64', 'rocky-8-x86_64', 'rocky-9-x86_64', 'rocky-10-x86_64', 'ubuntu-1804-amd64', 'ubuntu-2004-amd64', 'ubuntu-2204-amd64', 'ubuntu-2404-amd64']`
 
 ### <a name="Kvm_automation_tooling--Architecture"></a>`Kvm_automation_tooling::Architecture`
 
