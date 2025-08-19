@@ -1,16 +1,7 @@
 <%- | Array[Target] $agents | -%>
 ---
 HOSTS:
-<%- $agents.each |$agent| {-%>
-  <%= $agent.name %>:
-    vmhostname: '<%= "${agent.name}.${agent.vars['domain_name']}" %>'
-    ip: '<%= $agent.uri %>'
-    roles:
-    <%- $agent.vars['beaker_roles'].each |$role| { -%>
-      - <%= $role %>
-    <%- } -%>
-    platform: '<%= $agent.vars['beaker_platform'] %>'
-    # Setting the hypervisor to none is paradoxically still important.
+    # NOTE: Setting the hypervisor to none is paradoxically still important.
     # It corresponds to a sort of default Beaker::Hypervisor, and it's
     # configure() method is still important, as it calls the included
     # beaker/lib/beaker/host_prebuilt_steps.rb set_env() method which
@@ -22,6 +13,15 @@ HOSTS:
     # configure_type_defaults_on() method for all hosts to add the
     # /opt/puppetlabs/bin to that environment PATH variable.
     # It's all a bit rediculous.
+<%- $agents.each |$agent| {-%>
+  <%= $agent.name %>:
+    vmhostname: '<%= "${agent.name}.${agent.vars['domain_name']}" %>'
+    ip: '<%= $agent.uri %>'
+    roles:
+    <%- $agent.vars['beaker_roles'].each |$role| { -%>
+      - <%= $role %>
+    <%- } -%>
+    platform: '<%= $agent.vars['beaker_platform'] %>'
     hypervisor: none
 <%- } -%>
 CONFIG:
