@@ -140,7 +140,7 @@ describe 'plan: standup_cluster' do
             'stop_service' => false,
             '_catch_errors' => true,
           })
-        expect_plan('facts')
+        expect_plan('facts').be_called_times(2)
         expect_task('openvox_bootstrap::install')
           .with_targets(['spec-primary-1'])
           .with_params({
@@ -205,6 +205,7 @@ describe 'plan: standup_cluster' do
 
       it 'just terraforms when install_openvox is false' do
         params['install_openvox'] = false
+        expect_plan('facts')
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
         target_map = result.value
@@ -225,6 +226,7 @@ describe 'plan: standup_cluster' do
       end
 
       it 'adds host root access when requsted' do
+        expect_plan('facts')
         expect_plan('kvm_automation_tooling::install_openvox')
 
         public_key_path = "#{tempdir}/ssh_rspec.pub"
@@ -282,7 +284,7 @@ describe 'plan: standup_cluster' do
             'name' => 'ubuntu-2204-amd64.pool',
             'path' => 'ubuntu-2204-amd64',
           )
-
+        expect_plan('facts')
         expect_plan('kvm_automation_tooling::install_openvox')
       end
 

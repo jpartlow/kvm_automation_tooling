@@ -48,6 +48,9 @@ module "vmdomain" {
   pool_name = each.value.pool_name
   base_volume_name = each.value.base_volume_name
   os = each.value.os
+  arch = each.value.arch
+  domain_type = each.value.domain_type
+  host_arch = var.host_arch
   cpu_mode = each.value.cpu_mode
   cpus = each.value.cpus
   mem_mb = each.value.mem_mb
