@@ -168,6 +168,13 @@ plan kvm_automation_tooling::standup_cluster(
     )
   }
 
+  # Get localhost facts for host architecture.
+  $localhost_target = get_target('localhost')
+  $facts_result = run_plan('facts', $localhost_target)
+  $host_arch = dig($localhost_target.facts(), 'os', 'architecture')
+  out::message("Host architecture: ${host_arch}")
+  $tf_vm_specs = kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $host_arch, $vm_specs, $image_results)
+
   # Write cluster specific tfvars.json file to a separate directory to
   # keep different cluster instances separated.
   file::write($tfvars_file, stdlib::to_json_pretty({
@@ -177,7 +184,7 @@ plan kvm_automation_tooling::standup_cluster(
     'user_name'           => $user,
     'ssh_public_key_path' => $ssh_public_key_path,
     'user_password'       => $user_password,
-    'vm_specs'            => kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results),
+    'vm_specs'            => $tf_vm_specs,
   }))
 
   # Ensure terraform dependencies are installed.

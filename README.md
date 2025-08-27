@@ -20,7 +20,6 @@ TODO:
   * SLES
   * ?
 * Add support for other architectures
-* Finish OpenVox stack installation, and possibly setup (openvox-server, openvox-db, postgresql)
 
 ## OS Support
 
@@ -79,6 +78,13 @@ sudo apt install build-essential ruby-dev libvirt-dev genisoimage
 bundle install --path .bundle # or sudo bundle install if you prefer
 bundle exec bolt module install
 ```
+
+#### ARM Support
+
+Ensure QEMU arm64 support is installed. On Ubuntu, this would be the
+`qemu-system-arm` package.
+
+need xsltproc
 
 ### Standup Cluster
 

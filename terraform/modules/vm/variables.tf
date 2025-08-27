@@ -18,6 +18,16 @@ variable "os" {
   type = string
 }
 
+variable "arch" {
+  description = "The CPU architecture of the VM."
+  type = string
+}
+
+variable "type" {
+  description = "The type of hypervisor to use for the VM, e.g., 'kvm', 'qemu', etc."
+  type = string
+}
+
 variable "cpu_mode" {
   description = "The CPU mode to use for the VM."
   type = string

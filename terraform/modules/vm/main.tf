@@ -35,6 +35,12 @@ resource "libvirt_domain" "domain" {
   vcpu   = var.cpus
   qemu_agent = true
   metadata = local.platform
+  arch = var.arch
+  type = var.type
+
+  timeouts {
+    create = "10m"
+  }
 
   cloudinit = libvirt_cloudinit_disk.commoninit.id
 
@@ -69,6 +75,19 @@ resource "libvirt_domain" "domain" {
 
   disk {
     volume_id = libvirt_volume.volume_qcow2.id
+  }
+
+  # The xml block is an escape hatch in
+  # dmacvicar/terraform-provider-libvirt that allows post processing
+  # of the generated XML with an XSLT transformation.
+  #
+  # This particular patch is needed to change the cdrom bus type
+  # from ide to sata, since the older ide is not supported by qemu
+  # arm64 emulation.
+  #
+  # https://github.com/dmacvicar/terraform-provider-libvirt/issues/885#issuecomment-967143916
+  xml {
+    xslt = file("${path.module}/cdrom-bus.xml")
   }
 }
 
