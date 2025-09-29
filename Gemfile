@@ -15,5 +15,5 @@ group :development do
   gem 'puppet-strings'
   gem 'rspec', '~> 3.0'
   gem 'rspec-puppet', '~> 5.0'
-  gem 'rspec-puppet-facts', '~> 5.0'
+  gem 'rspec-puppet-facts', '~> 6.0'
 end
