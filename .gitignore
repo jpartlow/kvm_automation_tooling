@@ -19,3 +19,8 @@ spec/fixtures/modules/kvm_automation_tooling
 terraform/**/*.tfvars*
 terraform/**/*.tfstate
 terraform/**/*.tfstate.*
+
+# misc
+tools/manual-vm-create.cloud-init.d/ubuntu/user-data
+tools/manual-vm-create.cloud-init.d/ubuntu/network-config
+tools/manual-vm-create.cloud-init.d/ubuntu/metadata
