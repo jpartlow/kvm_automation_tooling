@@ -1,0 +1,34 @@
+#cloud-config
+# ^^^ warning, this magic comment is necessary for cloud-init to recognize and process this file...
+# https://cloudinit.readthedocs.io/en/latest/explanation/about-cloud-config.html#how-do-i-create-a-cloud-config-file
+#
+# Users and Groups Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#users-and-groups
+users:
+  - name: jpartlow
+    ssh_authorized_keys:
+      - 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAMHyS4+apUHAhkSsehKwN3UNyb+35lwcBZVwSTBfc0y jpartlow@archimedes'
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    groups: sudo
+    shell: /bin/bash
+    # for debugging
+    plain_text_passwd: password
+    lock_passwd: false
+# Set Passwords Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#set-passwords
+# Do not require password change on first login.
+chpasswd: { expire: False }
+# Package Update Upgrade Install Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#package-update-upgrade-install
+# Ensure qemu agent is installed so that terraform-provider-libvirt can retrieve IP address.
+packages:
+  - qemu-guest-agent
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd
+runcmd:
+  # Fiddle with systemd-resolved to set the DNS domain since it
+  # doesn't seem to pick it up from dhcp.
+  - [ sed, -i, -E, -e, 's/ *#?Domains=.*/Domains=vm/', /etc/systemd/resolved.conf ]
+  - [ systemctl, restart, systemd-resolved.service ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, qemu-guest-agent.service ]
+  - [ systemctl, start, --no-block, qemu-guest-agent.service ]
