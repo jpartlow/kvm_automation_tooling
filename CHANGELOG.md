@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.0 (2025-11-18)
+
+* (maint) Pin libvirt terraform provider to 0.8.z versions
+
 ## 2.3.0 (2025-08-19)
 
 * (plans) Drop unused allowed_platforms type
