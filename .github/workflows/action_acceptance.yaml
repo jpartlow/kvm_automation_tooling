@@ -22,7 +22,7 @@ jobs:
           - ['rocky', '9', 'x86_64']
           - ['ubuntu', '2404', 'amd64']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
@@ -71,7 +71,7 @@ jobs:
           - ['rocky', '9', 'x86_64']
           - ['ubuntu', '2404', 'amd64']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
@@ -120,7 +120,7 @@ jobs:
           - ['rocky', '9', 'x86_64']
           - ['ubuntu', '2404', 'amd64']
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
