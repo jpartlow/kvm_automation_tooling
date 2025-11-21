@@ -42,7 +42,7 @@ jobs:
             released: false
             collection: openvox8
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
@@ -167,7 +167,7 @@ jobs:
             released: false
             collection: openvox8
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
