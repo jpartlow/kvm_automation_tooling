@@ -55,7 +55,6 @@ plan kvm_automation_tooling::dev::openvox_acceptance(
         # ... skipping the pre_suite steps that install puppet packages
         'suites/pre_suite/foss/71_smoke_test_puppetserver.rb',
         'suites/pre_suite/foss/80_configure_puppet.rb',
-        'suites/pre_suite/foss/85_configure_sut.rb',
         'suites/pre_suite/foss/90_validate_sign_cert.rb',
         'suites/pre_suite/foss/95_install_pdb.rb',
         'suites/pre_suite/foss/99_collect_data.rb',
