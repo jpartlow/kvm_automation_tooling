@@ -33,6 +33,7 @@ describe 'plan: kvm_automation_tooling::subplans::install_component' do
           'collection' => 'openvox8',
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
+          'stop_service' => false,
         }
       )
     expect_task('package')
