@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.0 (2026-01-06)
+
+* (maint) Pin puppet-openvox_bootstrap to >= 1.3.0 (allows for testing
+  snapshot versions)
+
 ## 2.4.0 (2025-11-18)
 
 * (maint) Pin libvirt terraform provider to 0.8.z versions
