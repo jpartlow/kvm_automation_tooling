@@ -11,7 +11,7 @@ group :development do
   gem 'bolt', '~> 4.0' # provides bolt_spec for tests
   gem 'pry-byebug'
   gem 'puppet-lint'
-  gem 'voxpupuli-puppet-lint-plugins', '~> 6.0'
+  gem 'voxpupuli-puppet-lint-plugins', '~> 7.0'
   gem 'puppet-strings'
   gem 'rspec', '~> 3.0'
   gem 'rspec-puppet', '~> 5.0'
