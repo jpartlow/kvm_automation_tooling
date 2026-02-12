@@ -12,5 +12,6 @@ modules:
     version_requirement: '>= 3.1.0 < 4.0.0'
   - git: https://github.com/jpartlow/puppetlabs-terraform
     ref: include-module-when-resolving-references
-  - name: puppet-openvox_bootstrap
-    version_requirement: '>= 1.3.0'
+  - name: openvox_bootstrap
+    git: 'https://github.com/bastelfreak/puppet-openvox_bootstrap'
+    ref: bootstrap
