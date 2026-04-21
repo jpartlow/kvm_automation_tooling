@@ -19,12 +19,19 @@ groups:
       state: <%= $tfstate_file_name %>
       # Regexp to match against a given resource's 'module.type.name'
       # values in order to pull out all domains matching the role.
-      resource_type: 'module.vmdomain\["<%= $role %>\..*"\].libvirt_domain.domain'
+      resource_type: 'module.vmdomain\["<%= $role %>\..*"\].libvirt_domain_interface_addresses.domain_addresses'
       target_mapping:
-        name: network_interface.0.hostname
-        uri: network_interface.0.addresses.0
-        vars:
-          platform: metadata
+        name: domain
+        uri: interfaces.0.addrs.0.addr
+# XXX: With the terraform-libvirt-provider 0.9 version, the
+# libvirt_domain itself no longer has the interface ip address, and
+# though there is a metadata attribute that can be populated, it is
+# an object and requires xml. As a stop gap, getting the ip address
+# from the libvirt_domain_interface_addresses data resource instead.
+# Will need to write a separate plugin to instead get all the data we
+# need from the tfstate output instead of the tfstate resources.
+#        vars:
+#          platform: metadata
 <%- } -%>
 config:
   ssh:

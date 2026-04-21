@@ -183,6 +183,13 @@ plan kvm_automation_tooling::standup_cluster(
   # Ensure terraform dependencies are installed.
   run_task('terraform::initialize', 'localhost', 'dir' => $terraform_dir)
 
+# XXX: Reapplying terraform with the 0.9 provider fails because it
+# can't update the cloudinit volume.
+#
+# Alternately, if the wait_for_ip isn't working, could call a
+# terraform refresh like:
+# terraform refresh -state instances/u2404t09test.tfstate -var-file instances/u2404t09test.tfvars.json
+
   # Terraform apply until the output indicates we have valid ipv4
   # addreses for all hosts.
   ctrl::do_until(limit => 10, interval => 5) || {

@@ -8,6 +8,12 @@ variable "pool_name" {
   type = string
 }
 
+variable "base_volume_path" {
+  description = "The path to the base volume to use as the backing image for the VM."
+  type = string
+  default = "/var/lib/libvirt/images"
+}
+
 variable "base_volume_name" {
   description = "The name of the base volume to use as the backing image for the VM."
   type = string

@@ -1,4 +1,4 @@
-# Originally from: https://github.com/dmacvicar/terraform-provider-libvirt/blob/v0.8.1/examples/v0.13/ubuntu/ubuntu-example.tf
+# Updated to use terraform-provider-libvirt 0.9.x schema.
 terraform {
   required_providers {
     libvirt = {
@@ -10,74 +10,220 @@ terraform {
 resource "libvirt_volume" "volume_qcow2" {
   name   = "vm-image.${local.hostname}.qcow2"
   pool   = var.pool_name
-  base_volume_name = var.base_volume_name
-  base_volume_pool = "default"
-  format = "qcow2"
-  size   = var.disk_gb * local.gigabyte # need to use cloud-init to grow the partition?
+  capacity      = var.disk_gb * local.gigabyte
+  capacity_unit = "bytes"
+  backing_store = {
+    path   = "${var.base_volume_path}/${var.base_volume_name}"
+    format = {
+      type = "qcow2"
+    }
+  }
+  target = {
+    format = {
+      type = "qcow2"
+    }
+  }
+  type = "file"
 }
 
-# for more info about parameters check this out
-# https://github.com/dmacvicar/terraform-provider-libvirt/blob/master/website/docs/r/cloudinit.html.markdown
-# Use CloudInit to add our ssh-key to the instance
-# you can add also meta_data field
+# This resource generates an iso file with the given cloud-init
+# configuration.
+#
+# The 0.8 docs are here https://github.com/dmacvicar/terraform-provider-libvirt/blob/v0.8/website/docs/r/cloudinit.html.markdown
+# But will be out of date for the 0.9 schema, although the principal
+# parameters are the same. The main difference is that the generation
+# of an actual libvirt-volume is no longer implicit and needs to be
+# declared as well.
+#
+# Use CloudInit to add our ssh-key to the instance, provide some local
+# network configuration and perform other initialization tasks.
+# Details are in the cloud-init/ templates that are rendered in the
+# locals.tf file.
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name           = "commoninit.iso.${local.hostname}"
+  name           = "cloudinit-${local.hostname}"
   user_data      = local.user_data
   network_config = local.network_config
   meta_data      = local.meta_data
-  pool           = var.pool_name
+}
+
+resource "libvirt_volume" "volume_cloudinit" {
+  name   = "commoninit.iso.${local.hostname}"
+  pool   = var.pool_name
+  create = {
+    content = {
+      url = libvirt_cloudinit_disk.commoninit.path
+    }
+  }
+  target = {
+    format = {
+      type ="iso"
+    }
+  }
+  type = "file"
 }
 
 # Create the machine
 resource "libvirt_domain" "domain" {
   name   = local.hostname
+  type   = "kvm"
   memory = var.mem_mb
+  memory_unit = "MB"
   vcpu   = var.cpus
-  qemu_agent = true
-  metadata = local.platform
+  running = true
 
-  cloudinit = libvirt_cloudinit_disk.commoninit.id
+  # for debugging atm
+  #  on_crash = "preserve"
+  # Setting preserve for on_poweroff is throwing:
+  #  Error: Domain Creation Failed
+  #
+  #    with module.vmdomain["agent.u2404t09test-agent-1.ubuntu-2404-amd64"].libvirt_domain.domain,
+  #    on modules/vm/main.tf line 66, in resource "libvirt_domain" "domain":
+  #    66: resource "libvirt_domain" "domain" {
+  #
+  #  Failed to define domain in libvirt: unsupported configuration: qemu driver
+  #  doesn't support the 'preserve' action for 'on_reboot'/'on_poweroff'
+  #  on_poweroff = "preserve"
 
-  # Only generate a cpu block if cpu_mode is non-null.
-  dynamic "cpu" {
-    for_each = compact([var.cpu_mode])
-    content {
-      mode = cpu.value
-    }
+  os = {
+    type = "hvm"
+    type_arch = "x86_64"
+    type_machine = "q35"
+    #    type_machine = "pc-i440fx"
   }
 
-  network_interface {
-    network_id = var.network_id
-    hostname = local.hostname
-    wait_for_lease = true
+  metadata = {
+    xml = <<-EOFXML
+      <kat:platform xmlns:kat="file://kvm_automation_tooling/libvirt/domain/1.0">${local.platform}</kat:platform>
+    EOFXML
   }
 
-  # IMPORTANT: this is a known bug on cloud images, since they expect a console
-  # we need to pass it
-  # https://bugs.launchpad.net/cloud-images/+bug/1573095
-  console {
-    type        = "pty"
-    target_port = "0"
-    target_type = "serial"
+  # https://github.com/donato-marcos/Projeto-Terraform-Libvirt-KVM/blob/main/modules/domain_linux/main.tf
+  features = {
+    acpi    = true
+    apic    = { eoi = "on" }
+    smm     = { state = "on" }
+    vm_port = { state = "off" }
   }
 
-  console {
-    type        = "pty"
-    target_type = "virtio"
-    target_port = "1"
+  cpu = {
+    mode = var.cpu_mode
   }
 
-  disk {
-    volume_id = libvirt_volume.volume_qcow2.id
+  #  network_interface {
+  #    network_id = var.network_id
+  #    hostname = local.hostname
+  #    wait_for_lease = true
+  #  }
+
+  devices = {
+    # This is required to allow the qemu agent to work, which is needed
+    # to get the IP address of the machine.
+    # In 0.8 this was implicit when qemu_agent was set to true, but in
+    # 0.9 we need to declare it explicitly.
+    channels = [
+      {
+        source = {
+          unix = {}
+        }
+        target = {
+          virt_io = {
+            name  = "org.qemu.guest_agent.0"
+          }
+        }
+      }
+    ]
+
+    consoles = [
+      # IMPORTANT: this is a known bug on cloud images, since they
+      # expect a console we need to pass it
+      # https://bugs.launchpad.net/cloud-images/+bug/1573095
+      {
+        target = {
+          type = "serial"
+        }
+      }
+    ]
+
+    # For the cdrom device we need to use scsi for eventual arm64
+    # support.
+    controllers = [
+      {
+        type = "scsi"
+        model = "virtio-scsi"
+      }
+    ]
+
+    disks = [
+      {
+        device = "disk"
+        source = {
+          volume = {
+            pool   = libvirt_volume.volume_qcow2.pool
+            volume = libvirt_volume.volume_qcow2.name
+          }
+        }
+        driver = {
+          type = "qcow2"
+        }
+        target = {
+          dev = "vda"
+          bus = "virtio"
+        }
+      },
+      {
+        device = "cdrom"
+        source = {
+          volume = {
+            pool   = libvirt_volume.volume_cloudinit.pool
+            volume = libvirt_volume.volume_cloudinit.name
+          }
+        }
+        target = {
+          dev = "sda"
+          bus = "scsi"
+        }
+      }
+    ]
+
+    graphics = []
+    videos = []
+
+    interfaces = [
+      {
+        type  = "network"
+        model = {
+          type = "virtio"
+        }
+        source = {
+          network = {
+            network = var.network_id
+          }
+        }
+        # NOTE: If this fails, terraform destroys the machine, making it
+        # difficult to figure out *why* it failed.
+        wait_for_ip = {
+          timeout = 300    # seconds, default 300
+          source  = "any"  # "lease" (DHCP), "agent" (qemu-guest-agent), or "any" (try both)
+        }
+      }
+    ]
   }
 }
 
-output "ip_address" {
-  description = "The IP address of the vm."
-  value = {for d in libvirt_domain.domain[*]:
-    d.name => (length(d.network_interface) > 0) &&
-              (length(d.network_interface.0.addresses) > 0) ?
-                d.network_interface[0].addresses[0] :
-                null
+data "libvirt_domain_interface_addresses" "domain_addresses" {
+  domain = libvirt_domain.domain.name
+  source = "any"
+}
+
+output "vmdomain_details" {
+  value = {
+    (local.hostname) = {
+      platform = local.platform
+      role     = local.role
+      ip_addresses = flatten([
+        for iface in data.libvirt_domain_interface_addresses.domain_addresses.interfaces:
+          [for a in iface.addrs : a.addr]
+      ])
+    }
   }
 }
