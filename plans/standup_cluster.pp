@@ -90,7 +90,7 @@
 #   installing something other than the latest agent package from
 #   the latest collection.
 plan kvm_automation_tooling::standup_cluster(
-  Pattern['[[a-z][A-Z][0-9]-]+'] $cluster_id,
+  Pattern[/\A[a-zA-Z0-9-]+\Z/] $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
   Optional[Kvm_automation_tooling::Version] $os_version = undef,
   Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
