@@ -146,12 +146,6 @@ plan kvm_automation_tooling::standup_cluster(
   }
   $os_specs = $vm_specs.map |$vm_spec| { $vm_spec['os'] }.unique()
 
-  $cluster_platform = kvm_automation_tooling::platform({
-    'name'    => $os,
-    'version' => $os_version,
-    'arch'    => $os_arch,
-  })
-
   $_terraform_state_dir = find_file($terraform_state_dir)
   $tfvars_file = "${_terraform_state_dir}/${cluster_id}.tfvars.json"
   $tfstate_file_name = "${cluster_id}.tfstate"
