@@ -85,10 +85,14 @@ describe 'plan: standup_cluster' do
   context 'successfully runs' do
     let(:apply_result) do
       {
-        'vm_ip_addresses' => {
+        'vmdomain_details' => {
           'value' => {
-            'spec-primary-1' => '10.2.3.4',
-            'spec-agent-1' => '10.2.3.5',
+            'spec-primary-1' => {
+              'ip_addresses' => ['10.2.3.4'],
+            },
+            'spec-agent-1' => {
+              'ip_addresses' => ['10.2.3.5'],
+            },
           },
         },
       }

@@ -202,7 +202,7 @@ data "libvirt_domain_interface_addresses" "domain_addresses" {
   source = "any"
 }
 
-output "vmdomain_details" {
+output "vminfo" {
   value = {
     (local.hostname) = {
       platform = local.platform
