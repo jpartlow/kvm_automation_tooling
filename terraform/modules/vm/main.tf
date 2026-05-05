@@ -91,12 +91,6 @@ resource "libvirt_domain" "domain" {
     #    type_machine = "pc-i440fx"
   }
 
-  metadata = {
-    xml = <<-EOFXML
-      <kat:platform xmlns:kat="file://kvm_automation_tooling/libvirt/domain/1.0">${local.platform}</kat:platform>
-    EOFXML
-  }
-
   # https://github.com/donato-marcos/Projeto-Terraform-Libvirt-KVM/blob/main/modules/domain_linux/main.tf
   features = {
     acpi    = true
@@ -108,12 +102,6 @@ resource "libvirt_domain" "domain" {
   cpu = {
     mode = var.cpu_mode
   }
-
-  #  network_interface {
-  #    network_id = var.network_id
-  #    hostname = local.hostname
-  #    wait_for_lease = true
-  #  }
 
   devices = {
     # This is required to allow the qemu agent to work, which is needed
@@ -190,7 +178,6 @@ resource "libvirt_domain" "domain" {
 
     interfaces = [
       {
-        type  = "network"
         model = {
           type = "virtio"
         }
