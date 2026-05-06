@@ -2,9 +2,13 @@
 # returned by the kvm_automation_tooling::subplans::install_component
 # plan into a Hash of host names to package version hashes.
 #
+# @param package The name of the package whose version is being
+#   transformed.
 # @param results The PlanResult containing the results of the
 #   kvm_automation_tooling::subplans::install_component plan.
 # @param initial The initial Hash to reduce the results into.
+# @return A Hash mapping host names to Hashes mapping package names to
+#   package versions.
 function kvm_automation_tooling::transform_openvox_host_version_results(
   String $package,
   PlanResult $results,

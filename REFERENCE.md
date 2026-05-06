@@ -42,6 +42,7 @@
 * [`download_image`](#download_image): Downloads an image from the given url to a given directory. Requires curl.
 * [`generate_keypair`](#generate_keypair): Generate a passphraseless ssh keypair in a temp directory and return the paths to the keypair files.
 * [`import_libvirt_volume`](#import_libvirt_volume): Imports a local image file as a libvirt volume in the default pool.
+* [`resolve_reference`](#resolve_reference): Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_t
 
 ### Plans
 
@@ -496,7 +497,15 @@ Transform the PlanResult ResultSet of package version hashes
 returned by the kvm_automation_tooling::subplans::install_component
 plan into a Hash of host names to package version hashes.
 
-Returns: `Hash[String, Hash[String, String]]`
+Returns: `Hash[String, Hash[String, String]]` A Hash mapping host names to Hashes mapping package names to
+package versions.
+
+##### `package`
+
+Data type: `String`
+
+The name of the package whose version is being
+transformed.
 
 ##### `results`
 
@@ -510,12 +519,6 @@ kvm_automation_tooling::subplans::install_component plan.
 Data type: `Hash`
 
 The initial Hash to reduce the results into.
-
-##### `package`
-
-Data type: `String`
-
-
 
 ### <a name="kvm_automation_tooling--translate_os_version_codename"></a>`kvm_automation_tooling::translate_os_version_codename`
 
@@ -617,7 +620,7 @@ Data type: `Hash`
 
 A Hash returned from the
 terraform::apply plan (this is the hash from a parsed
-`terraform output -json` result).
+`terraform output -json` result, see terraform/outputs.tf).
 
 ## Data types
 
@@ -889,6 +892,32 @@ Data type: `String`
 
 The volume name to attach to the image in libvirt. It will be created in the default pool.
 
+### <a name="resolve_reference"></a>`resolve_reference`
+
+Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_tooling terraform vmdomain_details output format.)
+
+**Supports noop?** false
+
+#### Parameters
+
+##### `dir`
+
+Data type: `String[1]`
+
+The directory in which to look for the terraform statefile.
+
+##### `statefile`
+
+Data type: `String[1]`
+
+The name of the terraform statefile in dir to load.
+
+##### `role`
+
+Data type: `String[1]`
+
+The role for which to produce target references.
+
 ## Plans
 
 ### <a name="kvm_automation_tooling--dev--generate_beaker_hosts_file"></a>`kvm_automation_tooling::dev::generate_beaker_hosts_file`
@@ -1068,8 +1097,8 @@ The following parameters are available in the `kvm_automation_tooling::dev::prep
 * [`dev_vm`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--dev_vm)
 * [`kvm_module_url`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--kvm_module_url)
 * [`branch`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--branch)
-* [`virbr0_network_prefix`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix)
 * [`ruby_version`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version)
+* [`virbr0_network_prefix`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix)
 
 ##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--dev_vm"></a>`dev_vm`
 
@@ -1094,6 +1123,14 @@ The branch to check out.
 
 Default value: `'main'`
 
+##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version"></a>`ruby_version`
+
+Data type: `String`
+
+The version of ruby to install using rbenv.
+
+Default value: `'3.3.0'`
+
 ##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix"></a>`virbr0_network_prefix`
 
 Data type: `String`
@@ -1103,14 +1140,6 @@ new virbr0 network on the VM. (Distinguished from the host's virbr0
 which will usually be 192.168.122.0/24).
 
 Default value: `'192.168.123'`
-
-##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version"></a>`ruby_version`
-
-Data type: `String`
-
-
-
-Default value: `'3.3.0'`
 
 ### <a name="kvm_automation_tooling--install_openvox"></a>`kvm_automation_tooling::install_openvox`
 
@@ -1278,7 +1307,7 @@ The following parameters are available in the `kvm_automation_tooling::standup_c
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--cluster_id"></a>`cluster_id`
 
-Data type: `Pattern['[[a-z][A-Z][0-9]-]+']`
+Data type: `Pattern[/\A[a-zA-Z0-9-]+\Z/]`
 
 This should be a short, unique string per cluster.
 It must obey the character constraints for hostname as it is

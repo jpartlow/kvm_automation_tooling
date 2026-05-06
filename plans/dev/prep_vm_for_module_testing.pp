@@ -25,6 +25,7 @@
 # @param kvm_module_url The URL to the kvm_automation_tooling git
 #   repostory. This is used to check out the module code on the VM.
 # @param branch The branch to check out.
+# @param ruby_version The version of ruby to install using rbenv.
 # @param virbr0_network_prefix The three octet network prefix for the
 #   new virbr0 network on the VM. (Distinguished from the host's virbr0
 #   which will usually be 192.168.122.0/24).
