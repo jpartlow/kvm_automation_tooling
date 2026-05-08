@@ -71,24 +71,10 @@ resource "libvirt_domain" "domain" {
   vcpu   = var.cpus
   running = true
 
-  # for debugging atm
-  #  on_crash = "preserve"
-  # Setting preserve for on_poweroff is throwing:
-  #  Error: Domain Creation Failed
-  #
-  #    with module.vmdomain["agent.u2404t09test-agent-1.ubuntu-2404-amd64"].libvirt_domain.domain,
-  #    on modules/vm/main.tf line 66, in resource "libvirt_domain" "domain":
-  #    66: resource "libvirt_domain" "domain" {
-  #
-  #  Failed to define domain in libvirt: unsupported configuration: qemu driver
-  #  doesn't support the 'preserve' action for 'on_reboot'/'on_poweroff'
-  #  on_poweroff = "preserve"
-
   os = {
     type = "hvm"
     type_arch = "x86_64"
     type_machine = "q35"
-    #    type_machine = "pc-i440fx"
   }
 
   # https://github.com/donato-marcos/Projeto-Terraform-Libvirt-KVM/blob/main/modules/domain_linux/main.tf
@@ -173,8 +159,19 @@ resource "libvirt_domain" "domain" {
       }
     ]
 
-    graphics = []
-    videos = []
+    graphics = [
+    ]
+    videos = [
+      # Without a video device, rocky images weren't booting for me
+      # locally, though they were in GHA. :shrug:
+      {
+        model = {
+          type    = "virtio"
+          primary = "yes"
+          heads   = 1
+        }
+      }
+    ]
 
     interfaces = [
       {
