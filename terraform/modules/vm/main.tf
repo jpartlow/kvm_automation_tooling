@@ -187,7 +187,9 @@ resource "libvirt_domain" "domain" {
         # difficult to figure out *why* it failed.
         wait_for_ip = {
           timeout = 300    # seconds, default 300
-          source  = "any"  # "lease" (DHCP), "agent" (qemu-guest-agent), or "any" (try both)
+          # On el, waiting for 'any' was grabbing localhost/ipv6
+          # addresses in gha.
+          source  = "lease"  # "lease" (DHCP), "agent" (qemu-guest-agent), or "any" (try both)
         }
       }
     ]
