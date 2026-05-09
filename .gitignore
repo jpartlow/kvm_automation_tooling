@@ -3,6 +3,7 @@ vendor/bundle
 tmp/
 
 # puppet and bolt
+beaker-logs
 inventory.*.yaml
 .modules
 .plan_cache.json
