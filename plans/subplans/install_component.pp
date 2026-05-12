@@ -23,13 +23,18 @@ plan kvm_automation_tooling::subplans::install_component(
   out::message("Installing ${package} ${version} (${collection})")
 
   if $released {
-    run_task(
-      'openvox_bootstrap::install',
-      $targets,
-      'package'    => $package,
-      'version'    => $version,
-      'collection' => $collection,
-    )
+    # Loop in case of package manager locks from another process.
+    $installed = ctrl::do_until(limit => 5, interval => 10) || {
+      $install_results = run_task(
+        'openvox_bootstrap::install',
+        $targets,
+        'package'      => $package,
+        'version'      => $version,
+        'collection'   => $collection,
+        '_catch_errors' => true,
+      )
+      kvm_automation_tooling::test_results("Error installing ${package}", $install_results)
+    }
   } else {
     $artifacts_url = $install_params['openvox_artifacts_url']
     $install_build_params = $artifacts_url =~ NotUndef ? {
@@ -38,14 +43,23 @@ plan kvm_automation_tooling::subplans::install_component(
       },
       default => {},
     } + {
-      'package' => $package,
-      'version' => $version,
+      'package'      => $package,
+      'version'      => $version,
+      '_catch_errors' => true,
     }
-    run_task(
-      'openvox_bootstrap::install_build_artifact',
-      $targets,
-      $install_build_params
-    )
+    # Loop in case of package manager locks from another process.
+    $installed = ctrl::do_until(limit => 5, interval => 10) || {
+      $install_results = run_task(
+        'openvox_bootstrap::install_build_artifact',
+        $targets,
+        $install_build_params,
+      )
+      kvm_automation_tooling::test_results("Error installing ${package}", $install_results)
+    }
+  }
+
+  if !$installed {
+    fail("Failed to install ${package} on some targets (see above).")
   }
 
   $version_results = run_task('package', $targets, {

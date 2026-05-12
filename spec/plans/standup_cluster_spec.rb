@@ -132,6 +132,7 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_plan('facts')
         expect_task('openvox_bootstrap::install')
@@ -143,6 +144,7 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(['spec-primary-1'])
@@ -153,6 +155,7 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(['spec-primary-1'])
@@ -163,6 +166,7 @@ describe 'plan: standup_cluster' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('package')
           .be_called_times(4)

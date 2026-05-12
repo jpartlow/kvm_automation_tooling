@@ -34,6 +34,7 @@ describe 'plan: kvm_automation_tooling::subplans::install_component' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         }
       )
     expect_task('package')
@@ -68,6 +69,7 @@ describe 'plan: kvm_automation_tooling::subplans::install_component' do
             'package' => 'openvox-agent',
             'version' => '8.1.1',
             'artifacts_source' => 'https://artifacts.voxpupuli.org',
+            '_catch_errors' => true,
           }
         )
       expect_task('package')
@@ -98,6 +100,7 @@ describe 'plan: kvm_automation_tooling::subplans::install_component' do
             'package' => 'openvox-agent',
             'version' => '8.1.1',
             'artifacts_source' => 'https://custom.artifacts.source',
+            '_catch_errors' => true,
           }
         )
       expect_task('package')

@@ -17,6 +17,7 @@
 * [`kvm_automation_tooling::get_normalized_ubuntu_version`](#kvm_automation_tooling--get_normalized_ubuntu_version): Returns the Ubuntu version number without delimiters.
 * [`kvm_automation_tooling::platform`](#kvm_automation_tooling--platform): Generic function to produce a canonical descriptive platform string from a set of os, version and cpu arch values.  Examples:   kvm_automatio
 * [`kvm_automation_tooling::resolve_terraform_targets`](#kvm_automation_tooling--resolve_terraform_targets): Manually resolve target references from the given *inventory_file* and return those from the given *group*.
+* [`kvm_automation_tooling::test_results`](#kvm_automation_tooling--test_results): This function is used in do_until loops to log errors from a result set while returning the overall status of the result for the loop. It's a
 * [`kvm_automation_tooling::transform_openvox_host_version_results`](#kvm_automation_tooling--transform_openvox_host_version_results): Transform the PlanResult ResultSet of package version hashes returned by the kvm_automation_tooling::subplans::install_component plan into a 
 * [`kvm_automation_tooling::translate_os_version_codename`](#kvm_automation_tooling--translate_os_version_codename): Translates a Debian or Ubuntu version number to codename, or codename to version number, depending on what it is given.  Raises an error if u
 * [`kvm_automation_tooling::validate_openvox_version_parameters`](#kvm_automation_tooling--validate_openvox_version_parameters): Validates the given set of OpenVox install parameters and raises an error for any problems.  If we're installing a released version, then col
@@ -482,6 +483,37 @@ Data type: `String`
 
 The name of the inventory group to pass to the
 resolve_references function.
+
+### <a name="kvm_automation_tooling--test_results"></a>`kvm_automation_tooling::test_results`
+
+Type: Puppet Language
+
+This function is used in do_until loops to log errors from a result set
+while returning the overall status of the result for the loop. It's
+a workaround for the fact that we can't get the final result set
+outside of the loop.
+
+#### `kvm_automation_tooling::test_results(String $message, ResultSet $results)`
+
+This function is used in do_until loops to log errors from a result set
+while returning the overall status of the result for the loop. It's
+a workaround for the fact that we can't get the final result set
+outside of the loop.
+
+Returns: `Boolean` Boolean true if none of the results had errors.
+
+##### `message`
+
+Data type: `String`
+
+A string to prefix any error messages with.
+
+##### `results`
+
+Data type: `ResultSet`
+
+A ResultSet from a task or apply that we want to log
+errors from and return the overall status of.
 
 ### <a name="kvm_automation_tooling--transform_openvox_host_version_results"></a>`kvm_automation_tooling::transform_openvox_host_version_results`
 
