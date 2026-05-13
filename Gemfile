@@ -9,6 +9,7 @@ gem 'bcrypt_pbkdf', ['>= 1.0', '< 2.0']
 
 group :development do
   gem 'openbolt', '~> 5.0' # provides bolt_spec for tests
+  gem 'syslog', '~> 0.3' if RUBY_VERSION >= '3.4'
   gem 'pry-byebug'
   gem 'puppet-lint'
   gem 'voxpupuli-puppet-lint-plugins', '~> 7.0'
