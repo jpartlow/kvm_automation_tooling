@@ -24,10 +24,13 @@ TODO:
 
 ## OS Support
 
+This is basically a reflection of the OSes that are currently under
+test in the .github/workflows matrices.
+
 * Almalinux 10, 9, 8
 * Debian 13, 12, 11
 * Rocky 10, 9, 8
-* Ubuntu 24.04, 22.04, 20.04, 18.04
+* Ubuntu 26.04, 24.04, 22.04
 
 ## Dependencies
 

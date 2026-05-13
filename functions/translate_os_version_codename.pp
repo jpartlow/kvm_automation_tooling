@@ -31,6 +31,7 @@ function kvm_automation_tooling::translate_os_version_codename(
     '2004' => 'focal',
     '2204' => 'jammy',
     '2404' => 'noble',
+    '2604' => 'resolute',
   }
   $version_numbers = $codenames.reduce({}) |$hash, $v| {
     $hash + {
