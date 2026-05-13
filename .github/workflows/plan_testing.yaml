@@ -22,11 +22,13 @@ jobs:
         os:
           - ['almalinux', '8', 'x86_64']
           - ['almalinux', '9', 'x86_64']
+          - ['almalinux', '10', 'x86_64']
           - ['debian', '11', 'x86_64']
           - ['debian', '12', 'x86_64']
           - ['debian', '13', 'x86_64']
           - ['rocky', '8', 'x86_64']
           - ['rocky', '9', 'x86_64']
+          - ['rocky', '10', 'x86_64']
           - ['ubuntu', '22.04', 'x86_64']
           - ['ubuntu', '24.04', 'x86_64']
         install:
@@ -140,91 +142,6 @@ jobs:
           jq -e '."test-agent-1" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
           # Validate the server packages present
           jq -e '."test-primary-1" | keys == ["openvox-agent", "openvox-server", "openvoxdb", "openvoxdb-termini"]' /tmp/openvox_versions.test.json
-      - name: Run teardown_cluster plan
-        working-directory: kvm_automation_tooling
-        run: |-
-          bundle exec bolt plan run kvm_automation_tooling::teardown_cluster cluster_id="test"
-  standup-cluster-and-install-openvox-on-unreleased-os:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        os:
-          # TODO: Move these back to standup-cluster-and-install-openvox
-          # once the openvox-server/openvoxdb java dependencies are
-          # updated to require openjdk 21 instead of 17 (which isn't
-          # available in the el10 repos).
-          - ['almalinux', '10', 'x86_64']
-          - ['rocky', '10', 'x86_64']
-        install:
-          # However, we only have openvox-agent built atm
-          - agent-version: 'latest'
-            released: true
-            collection: openvox8
-          - agent-version: 8.18.1
-            released: false
-            collection: openvox8
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          path: 'kvm_automation_tooling'
-      - id: vm-cluster
-        uses: jpartlow/nested_vms@main
-        with:
-          os: ${{ matrix.os[0] }}
-          os-version: ${{ matrix.os[1] }}
-          os-arch: ${{ matrix.os[2] }}
-          image_version: ${{ matrix.os[3] }}
-          debug: true
-          # Use our local branch instead
-          checkout: false
-          # Setting cpu_mode to host-model is necessary for redhat9
-          # x86_64-v2 requirements (see README.md)
-          vms: |-
-            [
-              {
-                "role": "agent",
-                "cpu_mode": "host-model"
-              }
-            ]
-      - name: Display inventory details
-        working-directory: kvm_automation_tooling
-        env:
-          INVENTORY_JSON: ${{ steps.vm-cluster.outputs.cluster-details }}
-        run: |-
-          jq . <<< $INVENTORY_JSON
-      - name: Write Install OpenVox Params
-        working-directory: kvm_automation_tooling
-        env:
-          OPENVOX_RELEASED: ${{ matrix.install.released }}
-          OPENVOX_AGENT_VERSION: ${{ matrix.install.agent-version }}
-          OPENVOX_COLLECTION: ${{ matrix.install.collection }}
-        run: |-
-          cat > install_openvox_params.json <<EOF
-          {
-            "openvox_agent_targets": "agent",
-            "openvox_agent_params": {
-              "openvox_version": "${OPENVOX_AGENT_VERSION}"
-            },
-            "install_defaults": {
-              "openvox_collection": "${OPENVOX_COLLECTION}",
-              "openvox_released": ${OPENVOX_RELEASED}
-            },
-            "version_file_path": "/tmp"
-          }
-          EOF
-          cat install_openvox_params.json
-      - name: Run install_openvox plan
-        working-directory: kvm_automation_tooling
-        run: |-
-          bundle exec bolt plan run kvm_automation_tooling::install_openvox \
-            --inventory terraform/instances/inventory.test.yaml \
-            --params=@install_openvox_params.json
-      - name: Validate openvox-agent version
-        if: ${{ matrix.install.released == false }}
-        run: |-
-          set -e
-          # Validate the agent versions
-          jq -e '."test-agent-1"."openvox-agent" | test("^8\\.")' /tmp/openvox_versions.test.json
       - name: Run teardown_cluster plan
         working-directory: kvm_automation_tooling
         run: |-
