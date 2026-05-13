@@ -31,15 +31,16 @@ jobs:
           - ['rocky', '10', 'x86_64']
           - ['ubuntu', '22.04', 'x86_64']
           - ['ubuntu', '24.04', 'x86_64']
+          - ['ubuntu', '26.04', 'x86_64']
         install:
           - agent-version: 'latest'
             server-version: 'latest'
             db-version: 'latest'
             released: true
             collection: openvox8
-          - agent-version: 8.21.1
-            server-version: 8.12.1
-            db-version: 8.12.1
+          - agent-version: 8.26.2
+            server-version: 8.13.0
+            db-version: 8.13.0
             released: false
             collection: openvox8
     steps:

@@ -68,8 +68,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - ['rocky', '9', 'x86_64']
-          - ['ubuntu', '2404', 'amd64']
+          - ['rocky', '10', 'x86_64']
+          - ['ubuntu', '2604', 'amd64']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -85,7 +85,7 @@ jobs:
           # Use our local branch instead
           checkout: false
           install-openvox: true
-          openvox-version: '8.13.0'
+          openvox-version: '8.25.0'
           vms: |-
             [
               {
@@ -111,14 +111,14 @@ jobs:
           ver=$(echo "$res" | jq ."items"[0].value.stdout)
           echo "ver: ${ver}"
           set -ex
-          [[ "${ver}" =~ \"8\.13\.0 ]]
+          [[ "${ver}" =~ \"8\.25\.0 ]]
   install-openvox-pre-release:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         os:
-          - ['rocky', '9', 'x86_64']
-          - ['ubuntu', '2404', 'amd64']
+          - ['rocky', '10', 'x86_64']
+          - ['ubuntu', '2604', 'amd64']
     steps:
       - uses: actions/checkout@v6
         with:
@@ -135,7 +135,7 @@ jobs:
           checkout: false
           install-openvox: true
           openvox-released: false
-          openvox-version: '8.13.0'
+          openvox-version: '8.25.0'
           vms: |-
             [
               {
@@ -161,4 +161,4 @@ jobs:
           ver=$(echo "$res" | jq ."items"[0].value.stdout)
           echo "ver: ${ver}"
           set -ex
-          [[ "${ver}" =~ \"8\.13\.0 ]]
+          [[ "${ver}" =~ \"8\.25\.0 ]]
