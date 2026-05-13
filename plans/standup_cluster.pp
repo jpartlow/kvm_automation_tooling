@@ -177,23 +177,16 @@ plan kvm_automation_tooling::standup_cluster(
   # Ensure terraform dependencies are installed.
   run_task('terraform::initialize', 'localhost', 'dir' => $terraform_dir)
 
-# XXX: Reapplying terraform with the 0.9 provider fails because it
-# can't update the cloudinit volume.
-#
-# Alternately, if the wait_for_ip isn't working, could call a
-# terraform refresh like:
-# terraform refresh -state instances/u2404t09test.tfstate -var-file instances/u2404t09test.tfvars.json
-
-  # Terraform apply until the output indicates we have valid ipv4
-  # addreses for all hosts.
-  ctrl::do_until(limit => 10, interval => 5) || {
-    $apply_result = run_plan('terraform::apply',
-      'dir'      => $terraform_dir,
-      'var_file' => $tfvars_file,
-      'state'    => $tfstate_file,
-      'return_output' => true,
-    )
-    kvm_automation_tooling::validate_vm_ip_addresses($apply_result)
+  $apply_result = run_plan('terraform::apply',
+    'dir'      => $terraform_dir,
+    'var_file' => $tfvars_file,
+    'state'    => $tfstate_file,
+    'return_output' => true,
+  )
+  if !kvm_automation_tooling::validate_vm_ip_addresses($apply_result) {
+    # NOTE: this is a marker. The plan will most likely fail below
+    # when attempting to resolve targets using ipv6 addresses.
+    log::error('Terraform apply did not return valid IPv4 addresses for all hosts.')
   }
 
   # Generate an inventory file for the cluster.

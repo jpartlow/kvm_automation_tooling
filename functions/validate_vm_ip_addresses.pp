@@ -27,7 +27,7 @@ function kvm_automation_tooling::validate_vm_ip_addresses(
       if !$vm_info.empty() and $all_vms_have_a_valid_address {
         $valid_addresses = true
       } else {
-        log::warn('Some hosts missing valid IPv4 addresses; refreshing state.')
+        log::warn('Some hosts missing valid IPv4 addresses.')
         $valid_addresses = false
       }
     }
