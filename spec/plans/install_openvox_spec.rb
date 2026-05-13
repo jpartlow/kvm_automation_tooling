@@ -31,6 +31,7 @@ describe 'plan: install_openvox' do
         'apt_source' => 'https://apt.voxpupuli.org',
         'yum_source' => 'https://yum.voxpupuli.org',
         'stop_service' => false,
+        '_catch_errors' => true,
       })
     expect_task('package')
       .with_targets(all_targets)
@@ -64,6 +65,7 @@ describe 'plan: install_openvox' do
         'apt_source' => 'https://apt.voxpupuli.org',
         'yum_source' => 'https://yum.voxpupuli.org',
         'stop_service' => false,
+        '_catch_errors' => true,
       })
     expect_task('package')
 
@@ -83,6 +85,7 @@ describe 'plan: install_openvox' do
         'version'    => '9.0.0',
         'package'    => 'openvox-agent',
         'artifacts_source' => 'https://artifacts.voxpupuli.org',
+        '_catch_errors' => true,
       })
     expect_task('package')
 
@@ -103,6 +106,7 @@ describe 'plan: install_openvox' do
         'version'    => '9.0.0',
         'package'    => 'openvox-agent',
         'artifacts_source' => 'https://some.other',
+        '_catch_errors' => true,
       })
     expect_task('package')
 
@@ -132,6 +136,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
         .with_targets(primary_targets)
@@ -142,6 +147,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
         .with_targets(primary_targets)
@@ -152,6 +158,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
         .with_targets(primary_targets)
@@ -162,6 +169,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       expect_task('package')
         .with_targets(all_targets)
@@ -232,6 +240,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       allow_apply
       expect_task('openvox_bootstrap::install_build_artifact')
@@ -240,6 +249,7 @@ describe 'plan: install_openvox' do
           'package'    => 'openvox-server',
           'version'    => '9.0.0',
           'artifacts_source' => 'https://artifacts.voxpupuli.org',
+          '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
         .with_targets(primary_targets)
@@ -250,6 +260,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
         .with_targets(primary_targets)
@@ -260,6 +271,7 @@ describe 'plan: install_openvox' do
           'apt_source' => 'https://apt.voxpupuli.org',
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
+          '_catch_errors' => true,
         })
       expect_task('package').be_called_times(4)
 
@@ -291,6 +303,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(primary_targets)
@@ -301,6 +314,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(primary_targets)
@@ -311,6 +325,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('package').be_called_times(3)
           .always_return({
@@ -346,6 +361,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(primary_targets)
@@ -356,6 +372,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('package').be_called_times(2)
           .always_return({
@@ -393,6 +410,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(server_targets)
@@ -403,6 +421,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(db_targets)
@@ -413,6 +432,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
           .with_targets(server_targets)
@@ -423,6 +443,7 @@ describe 'plan: install_openvox' do
             'apt_source' => 'https://apt.voxpupuli.org',
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
+            '_catch_errors' => true,
           })
         expect_task('package').be_called_times(4)
           .always_return({

@@ -90,7 +90,7 @@
 #   installing something other than the latest agent package from
 #   the latest collection.
 plan kvm_automation_tooling::standup_cluster(
-  Pattern['[[a-z][A-Z][0-9]-]+'] $cluster_id,
+  Pattern[/\A[a-zA-Z0-9-]+\Z/] $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
   Optional[Kvm_automation_tooling::Version] $os_version = undef,
   Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
@@ -146,12 +146,6 @@ plan kvm_automation_tooling::standup_cluster(
   }
   $os_specs = $vm_specs.map |$vm_spec| { $vm_spec['os'] }.unique()
 
-  $cluster_platform = kvm_automation_tooling::platform({
-    'name'    => $os,
-    'version' => $os_version,
-    'arch'    => $os_arch,
-  })
-
   $_terraform_state_dir = find_file($terraform_state_dir)
   $tfvars_file = "${_terraform_state_dir}/${cluster_id}.tfvars.json"
   $tfstate_file_name = "${cluster_id}.tfstate"
@@ -183,16 +177,16 @@ plan kvm_automation_tooling::standup_cluster(
   # Ensure terraform dependencies are installed.
   run_task('terraform::initialize', 'localhost', 'dir' => $terraform_dir)
 
-  # Terraform apply until the output indicates we have valid ipv4
-  # addreses for all hosts.
-  ctrl::do_until(limit => 10, interval => 5) || {
-    $apply_result = run_plan('terraform::apply',
-      'dir'      => $terraform_dir,
-      'var_file' => $tfvars_file,
-      'state'    => $tfstate_file,
-      'return_output' => true,
-    )
-    kvm_automation_tooling::validate_vm_ip_addresses($apply_result)
+  $apply_result = run_plan('terraform::apply',
+    'dir'      => $terraform_dir,
+    'var_file' => $tfvars_file,
+    'state'    => $tfstate_file,
+    'return_output' => true,
+  )
+  if !kvm_automation_tooling::validate_vm_ip_addresses($apply_result) {
+    # NOTE: this is a marker. The plan will most likely fail below
+    # when attempting to resolve targets using ipv6 addresses.
+    log::error('Terraform apply did not return valid IPv4 addresses for all hosts.')
   }
 
   # Generate an inventory file for the cluster.

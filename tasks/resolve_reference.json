@@ -1,0 +1,22 @@
+{
+  "description": "Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_tooling terraform vmdomain_details output format.)",
+  "input_method": "stdin",
+  "files": [
+    "ruby_task_helper/files/task_helper.rb"
+  ],
+  "parameters": {
+    "dir": {
+      "type": "String[1]",
+      "description": "The directory in which to look for the terraform statefile."
+    },
+    "statefile": {
+      "type": "String[1]",
+      "description": "The name of the terraform statefile in dir to load."
+    },
+    "role": {
+      "type": "String[1]",
+      "description": "The role for which to produce target references."
+    }
+  },
+  "private": true
+}

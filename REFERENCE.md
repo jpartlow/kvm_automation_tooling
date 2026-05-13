@@ -17,6 +17,7 @@
 * [`kvm_automation_tooling::get_normalized_ubuntu_version`](#kvm_automation_tooling--get_normalized_ubuntu_version): Returns the Ubuntu version number without delimiters.
 * [`kvm_automation_tooling::platform`](#kvm_automation_tooling--platform): Generic function to produce a canonical descriptive platform string from a set of os, version and cpu arch values.  Examples:   kvm_automatio
 * [`kvm_automation_tooling::resolve_terraform_targets`](#kvm_automation_tooling--resolve_terraform_targets): Manually resolve target references from the given *inventory_file* and return those from the given *group*.
+* [`kvm_automation_tooling::test_results`](#kvm_automation_tooling--test_results): This function is used in do_until loops to log errors from a result set while returning the overall status of the result for the loop. It's a
 * [`kvm_automation_tooling::transform_openvox_host_version_results`](#kvm_automation_tooling--transform_openvox_host_version_results): Transform the PlanResult ResultSet of package version hashes returned by the kvm_automation_tooling::subplans::install_component plan into a 
 * [`kvm_automation_tooling::translate_os_version_codename`](#kvm_automation_tooling--translate_os_version_codename): Translates a Debian or Ubuntu version number to codename, or codename to version number, depending on what it is given.  Raises an error if u
 * [`kvm_automation_tooling::validate_openvox_version_parameters`](#kvm_automation_tooling--validate_openvox_version_parameters): Validates the given set of OpenVox install parameters and raises an error for any problems.  If we're installing a released version, then col
@@ -42,6 +43,7 @@
 * [`download_image`](#download_image): Downloads an image from the given url to a given directory. Requires curl.
 * [`generate_keypair`](#generate_keypair): Generate a passphraseless ssh keypair in a temp directory and return the paths to the keypair files.
 * [`import_libvirt_volume`](#import_libvirt_volume): Imports a local image file as a libvirt volume in the default pool.
+* [`resolve_reference`](#resolve_reference): Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_t
 
 ### Plans
 
@@ -482,6 +484,37 @@ Data type: `String`
 The name of the inventory group to pass to the
 resolve_references function.
 
+### <a name="kvm_automation_tooling--test_results"></a>`kvm_automation_tooling::test_results`
+
+Type: Puppet Language
+
+This function is used in do_until loops to log errors from a result set
+while returning the overall status of the result for the loop. It's
+a workaround for the fact that we can't get the final result set
+outside of the loop.
+
+#### `kvm_automation_tooling::test_results(String $message, ResultSet $results)`
+
+This function is used in do_until loops to log errors from a result set
+while returning the overall status of the result for the loop. It's
+a workaround for the fact that we can't get the final result set
+outside of the loop.
+
+Returns: `Boolean` Boolean true if none of the results had errors.
+
+##### `message`
+
+Data type: `String`
+
+A string to prefix any error messages with.
+
+##### `results`
+
+Data type: `ResultSet`
+
+A ResultSet from a task or apply that we want to log
+errors from and return the overall status of.
+
 ### <a name="kvm_automation_tooling--transform_openvox_host_version_results"></a>`kvm_automation_tooling::transform_openvox_host_version_results`
 
 Type: Puppet Language
@@ -496,7 +529,15 @@ Transform the PlanResult ResultSet of package version hashes
 returned by the kvm_automation_tooling::subplans::install_component
 plan into a Hash of host names to package version hashes.
 
-Returns: `Hash[String, Hash[String, String]]`
+Returns: `Hash[String, Hash[String, String]]` A Hash mapping host names to Hashes mapping package names to
+package versions.
+
+##### `package`
+
+Data type: `String`
+
+The name of the package whose version is being
+transformed.
 
 ##### `results`
 
@@ -510,12 +551,6 @@ kvm_automation_tooling::subplans::install_component plan.
 Data type: `Hash`
 
 The initial Hash to reduce the results into.
-
-##### `package`
-
-Data type: `String`
-
-
 
 ### <a name="kvm_automation_tooling--translate_os_version_codename"></a>`kvm_automation_tooling::translate_os_version_codename`
 
@@ -617,7 +652,7 @@ Data type: `Hash`
 
 A Hash returned from the
 terraform::apply plan (this is the hash from a parsed
-`terraform output -json` result).
+`terraform output -json` result, see terraform/outputs.tf).
 
 ## Data types
 
@@ -889,6 +924,32 @@ Data type: `String`
 
 The volume name to attach to the image in libvirt. It will be created in the default pool.
 
+### <a name="resolve_reference"></a>`resolve_reference`
+
+Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_tooling terraform vmdomain_details output format.)
+
+**Supports noop?** false
+
+#### Parameters
+
+##### `dir`
+
+Data type: `String[1]`
+
+The directory in which to look for the terraform statefile.
+
+##### `statefile`
+
+Data type: `String[1]`
+
+The name of the terraform statefile in dir to load.
+
+##### `role`
+
+Data type: `String[1]`
+
+The role for which to produce target references.
+
 ## Plans
 
 ### <a name="kvm_automation_tooling--dev--generate_beaker_hosts_file"></a>`kvm_automation_tooling::dev::generate_beaker_hosts_file`
@@ -1068,8 +1129,8 @@ The following parameters are available in the `kvm_automation_tooling::dev::prep
 * [`dev_vm`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--dev_vm)
 * [`kvm_module_url`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--kvm_module_url)
 * [`branch`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--branch)
-* [`virbr0_network_prefix`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix)
 * [`ruby_version`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version)
+* [`virbr0_network_prefix`](#-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix)
 
 ##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--dev_vm"></a>`dev_vm`
 
@@ -1094,6 +1155,14 @@ The branch to check out.
 
 Default value: `'main'`
 
+##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version"></a>`ruby_version`
+
+Data type: `String`
+
+The version of ruby to install using rbenv.
+
+Default value: `'3.3.0'`
+
 ##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--virbr0_network_prefix"></a>`virbr0_network_prefix`
 
 Data type: `String`
@@ -1103,14 +1172,6 @@ new virbr0 network on the VM. (Distinguished from the host's virbr0
 which will usually be 192.168.122.0/24).
 
 Default value: `'192.168.123'`
-
-##### <a name="-kvm_automation_tooling--dev--prep_vm_for_module_testing--ruby_version"></a>`ruby_version`
-
-Data type: `String`
-
-
-
-Default value: `'3.3.0'`
 
 ### <a name="kvm_automation_tooling--install_openvox"></a>`kvm_automation_tooling::install_openvox`
 
@@ -1278,7 +1339,7 @@ The following parameters are available in the `kvm_automation_tooling::standup_c
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--cluster_id"></a>`cluster_id`
 
-Data type: `Pattern['[[a-z][A-Z][0-9]-]+']`
+Data type: `Pattern[/\A[a-zA-Z0-9-]+\Z/]`
 
 This should be a short, unique string per cluster.
 It must obey the character constraints for hostname as it is

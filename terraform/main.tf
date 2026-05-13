@@ -2,7 +2,7 @@ terraform {
   required_providers {
     libvirt = {
       source = "dmacvicar/libvirt"
-      version = "~> 0.8.0"
+      version = "~> 0.9.7"
     }
   }
 }
@@ -13,16 +13,32 @@ provider "libvirt" {
 
 resource "libvirt_network" "network" {
   name = var.cluster_id
-  mode = "nat"
-  domain = var.domain_name
-  addresses = [var.network_addresses]
-  dhcp {
-    enabled = true
-  }
   autostart = true
-  dns {
-    local_only = true
+  dns = {
+    enabled = "yes"
   }
+  domain = {
+    name = var.domain_name
+    local_only = "yes"
+  }
+  forward = {
+    mode = "nat"
+  }
+  ips = [
+    {
+      address = local.gateway_ip
+      netmask = local.netmask
+      dhcp = {
+        ranges = [
+          {
+            start = local.dhcp_start
+            end   = local.dhcp_end
+          },
+        ]
+      }
+      family = "ipv4"
+    }
+  ]
 }
 
 module "vmdomain" {
@@ -37,7 +53,7 @@ module "vmdomain" {
   mem_mb = each.value.mem_mb
   disk_gb = each.value.disk_gb
   gateway_ip = local.gateway_ip
-  network_id = libvirt_network.network.id
+  network_id = libvirt_network.network.name
   domain_name = var.domain_name
   user_name = var.user_name
   user_password = var.user_password

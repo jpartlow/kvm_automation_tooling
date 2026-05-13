@@ -83,35 +83,41 @@ plan kvm_automation_tooling::dev::openvox_acceptance(
   if ($runner_target.facts()['aio_agent_version'] == undef) {
     apply_prep($runner_target)
   }
-  apply($runner_target) {
-    $common_packages = [
-      'ruby',
-      'git',
-    ]
-    case $facts['os']['family'] {
-      'Debian': {
-        $packages = [
-          'build-essential',
-          'ruby-bundler',
-          'ruby-dev',
-        ]
+  $applied = ctrl::do_until(limit => 5, interval => 10) || {
+    $apply_results = apply($runner_target, '_catch_errors' => true) {
+      $common_packages = [
+        'ruby',
+        'git',
+      ]
+      case $facts['os']['family'] {
+        'Debian': {
+          $packages = [
+            'build-essential',
+            'ruby-bundler',
+            'ruby-dev',
+          ]
+        }
+        'RedHat': {
+          $packages = [
+            'redhat-rpm-config', # for building bcrypt_pbkdf gem
+            'ruby-devel',
+            'rubygem-bundler',
+            'make',
+            'gcc',
+          ]
+        }
+        default: {
+          fail("Unsupported os: ${facts['os']}")
+        }
       }
-      'RedHat': {
-        $packages = [
-          'redhat-rpm-config', # for building bcrypt_pbkdf gem
-          'ruby-devel',
-          'rubygem-bundler',
-          'make',
-          'gcc',
-        ]
-      }
-      default: {
-        fail("Unsupported os: ${facts['os']}")
+      package { $packages + $common_packages:
+        ensure => installed,
       }
     }
-    package { $packages + $common_packages:
-      ensure => installed,
-    }
+    kvm_automation_tooling::test_results('Error installing ruby packages', $apply_results)
+  }
+  if !$applied {
+    fail('Failed to install ruby and build packages on runner target (see above).')
   }
 
   out::message("Checkout an instance of ${project} and install the gem bundle.")
