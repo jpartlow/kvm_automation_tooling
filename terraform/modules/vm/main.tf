@@ -89,23 +89,6 @@ resource "libvirt_domain" "domain" {
   }
 
   devices = {
-    # This is required to allow the qemu agent to work, which is needed
-    # to get the IP address of the machine.
-    # In 0.8 this was implicit when qemu_agent was set to true, but in
-    # 0.9 we need to declare it explicitly.
-    channels = [
-      {
-        source = {
-          unix = {}
-        }
-        target = {
-          virt_io = {
-            name  = "org.qemu.guest_agent.0"
-          }
-        }
-      }
-    ]
-
     consoles = [
       # IMPORTANT: this is a known bug on cloud images, since they
       # expect a console we need to pass it
