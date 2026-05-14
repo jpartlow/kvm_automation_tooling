@@ -23,15 +23,20 @@ jobs:
           - ['almalinux', '8', 'x86_64']
           - ['almalinux', '9', 'x86_64']
           - ['almalinux', '10', 'x86_64']
+          - ['almalinux', '10', 'aarch64']
           - ['debian', '11', 'x86_64']
           - ['debian', '12', 'x86_64']
           - ['debian', '13', 'x86_64']
+          - ['debian', '13', 'aarch64']
           - ['rocky', '8', 'x86_64']
           - ['rocky', '9', 'x86_64']
           - ['rocky', '10', 'x86_64']
+          - ['rocky', '10', 'aarch64']
           - ['ubuntu', '22.04', 'x86_64']
           - ['ubuntu', '24.04', 'x86_64']
+          - ['ubuntu', '24.04', 'aarch64']
           - ['ubuntu', '26.04', 'x86_64']
+          - ['ubuntu', '26.04', 'aarch64']
         install:
           - agent-version: 'latest'
             server-version: 'latest'
