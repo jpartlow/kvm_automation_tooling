@@ -48,7 +48,11 @@ module "vmdomain" {
   pool_name = each.value.pool_name
   base_volume_name = each.value.base_volume_name
   os = each.value.os
-  arch = each.value.arch
+  # Libvirt expects "x86_64" and "aarch64" for the arch parameter
+  arch = lookup({
+    amd64 = "x86_64",
+    arm64 = "aarch64"
+  }, each.value.arch, each.value.arch)  # default to the provided value
   type = each.value.type
   cpu_mode = each.value.cpu_mode
   cpus = each.value.cpus
