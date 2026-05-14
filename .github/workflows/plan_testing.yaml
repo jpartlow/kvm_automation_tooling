@@ -15,28 +15,27 @@ env:
 
 jobs:
   standup-cluster-and-install-openvox:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        architecture:
+          - runner: 'ubuntu-latest'
+            arch: 'x86_64'
+          - runner: 'ubuntu-24.04-arm'
+            arch: 'aarch64'
         os:
-          - ['almalinux', '8', 'x86_64']
-          - ['almalinux', '9', 'x86_64']
-          - ['almalinux', '10', 'x86_64']
-          - ['almalinux', '10', 'aarch64']
-          - ['debian', '11', 'x86_64']
-          - ['debian', '12', 'x86_64']
-          - ['debian', '13', 'x86_64']
-          - ['debian', '13', 'aarch64']
-          - ['rocky', '8', 'x86_64']
-          - ['rocky', '9', 'x86_64']
-          - ['rocky', '10', 'x86_64']
-          - ['rocky', '10', 'aarch64']
-          - ['ubuntu', '22.04', 'x86_64']
-          - ['ubuntu', '24.04', 'x86_64']
-          - ['ubuntu', '24.04', 'aarch64']
-          - ['ubuntu', '26.04', 'x86_64']
-          - ['ubuntu', '26.04', 'aarch64']
+          - ['almalinux', '8']
+          - ['almalinux', '9']
+          - ['almalinux', '10']
+          - ['debian', '11']
+          - ['debian', '12']
+          - ['debian', '13']
+          - ['rocky', '8']
+          - ['rocky', '9']
+          - ['rocky', '10']
+          - ['ubuntu', '22.04']
+          - ['ubuntu', '24.04']
+          - ['ubuntu', '26.04']
         install:
           - agent-version: 'latest'
             server-version: 'latest'
@@ -48,6 +47,7 @@ jobs:
             db-version: 8.13.0
             released: false
             collection: openvox8
+    runs-on: ${{ matrix.architecture.runner }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -57,7 +57,7 @@ jobs:
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
-          os-arch: ${{ matrix.os[2] }}
+          os-arch: ${{ matrix.architecture.arch }}
           image_version: ${{ matrix.os[3] }}
           debug: true
           # Use our local branch instead
