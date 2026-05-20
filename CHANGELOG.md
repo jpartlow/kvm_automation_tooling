@@ -1,5 +1,40 @@
 # Changelog
 
+## 2.7.0 (2026-05-19)
+
+* (ci) Add Ubuntu 26.04 to gha matrix
+* Add Ubuntu 26.04 support
+* (ci) Drop Ubuntu 18.04 and 20.04
+* CI: Test Debian13 on regular packages
+* CI: Add Ruby 4.0 support
+* Add syslog dependency for Ruby 3.4+
+* Add Ruby 3.4 to CI
+* (plans) Do not retry terraform:apply in standup_cluster
+* (plans) Add retry to install_component subplan.
+* (tf) Use wait_for_ip lease instead of any
+* (tf) Add video device to get el variants to boot
+* (doc) Update REFERENCE.md
+* (bolt) Add a magical marker file so that bolt knows this project
+  contains plugins
+* (tf) Resolve target refs from terraform output instead of resources.
+  The module now relies on a local resolve_references task that
+  understands this module's terraform output, rather than the generic
+  puppetlabs-terraform::resolve_refferences task that allowed you to
+  collect values from any one resource type. Problem was the new 0.9
+  provider types no longer had all the ip/hostname/metadata values we
+  needed in one type.
+* (tf) Cleanup some unused bits of the domain
+* (plans) Remove unused $cluster_platform variable from plan
+* (plans) Correct cluster_id type regex in standup_cluster plan
+* (tf) Rebuild terraform modules for terraform-libvirt-provider 0.9.
+  This is a major change as the 0.9 provider is an AI assisted rewrite
+  of the provider that removes the higher level 0.8 abstractions in
+  favor of an api that closely matches the underlying libvirt xml. This
+  allows for flexibility when generating the domains (which should let
+  me provide arm support in the future without needing XSLT hacks that
+  were a backdoor to adjusting the xml in the 0.8 provider). These
+  changes *should* be backwards compatible.
+
 ## 2.6.0 (2026-04-30)
 
 * Bump actions/checkout from 5 to 6
