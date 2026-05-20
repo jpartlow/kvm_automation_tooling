@@ -5,26 +5,30 @@
 # Users and Groups Module
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#users-and-groups
 users:
-  - name: ${user_name}
+  - name: jpartlow
     ssh_authorized_keys:
-      - ${ssh_authorized_key}
+      - 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAMHyS4+apUHAhkSsehKwN3UNyb+35lwcBZVwSTBfc0y jpartlow@archimedes'
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     groups: sudo
     shell: /bin/bash
-%{ if user_password != "" ~}
     # for debugging
-    plain_text_passwd: ${user_password}
+    plain_text_passwd: password
     lock_passwd: false
-%{ endif ~}
 # Set Passwords Module
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#set-passwords
 # Do not require password change on first login.
 chpasswd: { expire: False }
+# Package Update Upgrade Install Module
+# https://cloudinit.readthedocs.io/en/latest/reference/modules.html#package-update-upgrade-install
+# Ensure qemu agent is installed so that terraform-provider-libvirt can retrieve IP address.
+packages:
+  - qemu-guest-agent
 # https://cloudinit.readthedocs.io/en/latest/reference/modules.html#runcmd
-%{ if os == "ubuntu" || os == "debian" ~}
 runcmd:
   # Fiddle with systemd-resolved to set the DNS domain since it
   # doesn't seem to pick it up from dhcp.
-  - [ sed, -i, -E, -e, 's/ *#?Domains=.*/Domains=${domain_name}/', /etc/systemd/resolved.conf ]
+  - [ sed, -i, -E, -e, 's/ *#?Domains=.*/Domains=vm/', /etc/systemd/resolved.conf ]
   - [ systemctl, restart, systemd-resolved.service ]
-%{ endif ~}
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, qemu-guest-agent.service ]
+  - [ systemctl, start, --no-block, qemu-guest-agent.service ]

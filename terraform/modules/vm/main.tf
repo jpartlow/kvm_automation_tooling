@@ -65,48 +65,30 @@ resource "libvirt_volume" "volume_cloudinit" {
 # Create the machine
 resource "libvirt_domain" "domain" {
   name   = local.hostname
-  type   = "kvm"
+  type   = var.type
   memory = var.mem_mb
   memory_unit = "MB"
   vcpu   = var.cpus
   running = true
 
   os = {
+    # UEFI is required for acpi support on arm64, which seems to be
+    # needed for the ubuntu images at least?
+    firmware = local.is_arm64 ? "efi" : null
     type = "hvm"
-    type_arch = "x86_64"
-    type_machine = "q35"
+    type_arch = var.arch
+    type_machine = local.type_machine
   }
 
-  # https://github.com/donato-marcos/Projeto-Terraform-Libvirt-KVM/blob/main/modules/domain_linux/main.tf
-  features = {
-    acpi    = true
-    apic    = { eoi = "on" }
-    smm     = { state = "on" }
-    vm_port = { state = "off" }
-  }
+  features = local.features
 
   cpu = {
     mode = var.cpu_mode
+    model = local.cpu_model
+    model_fallback = "forbid"
   }
 
   devices = {
-    # This is required to allow the qemu agent to work, which is needed
-    # to get the IP address of the machine.
-    # In 0.8 this was implicit when qemu_agent was set to true, but in
-    # 0.9 we need to declare it explicitly.
-    channels = [
-      {
-        source = {
-          unix = {}
-        }
-        target = {
-          virt_io = {
-            name  = "org.qemu.guest_agent.0"
-          }
-        }
-      }
-    ]
-
     consoles = [
       # IMPORTANT: this is a known bug on cloud images, since they
       # expect a console we need to pass it

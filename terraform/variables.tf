@@ -40,20 +40,24 @@ variable "user_password" {
 variable "vm_specs" {
   description = "A map of vm specifications to use for generating VMs with the vm module. The keys are the unique role.hostname.platform string for each class of VMs, and the values are an object with configuration details for the vm module."
   type = map(object({
-    # Identifier for the libvirt image pool to use for the VM images.
+    # Identifier for the libvirt image pool to use for the VM image.
     pool_name = string
     # The name of the libvirt volume to use as the base image for the
-    # VM images.
+    # VM image.
     base_volume_name = string
-    # The name of the operating system being used on the vm.
+    # The name of the operating system being used on the VM.
     os = string
-    # The number of CPUs to allocate to each vm.
+    # The cpu architecture of the VM.
+    arch = string
+    # The hypervisor for the VM, e.g., "kvm", "qemu", etc.
+    type = string
+    # The number of CPUs to allocate to the VM.
     cpus      = optional(number)
-    # The amount of memory in MB to allocate to each vm.
+    # The amount of memory in MB to allocate to the VM.
     mem_mb    = optional(number)
-    # The size of each vm disk in GB.
+    # The size of the VM disk in GB.
     disk_gb   = optional(number)
-    # The CPU mode to use for the VMs.
+    # The CPU mode to use for the VM.
     # (Set to host-passthrough for nested virtualization.)
     cpu_mode  = optional(string)
   }))
