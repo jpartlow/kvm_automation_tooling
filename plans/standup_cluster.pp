@@ -89,6 +89,18 @@
 #   kvm_automation_tooling::install_openvox plan if
 #   installing something other than the latest agent package from
 #   the latest collection.
+# @param refresh_package_cache Whether to refresh the package cache on
+#   the vms. For debian vms in particular, running without an apt
+#   update has been observed to cause package installation failures
+#   due to stale package lists not having required dependencies or
+#   servers being removed from the mirrors.
+# @param upgrade_packages Whether to perform a full upgrade of all
+#   packages on the vms. This can add significant time to the
+#   installation process and is not done by default. This should
+#   typically only be necessary if the base images being used are
+#   significantly out of date, or to ensure latest on the vms for
+#   security purposes. NOTE: setting this true implies
+#   refresh_package_cache, regardless of the value of that parameter.
 plan kvm_automation_tooling::standup_cluster(
   Pattern[/\A[a-zA-Z0-9-]+\Z/] $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
@@ -117,6 +129,8 @@ plan kvm_automation_tooling::standup_cluster(
     Optional[install_defaults]      => Kvm_automation_tooling::Openvox_install_params,
   }]
   $install_openvox_params = {},
+  Boolean $refresh_package_cache = true,
+  Boolean $upgrade_packages = false,
 ) {
   $terraform_dir = './terraform'
 
@@ -209,6 +223,12 @@ plan kvm_automation_tooling::standup_cluster(
   $all_targets = $target_map.values().flatten()
 
   wait_until_available($all_targets)
+
+  run_task('kvm_automation_tooling::package_init',
+    $all_targets,
+    'refresh_package_cache' => $refresh_package_cache,
+    'upgrade_packages' => $upgrade_packages,
+  )
 
   if $setup_cluster_ssh {
     $controllers = $target_map.reduce([]) |$acc, $entry| {

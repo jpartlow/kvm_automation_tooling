@@ -43,6 +43,7 @@
 * [`download_image`](#download_image): Downloads an image from the given url to a given directory. Requires curl.
 * [`generate_keypair`](#generate_keypair): Generate a passphraseless ssh keypair in a temp directory and return the paths to the keypair files.
 * [`import_libvirt_volume`](#import_libvirt_volume): Imports a local image file as a libvirt volume in the default pool.
+* [`package_init`](#package_init): Assists with some package management initialization steps on newly minted vms.
 * [`resolve_reference`](#resolve_reference): Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_t
 
 ### Plans
@@ -924,6 +925,26 @@ Data type: `String`
 
 The volume name to attach to the image in libvirt. It will be created in the default pool.
 
+### <a name="package_init"></a>`package_init`
+
+Assists with some package management initialization steps on newly minted vms.
+
+**Supports noop?** false
+
+#### Parameters
+
+##### `refresh_package_cache`
+
+Data type: `Boolean`
+
+Whether to refresh the package cache on the target system.
+
+##### `upgrade_packages`
+
+Data type: `Boolean`
+
+Whether to upgrade all installed packages to their latest versions. (If true, this will also refresh the package cache, regardless of refresh_package_cache value.)
+
 ### <a name="resolve_reference"></a>`resolve_reference`
 
 Produce target references for the given role from the given terraform statefile output. (Note this is tightly coupled to the kvm_automation_tooling terraform vmdomain_details output format.)
@@ -1336,6 +1357,8 @@ The following parameters are available in the `kvm_automation_tooling::standup_c
 * [`user_password`](#-kvm_automation_tooling--standup_cluster--user_password)
 * [`install_openvox`](#-kvm_automation_tooling--standup_cluster--install_openvox)
 * [`install_openvox_params`](#-kvm_automation_tooling--standup_cluster--install_openvox_params)
+* [`refresh_package_cache`](#-kvm_automation_tooling--standup_cluster--refresh_package_cache)
+* [`upgrade_packages`](#-kvm_automation_tooling--standup_cluster--upgrade_packages)
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--cluster_id"></a>`cluster_id`
 
@@ -1568,6 +1591,32 @@ installing something other than the latest agent package from
 the latest collection.
 
 Default value: `{}`
+
+##### <a name="-kvm_automation_tooling--standup_cluster--refresh_package_cache"></a>`refresh_package_cache`
+
+Data type: `Boolean`
+
+Whether to refresh the package cache on
+the vms. For debian vms in particular, running without an apt
+update has been observed to cause package installation failures
+due to stale package lists not having required dependencies or
+servers being removed from the mirrors.
+
+Default value: `true`
+
+##### <a name="-kvm_automation_tooling--standup_cluster--upgrade_packages"></a>`upgrade_packages`
+
+Data type: `Boolean`
+
+Whether to perform a full upgrade of all
+packages on the vms. This can add significant time to the
+installation process and is not done by default. This should
+typically only be necessary if the base images being used are
+significantly out of date, or to ensure latest on the vms for
+security purposes. NOTE: setting this true implies
+refresh_package_cache, regardless of the value of that parameter.
+
+Default value: `false`
 
 ### <a name="kvm_automation_tooling--subplans--install_component"></a>`kvm_automation_tooling::subplans::install_component`
 
