@@ -110,6 +110,12 @@ describe 'plan: standup_cluster' do
           'return_output' => true,
         )
         .always_return(apply_result)
+      expect_task('kvm_automation_tooling::package_init')
+        .with_targets(['spec-primary-1', 'spec-agent-1'])
+        .with_params({
+          'refresh_package_cache' => true,
+          'upgrade_packages' => false,
+        })
       expect_plan('kvm_automation_tooling::subplans::setup_cluster_ssh')
     end
 

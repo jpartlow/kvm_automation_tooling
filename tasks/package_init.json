@@ -1,0 +1,15 @@
+{
+  "description": "Assists with some package management initialization steps on newly minted vms.",
+  "parameters": {
+    "refresh_package_cache": {
+      "type": "Boolean",
+      "description": "Whether to refresh the package cache on the target system.",
+      "default": true
+    },
+    "upgrade_packages": {
+      "type": "Boolean",
+      "description": "Whether to upgrade all installed packages to their latest versions. (If true, this will also refresh the package cache, regardless of refresh_package_cache value.)",
+      "default": false
+    }
+  }
+}
