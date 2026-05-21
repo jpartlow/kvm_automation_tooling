@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.7.1 (2026-05-21)
+
+* (bolt) Switch back to puppetlabs-terraform dependency
+* (plans) Add a package_init task for standup_cluster package cache init
+* (tf) Stop installing qemu-guest-agent on vms
+ 
 ## 2.7.0 (2026-05-19)
 
 * (ci) Add Ubuntu 26.04 to gha matrix
