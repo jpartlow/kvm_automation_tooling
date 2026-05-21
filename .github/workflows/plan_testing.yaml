@@ -50,6 +50,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
+      # TODO: This step needs to move into nested_vms action.
+      - name: Install QEMU EFI firmware for arm64
+        if: ${{ matrix.architecture == 'aarch64' }}
+        run: |-
+          set -x
+          sudo apt-get update -y
+          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64
       - id: vm-cluster
         uses: jpartlow/nested_vms@main
         with:
