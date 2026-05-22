@@ -79,6 +79,8 @@ jobs:
               },
               {
                 "role": "agent",
+                "cpus": 2,
+                "mem_mb": 4096,
                 "cpu_mode": "host-model"
               }
             ]
