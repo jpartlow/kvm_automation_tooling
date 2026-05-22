@@ -85,7 +85,25 @@ bundle exec bolt module install
 #### ARM Support
 
 Ensure QEMU arm64 support is installed. On Ubuntu, this would be the
-`qemu-system-arm` package.
+`qemu-system-arm` package. Ensure efi firmware support for arm64 is
+installed as well, for example the `qemu-efi-aarch64` package on
+Ubuntu.
+
+##### ARM Support in GHA
+
+The Github Actions arm runners do not have kvm installed currently
+(https://github.com/actions/runner-images/issues/14062), so it's
+necessary to use qemu, which is quite a bit slower (5-10x on GHA
+standard runners?).
+
+The simplest way to test arm images in GHA currently is to use an
+x86_64 runner and arm64/aarch64 arch for the vms. The terraform module
+will automatically set the libvirt domain.type to qemu if it detects a
+mismatch between the host and vm architecture.
+
+It should also be possibly to use an arm runner with arm arch vms and
+explicitly set domain_type to qemu in the vm spec, but I haven't
+tested this. I don't expect it would be any faster.
 
 ### Standup Cluster
 
