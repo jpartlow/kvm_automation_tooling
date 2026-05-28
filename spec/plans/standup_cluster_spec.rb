@@ -104,6 +104,12 @@ describe 'plan: standup_cluster' do
       expect_task('terraform::initialize')
       expect_plan('terraform::apply')
         .with_params(
+          'dir'      => './terraform',
+          'var_file' => "#{tempdir}/#{cluster_id}.tfvars.json",
+          'state'    => "#{tempdir}/#{cluster_id}.tfstate",
+        )
+      expect_plan('terraform::refresh')
+        .with_params(
           'dir'           => './terraform',
           'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
           'state'         => "#{tempdir}/#{cluster_id}.tfstate",

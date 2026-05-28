@@ -169,14 +169,9 @@ resource "libvirt_domain" "domain" {
             network = var.network_id
           }
         }
-        # NOTE: If this fails, terraform destroys the machine, making it
-        # difficult to figure out *why* it failed.
-        wait_for_ip = {
-          timeout = 600    # seconds
-          # On el, waiting for 'any' was grabbing localhost/ipv6
-          # addresses in gha.
-          source  = "lease"  # "lease" (DHCP), "agent" (qemu-guest-agent), or "any" (try both)
-        }
+        # NOTE: Not using wait_for_ip, since if it fails,
+        # terraform/provider destroys the machine, making it difficult
+        # to figure out *why* it failed.
       }
     ]
   }
