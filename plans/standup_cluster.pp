@@ -263,7 +263,15 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = $target_map.values().flatten()
 
-  wait_until_available($all_targets)
+  $wait_result = wait_until_available($all_targets, '_catch_errors' => true)
+  if (!$wait_result.ok()) {
+    run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
+      'cluster_id' => $cluster_id,
+      'vm_specs'   => $vm_specs,
+    )
+    $failed_targets = $wait_result.error_set().map |$r| { $r.target() }
+    fail_plan("wait_until_available failed for targets: ${stdlib::to_json_pretty($failed_targets)}.")
+  }
 
   run_task('kvm_automation_tooling::package_init',
     $all_targets,
