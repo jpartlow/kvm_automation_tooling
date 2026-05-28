@@ -8,6 +8,13 @@ plan kvm_automation_tooling::subplans::debug_libvirt_state(
   Kvm_automation_tooling::Cluster_id $cluster_id,
   Array[Kvm_automation_tooling::Vm_spec,1] $vm_specs,
 ) {
+  $check_root = run_command('whoami', 'localhost', '_run_as' => 'root', '_catch_errors' => true)[0]
+  $run_as_root = $check_root.ok()
+  $cmd_args = {'_catch_errors' => true } + ($run_as_root ? {
+    true    => {'_run_as' => 'root'},
+    default => {},
+  })
+
   $general_virsh_commands = [
     'virsh version',
     'virsh hostname',
@@ -45,7 +52,7 @@ plan kvm_automation_tooling::subplans::debug_libvirt_state(
     }
   }.flatten()
   ($general_virsh_commands + $domain_virsh_commands).each |$cmd| {
-    $result = run_command($cmd, 'localhost', '_run_as' => 'root', '_catch_errors' => true)[0]
+    $result = run_command($cmd, 'localhost', $cmd_args)[0]
     if $result.ok() {
       log::warn("${cmd} output:\n${result['merged_output']}")
     } else {
