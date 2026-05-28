@@ -94,6 +94,10 @@ resource "libvirt_domain" "domain" {
       # expect a console we need to pass it
       # https://bugs.launchpad.net/cloud-images/+bug/1573095
       {
+        log = {
+          file   = "/var/log/libvirt/qemu/${local.hostname}-console.log"
+          append = "off"
+        }
         target = {
           type = "serial"
         }
