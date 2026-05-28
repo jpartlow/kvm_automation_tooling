@@ -10,7 +10,7 @@
 #   are stored. This should be an absolute or Puppet module relative
 #   path that the find_files function can locate.
 plan kvm_automation_tooling::teardown_cluster(
-  String $cluster_id,
+  Kvm_automation_tooling::Cluster_id $cluster_id,
   String $terraform_state_dir = 'kvm_automation_tooling/../terraform/instances',
 ) {
   $terraform_dir = './terraform'

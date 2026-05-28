@@ -102,7 +102,7 @@
 #   security purposes. NOTE: setting this true implies
 #   refresh_package_cache, regardless of the value of that parameter.
 plan kvm_automation_tooling::standup_cluster(
-  Pattern[/\A[a-zA-Z0-9-]+\Z/] $cluster_id,
+  Kvm_automation_tooling::Cluster_id $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
   Optional[Kvm_automation_tooling::Version] $os_version = undef,
   Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,

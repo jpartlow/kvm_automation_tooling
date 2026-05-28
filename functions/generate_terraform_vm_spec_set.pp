@@ -19,7 +19,7 @@
 #   parameters for the terraform/modules/vm module, keyed by unique
 #   hostname.
 function kvm_automation_tooling::generate_terraform_vm_spec_set(
-  String $cluster_id,
+  Kvm_automation_tooling::Cluster_id $cluster_id,
   Array[Kvm_automation_tooling::Vm_spec] $vm_specs,
   Array[Hash] $image_results,
 ) >> Hash[String, Hash] {
