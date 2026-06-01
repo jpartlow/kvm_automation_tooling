@@ -47,10 +47,7 @@ locals {
   cpu_model = local.is_arm64 ? "cortex-a57" : null
   cpu_mode = local.guest_and_host_same_arch ? coalesce(var.cpu_mode, "host-model") : "custom"
 
-  # For arm64, acpi (for cleaner shutdown behavior) could be supported
-  # if we need it, but requires uefi. Leaving that alone atm.
-  #
-  # But the nulls here are needed to keep the same type structure for
+  # The nulls here are needed to keep the same type structure for
   # terraform ternary to work when returning the x86 features (both
   # branches of the ternary must have the same type sig (object keys,
   # in this case)).
@@ -70,4 +67,29 @@ locals {
   }
 
   features = local.is_arm64 ? local.base_features : merge(local.base_features, local.x86_features)
+
+  # Alma 9, 10 and Debian 11 arm64 images don't seem to have
+  # secureboot support, so we need to disable it for those platforms
+  # to avoid boot failures when trying to load the UEFI firmware.
+  platforms_without_secureboot = [
+    "almalinux-9-aarch64",
+    "almalinux-10-aarch64",
+    "debian-11-arm64",
+  ]
+  arm64_no_secureboot_firmware_info = {
+    features = [
+      {
+        name = "enrolled-keys"
+        enabled = "no"
+      },
+      {
+        name = "secure-boot"
+        enabled = "no"
+      },
+    ]
+  }
+  firmware_info = (
+    local.is_arm64 &&
+    contains(local.platforms_without_secureboot, local.platform)
+  ) ? local.arm64_no_secureboot_firmware_info : null
 }

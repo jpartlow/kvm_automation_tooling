@@ -75,6 +75,7 @@ resource "libvirt_domain" "domain" {
     # UEFI is required for acpi support on arm64, which seems to be
     # needed for the ubuntu images at least?
     firmware = local.is_arm64 ? "efi" : null
+    firmware_info = local.firmware_info
     type = "hvm"
     type_arch = var.arch
     type_machine = local.type_machine
