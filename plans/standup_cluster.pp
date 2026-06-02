@@ -137,7 +137,7 @@ plan kvm_automation_tooling::standup_cluster(
   $install_openvox_params = {},
   Boolean $refresh_package_cache = true,
   Boolean $upgrade_packages = false,
-  Integer $wait_for_ip_timeout = 600,
+  Integer $wait_for_ip_timeout = 900,
   Integer $wait_until_available_timeout = $wait_for_ip_timeout,
 ) {
   $terraform_dir = './terraform'

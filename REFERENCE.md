@@ -1663,7 +1663,7 @@ The amount of time in seconds to wait for
 the vms to have valid ip addresses assigned after the terraform
 apply before timing out and failing.
 
-Default value: `600`
+Default value: `900`
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--wait_until_available_timeout"></a>`wait_until_available_timeout`
 

@@ -64,7 +64,7 @@ jobs:
           os-version: ${{ matrix.os[1] }}
           os-arch: ${{ matrix.architecture }}
           image_version: ${{ matrix.os[3] }}
-          debug: true
+          debug: false
           # Use our local branch instead
           checkout: false
           # Setting cpu_mode to host-model is necessary for redhat9
