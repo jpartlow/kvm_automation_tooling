@@ -104,6 +104,9 @@
 # @param wait_for_ip_timeout The amount of time in seconds to wait for
 #   the vms to have valid ip addresses assigned after the terraform
 #   apply before timing out and failing.
+# @param wait_until_available_timeout The amount of time in seconds to
+#   wait for the vms to be available for ssh connections after they have
+#   ip addresses assigned before timing out and failing.
 plan kvm_automation_tooling::standup_cluster(
   Kvm_automation_tooling::Cluster_id $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
@@ -135,6 +138,7 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $refresh_package_cache = true,
   Boolean $upgrade_packages = false,
   Integer $wait_for_ip_timeout = 600,
+  Integer $wait_until_available_timeout = $wait_for_ip_timeout,
 ) {
   $terraform_dir = './terraform'
 
@@ -263,7 +267,7 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = $target_map.values().flatten()
 
-  $wait_result = wait_until_available($all_targets, '_catch_errors' => true)
+  $wait_result = wait_until_available($all_targets, 'wait_time' => $wait_until_available_timeout, '_catch_errors' => true)
   if (!$wait_result.ok()) {
     run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
       'cluster_id' => $cluster_id,

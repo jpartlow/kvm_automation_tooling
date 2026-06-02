@@ -1395,6 +1395,7 @@ The following parameters are available in the `kvm_automation_tooling::standup_c
 * [`refresh_package_cache`](#-kvm_automation_tooling--standup_cluster--refresh_package_cache)
 * [`upgrade_packages`](#-kvm_automation_tooling--standup_cluster--upgrade_packages)
 * [`wait_for_ip_timeout`](#-kvm_automation_tooling--standup_cluster--wait_for_ip_timeout)
+* [`wait_until_available_timeout`](#-kvm_automation_tooling--standup_cluster--wait_until_available_timeout)
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--cluster_id"></a>`cluster_id`
 
@@ -1663,6 +1664,16 @@ the vms to have valid ip addresses assigned after the terraform
 apply before timing out and failing.
 
 Default value: `600`
+
+##### <a name="-kvm_automation_tooling--standup_cluster--wait_until_available_timeout"></a>`wait_until_available_timeout`
+
+Data type: `Integer`
+
+The amount of time in seconds to
+wait for the vms to be available for ssh connections after they have
+ip addresses assigned before timing out and failing.
+
+Default value: `$wait_for_ip_timeout`
 
 ### <a name="kvm_automation_tooling--subplans--debug_libvirt_state"></a>`kvm_automation_tooling::subplans::debug_libvirt_state`
 
