@@ -9,12 +9,15 @@ network:
     # https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/)
     #
     # On debian based os this configuration passes through directly to
-    # the netplan nework manager.
+    # the netplan network manager.
     id0:
       #
       match:
         name: en*
       dhcp4: yes
+      # Ensure ip lease is consistent between initramfs and cloud-init
+      # stages.
+      dhcp-identifier: mac
       nameservers:
         addresses: [${gateway_ip}]
       routes:
