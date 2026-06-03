@@ -69,21 +69,17 @@ jobs:
           debug: false
           # Use our local branch instead
           checkout: false
-          # Setting cpu_mode to host-model is necessary for redhat9
-          # x86_64-v2 requirements (see README.md)
           vms: |-
             [
               {
                 "role": "primary",
                 "cpus": 2,
-                "mem_mb": 4096,
-                "cpu_mode": "host-model"
+                "mem_mb": 4096
               },
               {
                 "role": "agent",
                 "cpus": 2,
-                "mem_mb": 4096,
-                "cpu_mode": "host-model"
+                "mem_mb": 4096
               }
             ]
       - name: Display inventory details

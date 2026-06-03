@@ -84,8 +84,8 @@ resource "libvirt_domain" "domain" {
   features = local.features
 
   cpu = {
-    mode = local.cpu_mode
-    model = local.cpu_model
+    mode = local.derived_cpu_mode
+    model = local.derived_cpu_model
     model_fallback = "forbid"
   }
 

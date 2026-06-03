@@ -166,14 +166,15 @@ https://developers.redhat.com/blog/2021/01/05/building-red-hat-enterprise-linux-
 
 This could be set in the libvirt cpu model per
 https://libvirt.org/formatdomain.html#cpu-model-and-topology (choosing
-something like Nehalem as a lowest level of support), but the
-terraform provider I'm using, dmacvicar/libvirt, does not support
-setting a cpu model entry, just the overall cpu mode attribute.
+something like Nehalem as a lowest level of support).
 
-https://github.com/dmacvicar/terraform-provider-libvirt/issues/1129
-
-The workaround is to set the cpu_mode to host-model or
-host-passthrough.
+Currently, the terraform module does not have a parameter for
+cpu_model plumbed, and it will provide cpu_mode 'host-model' by
+default where host and guest architecture match. This should generally
+provide sufficient cpu support for el9 (unless you are running an
+ancient hardware?). If you happen to be trying to stand up an x86_64
+guest on an arm64 host, it automatically provides a Skylake-Client cpu
+model (which is x86_64-v4). This combination hasn't been tested.
 
 ##### Rocky Issues
 

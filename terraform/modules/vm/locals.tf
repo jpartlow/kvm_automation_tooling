@@ -44,8 +44,31 @@ locals {
   domain_type = local.guest_and_host_same_arch ? coalesce(var.domain_type, "kvm") : "qemu"
 
   type_machine = local.is_arm64 ? "virt" : "q35"
-  cpu_model = local.is_arm64 ? "cortex-a57" : null
-  cpu_mode = local.guest_and_host_same_arch ? coalesce(var.cpu_mode, "host-model") : "custom"
+
+  # Currently, we only provide cpu_mode as an input parameter to allow
+  # specifying 'host-model' or 'host-passthrough' for nested
+  # virtualization.
+  #
+  # If cpu_mode has been explicitly set in the input variables, we
+  # will honor that and not set cpu_model, otherwise we'll set
+  # cpu_mode/cpu_model based on the architectures.
+  #
+  # host  guest
+  #       amd64                    arm64
+  # amd64 host-model               custom (cortex-a57)
+  # arm64 custom (Skylake-Client)  host-model
+  #
+  # TODO: provide a cpu_model parameter.
+  default_custom_cpu_model = (local.is_arm64 ?
+    "cortex-a57" :
+    "Skylake-Client") # x86_64-v4 (v2 is minimal for El9...)
+  cpu_mode_explicitly_set = (var.cpu_mode != null)
+  derived_cpu_mode = (local.cpu_mode_explicitly_set ?
+    var.cpu_mode :
+    (local.guest_and_host_same_arch ? "host-model" : "custom"))
+  derived_cpu_model = ((local.derived_cpu_mode == "custom") ?
+    local.default_custom_cpu_model :
+    null)
 
   # The nulls here are needed to keep the same type structure for
   # terraform ternary to work when returning the x86 features (both
