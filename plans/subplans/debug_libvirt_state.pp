@@ -3,13 +3,14 @@
 #
 # @param cluster_id The unique identifier for the cluster to gather
 #   state for.
-# @param vm_specs The array of vm specifications received by the plan.
+# @param vm_hostnames The Array of hostnames in the cluster to
+#   gather state for.
 plan kvm_automation_tooling::subplans::debug_libvirt_state(
   Kvm_automation_tooling::Cluster_id $cluster_id,
-  Array[Kvm_automation_tooling::Vm_spec,1] $vm_specs,
+  Array[String,1] $vm_hostnames,
 ) {
-  $check_root = run_command('whoami', 'localhost', '_run_as' => 'root', '_catch_errors' => true)[0]
-  $run_as_root = $check_root.ok()
+  # The test here is whether we can run as root or not (sudo)
+  $run_as_root = run_command('true', 'localhost', '_run_as' => 'root', '_catch_errors' => true).ok()
   $cmd_args = {'_catch_errors' => true } + ($run_as_root ? {
     true    => {'_run_as' => 'root'},
     default => {},
@@ -30,33 +31,26 @@ plan kvm_automation_tooling::subplans::debug_libvirt_state(
     "cat /var/lib/libvirt/dnsmasq/${cluster_id}.addnhosts",
     "journalctl -u libvirtd --since '1 hour ago'",
   ] 
-  $domain_virsh_commands = $vm_specs.map |$spec| {
-    $role = $spec['role']
-    $count = $spec['count'] =~ Undef ? {
-      true    => 1,
-      default => $spec['count'],
-    }
-    Integer[1, $count].map |$i| {
-      $hostname = "${cluster_id}-${role}-${i}"
-      [
-        "virsh dominfo ${hostname}",
-        "virsh domstate ${hostname} --reason",
-        "virsh domblklist ${hostname} --details",
-        "virsh domiflist ${hostname}",
-        "virsh dumpxml ${hostname}",
-        "virsh domifaddr ${hostname} --source lease",
-        "virsh domifaddr ${hostname} --source arp",
-        "cat /var/log/libvirt/qemu/${hostname}.log",
-        "cat /var/log/libvirt/qemu/${hostname}-console.log",
-      ]
-    }
+  $domain_virsh_commands = $vm_hostnames.map |$hostname| {
+    [
+      "virsh dominfo ${hostname}",
+      "virsh domstate ${hostname} --reason",
+      "virsh domblklist ${hostname} --details",
+      "virsh domiflist ${hostname}",
+      "virsh dumpxml ${hostname}",
+      "virsh domifaddr ${hostname} --source lease",
+      "virsh domifaddr ${hostname} --source arp",
+      "cat /var/log/libvirt/qemu/${hostname}.log",
+      "cat /var/log/libvirt/qemu/${hostname}-console.log",
+    ]
   }.flatten()
   ($general_virsh_commands + $domain_virsh_commands).each |$cmd| {
     $result = run_command($cmd, 'localhost', $cmd_args)[0]
+    $output = regsubst($result['merged_output'], '\x1b\[[0-9;]*[A-Za-z]', '', 'G')
     if $result.ok() {
-      log::warn("${cmd} output:\n${result['merged_output']}")
+      log::warn("${cmd} output:\n${output}")
     } else {
-      log::error("${cmd} failed:\n${result['merged_output']}")
+      log::error("${cmd} failed:\n${output}")
     }
   }
 }

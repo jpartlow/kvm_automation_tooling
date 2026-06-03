@@ -190,6 +190,7 @@ plan kvm_automation_tooling::standup_cluster(
   $host_arch = dig($localhost_target.facts(), 'os', 'architecture')
   out::message("Host architecture: ${host_arch}")
   $tf_vm_specs = kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results)
+  $vm_hostnames = $tf_vm_specs.keys().map |$k| { split($k, '\.')[1] }
 
   # Write cluster specific tfvars.json file to a separate directory to
   # keep different cluster instances separated.
@@ -230,8 +231,8 @@ plan kvm_automation_tooling::standup_cluster(
   }
   if !$valid_ips {
     run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
-      'cluster_id' => $cluster_id,
-      'vm_specs'   => $vm_specs,
+      'cluster_id'   => $cluster_id,
+      'vm_hostnames' => $vm_hostnames,
     )
     # Capture a final refresh result to display it's output so we have
     # that for debugging as well.
@@ -239,8 +240,8 @@ plan kvm_automation_tooling::standup_cluster(
       'dir'           => $terraform_dir,
       'var_file'      => $tfvars_file,
       'state'         => $tfstate_file,
-    )
-    out::message("Terraform refresh result: ${refresh_result[0].value['stdout']}")
+    )[0]
+    out::message("Terraform refresh result: ${refresh_result['stdout']}")
     fail_plan(@("EOS"))
       Timed out waiting for VMs to have valid IP addresses after
       ${wait_for_ip_timeout} seconds. See above debug output for
@@ -270,11 +271,11 @@ plan kvm_automation_tooling::standup_cluster(
   $wait_result = wait_until_available($all_targets, 'wait_time' => $wait_until_available_timeout, '_catch_errors' => true)
   if (!$wait_result.ok()) {
     run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
-      'cluster_id' => $cluster_id,
-      'vm_specs'   => $vm_specs,
+      'cluster_id'   => $cluster_id,
+      'vm_hostnames' => $vm_hostnames,
     )
     $failed_targets = $wait_result.error_set().map |$r| { $r.target() }
-    fail_plan("wait_until_available failed for targets: ${stdlib::to_json_pretty($failed_targets)}.")
+    fail_plan("wait_until_available failed for targets: ${stdlib::to_json_pretty($failed_targets)}")
   }
 
   run_task('kvm_automation_tooling::package_init',

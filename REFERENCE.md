@@ -1685,7 +1685,7 @@ vms identified by the given cluster_id.
 The following parameters are available in the `kvm_automation_tooling::subplans::debug_libvirt_state` plan:
 
 * [`cluster_id`](#-kvm_automation_tooling--subplans--debug_libvirt_state--cluster_id)
-* [`vm_specs`](#-kvm_automation_tooling--subplans--debug_libvirt_state--vm_specs)
+* [`vm_hostnames`](#-kvm_automation_tooling--subplans--debug_libvirt_state--vm_hostnames)
 
 ##### <a name="-kvm_automation_tooling--subplans--debug_libvirt_state--cluster_id"></a>`cluster_id`
 
@@ -1694,11 +1694,12 @@ Data type: `Kvm_automation_tooling::Cluster_id`
 The unique identifier for the cluster to gather
 state for.
 
-##### <a name="-kvm_automation_tooling--subplans--debug_libvirt_state--vm_specs"></a>`vm_specs`
+##### <a name="-kvm_automation_tooling--subplans--debug_libvirt_state--vm_hostnames"></a>`vm_hostnames`
 
-Data type: `Array[Kvm_automation_tooling::Vm_spec,1]`
+Data type: `Array[String,1]`
 
-The array of vm specifications received by the plan.
+The Array of hostnames in the cluster to
+gather state for.
 
 ### <a name="kvm_automation_tooling--subplans--install_component"></a>`kvm_automation_tooling::subplans::install_component`
 
