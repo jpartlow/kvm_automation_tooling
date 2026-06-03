@@ -23,6 +23,8 @@ jobs:
           - 'x86_64'
           - 'aarch64'
         os:
+          # See jpartlow/nested_vms for details.
+          # ['os_name', 'os_version', <'image_version'>]
           - ['almalinux', '8']
           - ['almalinux', '9']
           - ['almalinux', '10']
@@ -63,7 +65,7 @@ jobs:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
           os-arch: ${{ matrix.architecture }}
-          image_version: ${{ matrix.os[3] }}
+          image_version: ${{ matrix.os[2] }}
           debug: false
           # Use our local branch instead
           checkout: false
