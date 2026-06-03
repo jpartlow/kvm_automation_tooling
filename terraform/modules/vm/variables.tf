@@ -37,11 +37,13 @@ variable "host_arch" {
 variable "domain_type" {
   description = "The type of hypervisor to use for the VM, e.g., 'kvm', 'qemu', etc."
   type = string
+  default = null
 }
 
 variable "cpu_mode" {
   description = "The CPU mode to use for the VM."
   type = string
+  default = null
 }
 
 variable "cpus" {
