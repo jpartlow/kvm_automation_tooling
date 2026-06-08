@@ -1396,6 +1396,7 @@ The following parameters are available in the `kvm_automation_tooling::standup_c
 * [`upgrade_packages`](#-kvm_automation_tooling--standup_cluster--upgrade_packages)
 * [`wait_for_ip_timeout`](#-kvm_automation_tooling--standup_cluster--wait_for_ip_timeout)
 * [`wait_until_available_timeout`](#-kvm_automation_tooling--standup_cluster--wait_until_available_timeout)
+* [`in_gha`](#-kvm_automation_tooling--standup_cluster--in_gha)
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--cluster_id"></a>`cluster_id`
 
@@ -1675,6 +1676,16 @@ ip addresses assigned before timing out and failing.
 
 Default value: `$wait_for_ip_timeout`
 
+##### <a name="-kvm_automation_tooling--standup_cluster--in_gha"></a>`in_gha`
+
+Data type: `Boolean`
+
+Whether this is being run in GitHub Actions. Used
+internally for some optimizations. Normally determined
+automatically.
+
+Default value: `(system::env('GITHUB_ACTIONS') == 'true'`
+
 ### <a name="kvm_automation_tooling--subplans--debug_libvirt_state"></a>`kvm_automation_tooling::subplans::debug_libvirt_state`
 
 Gathers and outputs libvirt state from localhost pertaining to
@@ -1779,6 +1790,7 @@ The following parameters are available in the `kvm_automation_tooling::subplans:
 
 * [`os_spec`](#-kvm_automation_tooling--subplans--manage_base_image_volume--os_spec)
 * [`image_download_dir`](#-kvm_automation_tooling--subplans--manage_base_image_volume--image_download_dir)
+* [`in_gha`](#-kvm_automation_tooling--subplans--manage_base_image_volume--in_gha)
 
 ##### <a name="-kvm_automation_tooling--subplans--manage_base_image_volume--os_spec"></a>`os_spec`
 
@@ -1793,6 +1805,17 @@ Data type: `String`
 
 The directory where the base image will be
 downloaded and stored.
+
+##### <a name="-kvm_automation_tooling--subplans--manage_base_image_volume--in_gha"></a>`in_gha`
+
+Data type: `Boolean`
+
+Whether this is running in GitHub Actions.
+Controls whether to run virt-customize workarounds for platforms
+having issues running within in gha. Usually determined
+automatically.
+
+Default value: `(system::env('GITHUB_ACTIONS') == 'true'`
 
 ### <a name="kvm_automation_tooling--subplans--setup_cluster_ssh"></a>`kvm_automation_tooling::subplans::setup_cluster_ssh`
 

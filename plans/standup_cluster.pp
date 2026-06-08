@@ -107,6 +107,9 @@
 # @param wait_until_available_timeout The amount of time in seconds to
 #   wait for the vms to be available for ssh connections after they have
 #   ip addresses assigned before timing out and failing.
+# @param in_gha Whether this is being run in GitHub Actions. Used
+#   internally for some optimizations. Normally determined
+#   automatically.
 plan kvm_automation_tooling::standup_cluster(
   Kvm_automation_tooling::Cluster_id $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
@@ -139,6 +142,7 @@ plan kvm_automation_tooling::standup_cluster(
   Boolean $upgrade_packages = false,
   Integer $wait_for_ip_timeout = 900,
   Integer $wait_until_available_timeout = $wait_for_ip_timeout,
+  Boolean $in_gha = (system::env('GITHUB_ACTIONS') == 'true'),
 ) {
   $terraform_dir = './terraform'
 
@@ -181,6 +185,7 @@ plan kvm_automation_tooling::standup_cluster(
       'kvm_automation_tooling::subplans::manage_base_image_volume',
       'os_spec' => $os_spec,
       'image_download_dir' => $image_download_dir,
+      'in_gha' => $in_gha,
     )
   }
 

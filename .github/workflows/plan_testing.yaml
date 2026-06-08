@@ -58,7 +58,10 @@ jobs:
         run: |-
           set -x
           sudo apt-get update -y
-          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64
+          # guestfs-tools is needed to provide virt-customize which is
+          # being used by kvm_automation_tools to increase the systemd
+          # device timeout for ubuntu 26.04 arm images in GHA.
+          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64 guestfs-tools
       - id: vm-cluster
         uses: jpartlow/nested_vms@main
         with:
