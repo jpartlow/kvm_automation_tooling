@@ -10,6 +10,7 @@
 
 ### Functions
 
+* [`kvm_automation_tooling::calculate_wait_for_ip_timeout`](#kvm_automation_tooling--calculate_wait_for_ip_timeout): Calculates the timeout for waiting for an IP address to be assigned to a VM.  If any of the VMs are using the qemu domain type or if any of t
 * [`kvm_automation_tooling::fill_vm_spec`](#kvm_automation_tooling--fill_vm_spec): Expand a VM specification hash by filling in defaults from a given Hash.
 * [`kvm_automation_tooling::generate_terraform_vm_spec_set`](#kvm_automation_tooling--generate_terraform_vm_spec_set): Transforms the array of vm specifications received by the plan into a map of terraform objects (hashes) keyed by a unique "$role.$hostname.$p
 * [`kvm_automation_tooling::get_image_url`](#kvm_automation_tooling--get_image_url): Returns the URL of the cloud image for the specified platform.  # NOTES  These are the structure of the URLs for the various platforms as of 
@@ -71,6 +72,60 @@ ATM this is just a placeholder for the module so that rspec-puppet can
 get_module_name and setup the spec/fixtures/modules link correctly.
 
 ## Functions
+
+### <a name="kvm_automation_tooling--calculate_wait_for_ip_timeout"></a>`kvm_automation_tooling::calculate_wait_for_ip_timeout`
+
+Type: Puppet Language
+
+Calculates the timeout for waiting for an IP address to be assigned
+to a VM.
+
+If any of the VMs are using the qemu domain type or if any
+of the VMs have an architecture that does not match the host
+architecture, then the $qemu_timeout value is returned.
+
+Otherwise, the $default_timeout value is returned.
+
+#### `kvm_automation_tooling::calculate_wait_for_ip_timeout(Optional[Kvm_automation_tooling::Os_arch] $host_arch, Array[Kvm_automation_tooling::Vm_spec] $vm_specs, Integer $default_timeout = 300, Integer $qemu_timeout = 900)`
+
+Calculates the timeout for waiting for an IP address to be assigned
+to a VM.
+
+If any of the VMs are using the qemu domain type or if any
+of the VMs have an architecture that does not match the host
+architecture, then the $qemu_timeout value is returned.
+
+Otherwise, the $default_timeout value is returned.
+
+Returns: `Integer` The timeout in seconds for waiting for an IP address to be
+assigned to a VM.
+
+##### `host_arch`
+
+Data type: `Optional[Kvm_automation_tooling::Os_arch]`
+
+The architecture of the host machine.
+
+##### `vm_specs`
+
+Data type: `Array[Kvm_automation_tooling::Vm_spec]`
+
+An array of Vm_spec structs representing the VMs
+being created.
+
+##### `default_timeout`
+
+Data type: `Integer`
+
+The default timeout in seconds to use.
+
+##### `qemu_timeout`
+
+Data type: `Integer`
+
+The timeout in seconds to use if any VMs are
+using the qemu domain type or have an architecture that does not
+match the host architecture.
 
 ### <a name="kvm_automation_tooling--fill_vm_spec"></a>`kvm_automation_tooling::fill_vm_spec`
 
@@ -1658,23 +1713,32 @@ Default value: `false`
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--wait_for_ip_timeout"></a>`wait_for_ip_timeout`
 
-Data type: `Integer`
+Data type: `Optional[Integer]`
 
 The amount of time in seconds to wait for
 the vms to have valid ip addresses assigned after the terraform
-apply before timing out and failing.
+apply before timing out and failing. This is calculated
+automatically based on the vm specs and host architecture, setting
+a higher timeout if any vm is using domain.type qemu or has an
+architecture that does not match the host architecture (which will
+also result in domain.type qemu). But it can be set explicitly
+here. The default for matching arch is 300s and for
+qemu/mismatching arch is 900s.
+(see ./functions/calculate_wait_for_ip_timeout.pp).
 
-Default value: `900`
+Default value: `undef`
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--wait_until_available_timeout"></a>`wait_until_available_timeout`
 
-Data type: `Integer`
+Data type: `Optional[Integer]`
 
 The amount of time in seconds to
 wait for the vms to be available for ssh connections after they have
-ip addresses assigned before timing out and failing.
+ip addresses assigned before timing out and failing. Will mirror
+either the explicitly set or calculated wait_for_ip_timeout unless
+specified here.
 
-Default value: `$wait_for_ip_timeout`
+Default value: `undef`
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--in_gha"></a>`in_gha`
 
