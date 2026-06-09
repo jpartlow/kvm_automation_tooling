@@ -19,7 +19,7 @@
 #   parameters for the terraform/modules/vm module, keyed by unique
 #   hostname.
 function kvm_automation_tooling::generate_terraform_vm_spec_set(
-  String $cluster_id,
+  Kvm_automation_tooling::Cluster_id $cluster_id,
   Array[Kvm_automation_tooling::Vm_spec] $vm_specs,
   Array[Hash] $image_results,
 ) >> Hash[String, Hash] {
@@ -29,6 +29,7 @@ function kvm_automation_tooling::generate_terraform_vm_spec_set(
     $expanded_specs = $specs_in_role.reduce({}) |$role_map, $spec| {
       $platform = kvm_automation_tooling::platform($spec['os'])
       $os_name = dig($spec, 'os', 'name')
+      $os_arch = kvm_automation_tooling::get_normalized_libvirt_arch(dig($spec, 'os', 'arch'))
       $role = $spec['role']
       $count = $spec['count'] =~ Undef ? {
         true    => 1,
@@ -39,13 +40,14 @@ function kvm_automation_tooling::generate_terraform_vm_spec_set(
       }[0]
 
       $common = $spec.filter |$k, $_v| {
-        ['cpus', 'mem_mb', 'disk_gb', 'cpu_mode'].any |$i| {
+        ['cpus', 'mem_mb', 'disk_gb', 'cpu_mode', 'domain_type'].any |$i| {
           $k == $i
         }
       } + {
         'base_volume_name' => $image_result['base_volume_name'],
         'pool_name'        => $image_result['pool_name'],
         'os'               => $os_name,
+        'arch'             => $os_arch,
       }
 
       $last_index = $role_map.size()

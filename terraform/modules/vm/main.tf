@@ -65,28 +65,28 @@ resource "libvirt_volume" "volume_cloudinit" {
 # Create the machine
 resource "libvirt_domain" "domain" {
   name   = local.hostname
-  type   = "kvm"
+  type   = local.domain_type
   memory = var.mem_mb
   memory_unit = "MB"
   vcpu   = var.cpus
   running = true
 
   os = {
+    # UEFI is required for acpi support on arm64, which seems to be
+    # needed for the ubuntu images at least?
+    firmware = local.is_arm64 ? "efi" : null
+    firmware_info = local.firmware_info
     type = "hvm"
-    type_arch = "x86_64"
-    type_machine = "q35"
+    type_arch = var.arch
+    type_machine = local.type_machine
   }
 
-  # https://github.com/donato-marcos/Projeto-Terraform-Libvirt-KVM/blob/main/modules/domain_linux/main.tf
-  features = {
-    acpi    = true
-    apic    = { eoi = "on" }
-    smm     = { state = "on" }
-    vm_port = { state = "off" }
-  }
+  features = local.features
 
   cpu = {
-    mode = var.cpu_mode
+    mode = local.derived_cpu_mode
+    model = local.derived_cpu_model
+    model_fallback = "forbid"
   }
 
   devices = {
@@ -95,6 +95,10 @@ resource "libvirt_domain" "domain" {
       # expect a console we need to pass it
       # https://bugs.launchpad.net/cloud-images/+bug/1573095
       {
+        log = {
+          file   = "/var/log/libvirt/qemu/${local.hostname}-console.log"
+          append = "off"
+        }
         target = {
           type = "serial"
         }
@@ -166,14 +170,9 @@ resource "libvirt_domain" "domain" {
             network = var.network_id
           }
         }
-        # NOTE: If this fails, terraform destroys the machine, making it
-        # difficult to figure out *why* it failed.
-        wait_for_ip = {
-          timeout = 300    # seconds, default 300
-          # On el, waiting for 'any' was grabbing localhost/ipv6
-          # addresses in gha.
-          source  = "lease"  # "lease" (DHCP), "agent" (qemu-guest-agent), or "any" (try both)
-        }
+        # NOTE: Not using wait_for_ip, since if it fails,
+        # terraform/provider destroys the machine, making it difficult
+        # to figure out *why* it failed.
       }
     ]
   }

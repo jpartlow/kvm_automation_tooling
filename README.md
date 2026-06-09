@@ -20,7 +20,6 @@ TODO:
   * SLES
   * ?
 * Add support for other architectures
-* Finish OpenVox stack installation, and possibly setup (openvox-server, openvox-db, postgresql)
 
 ## OS Support
 
@@ -83,6 +82,29 @@ bundle install --path .bundle # or sudo bundle install if you prefer
 bundle exec bolt module install
 ```
 
+#### ARM Support
+
+Ensure QEMU arm64 support is installed. On Ubuntu, this would be the
+`qemu-system-arm` package. Ensure efi firmware support for arm64 is
+installed as well, for example the `qemu-efi-aarch64` package on
+Ubuntu.
+
+##### ARM Support in GHA
+
+The Github Actions arm runners do not have kvm installed currently
+(https://github.com/actions/runner-images/issues/14062), so it's
+necessary to use qemu, which is quite a bit slower (5-10x on GHA
+standard runners?).
+
+The simplest way to test arm images in GHA currently is to use an
+x86_64 runner and arm64/aarch64 arch for the vms. The terraform module
+will automatically set the libvirt domain.type to qemu if it detects a
+mismatch between the host and vm architecture.
+
+It should also be possibly to use an arm runner with arm arch vms and
+explicitly set domain_type to qemu in the vm spec, but I haven't
+tested this. I don't expect it would be any faster.
+
 ### Standup Cluster
 
 The [kvm_automation_tooling::standup_cluster](plans/standup_cluster.pp) plan is
@@ -144,14 +166,15 @@ https://developers.redhat.com/blog/2021/01/05/building-red-hat-enterprise-linux-
 
 This could be set in the libvirt cpu model per
 https://libvirt.org/formatdomain.html#cpu-model-and-topology (choosing
-something like Nehalem as a lowest level of support), but the
-terraform provider I'm using, dmacvicar/libvirt, does not support
-setting a cpu model entry, just the overall cpu mode attribute.
+something like Nehalem as a lowest level of support).
 
-https://github.com/dmacvicar/terraform-provider-libvirt/issues/1129
-
-The workaround is to set the cpu_mode to host-model or
-host-passthrough.
+Currently, the terraform module does not have a parameter for
+cpu_model plumbed, and it will provide cpu_mode 'host-model' by
+default where host and guest architecture match. This should generally
+provide sufficient cpu support for el9 (unless you are running an
+ancient hardware?). If you happen to be trying to stand up an x86_64
+guest on an arm64 host, it automatically provides a Skylake-Client cpu
+model (which is x86_64-v4). This combination hasn't been tested.
 
 ##### Rocky Issues
 

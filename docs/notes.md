@@ -8,7 +8,7 @@ Only has a root account, no password.
 
 Manually, can use this to provide a root password before standing up image:
 
-`virt-customize -a /var/lib/libvirt/images/noble-server-cloudimg-amd64.img --root-password password:<PASSWORD>`
+`sudo virt-customize -a /var/lib/libvirt/images/noble-server-cloudimg-amd64.img --root-password password:<PASSWORD>`
 
 Use virt-sysprep to add an ubuntu account and give it an ssh keypair?
 
@@ -26,10 +26,11 @@ have cloud-init
 
 https://www.techchorus.net/posts/automating-virtual-machine-installation-using-libvirt-virsh-and-cloud-init/
 
-* cd /var/lib/libvirt/images/ubuntu-2404-amd64
-* `qemu-img create -b ../noble-server-cloudimg-amd64.base.qcow2 -f qcow2 -F qcow2 test1.ubuntu-2404-amd64.qcow2`
-* Need to be able to customize
-  work/src/kvm-automation-tooling/cloud-init/ubuntu-2404-amd64/network-config.yaml
+* as root:
+  * cd /var/lib/libvirt/images/ubuntu-2404-amd64
+  * `qemu-img create -b ../noble-server-cloudimg-amd64.img -f qcow2 -F qcow2 test1.ubuntu-2404-amd64.qcow2`
+  * Need to be able to customize
+    work/src/kvm-automation-tooling/cloud-init/ubuntu-2404-amd64/network-config.yaml
 
 Before
 

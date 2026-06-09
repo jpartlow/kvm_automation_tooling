@@ -28,6 +28,20 @@ describe 'plan: standup_cluster' do
     }
   end
   let(:cluster_id) { 'spec' }
+  let(:apply_result) do
+    {
+      'vmdomain_details' => {
+        'value' => {
+          'spec-primary-1' => {
+            'ip_addresses' => ['10.2.3.4'],
+          },
+          'spec-agent-1' => {
+            'ip_addresses' => ['10.2.3.5'],
+          },
+        },
+      },
+    }
+  end
 
   around(:each) do |example|
     example.run
@@ -83,26 +97,17 @@ describe 'plan: standup_cluster' do
   end
 
   context 'successfully runs' do
-    let(:apply_result) do
-      {
-        'vmdomain_details' => {
-          'value' => {
-            'spec-primary-1' => {
-              'ip_addresses' => ['10.2.3.4'],
-            },
-            'spec-agent-1' => {
-              'ip_addresses' => ['10.2.3.5'],
-            },
-          },
-        },
-      }
-    end
-
     before(:each) do
       allow_any_out_message
 
       expect_task('terraform::initialize')
       expect_plan('terraform::apply')
+        .with_params(
+          'dir'      => './terraform',
+          'var_file' => "#{tempdir}/#{cluster_id}.tfvars.json",
+          'state'    => "#{tempdir}/#{cluster_id}.tfstate",
+        )
+      expect_plan('terraform::refresh')
         .with_params(
           'dir'           => './terraform',
           'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
@@ -140,7 +145,7 @@ describe 'plan: standup_cluster' do
             'stop_service' => false,
             '_catch_errors' => true,
           })
-        expect_plan('facts')
+        expect_plan('facts').be_called_times(2)
         expect_task('openvox_bootstrap::install')
           .with_targets(['spec-primary-1'])
           .with_params({
@@ -205,6 +210,7 @@ describe 'plan: standup_cluster' do
 
       it 'just terraforms when install_openvox is false' do
         params['install_openvox'] = false
+        expect_plan('facts')
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
         target_map = result.value
@@ -225,6 +231,7 @@ describe 'plan: standup_cluster' do
       end
 
       it 'adds host root access when requsted' do
+        expect_plan('facts')
         expect_plan('kvm_automation_tooling::install_openvox')
 
         public_key_path = "#{tempdir}/ssh_rspec.pub"
@@ -282,7 +289,7 @@ describe 'plan: standup_cluster' do
             'name' => 'ubuntu-2204-amd64.pool',
             'path' => 'ubuntu-2204-amd64',
           )
-
+        expect_plan('facts')
         expect_plan('kvm_automation_tooling::install_openvox')
       end
 
@@ -297,6 +304,99 @@ describe 'plan: standup_cluster' do
         }
         result = run_plan('kvm_automation_tooling::standup_cluster', params)
         expect(result.ok?).to(eq(true), result.value.to_s)
+      end
+    end
+  end
+
+  context 'with network problems' do
+    before(:each) do
+      allow_any_out_message
+
+      expect_task('terraform::initialize')
+      expect_plan('terraform::apply')
+        .with_params(
+          'dir'      => './terraform',
+          'var_file' => "#{tempdir}/#{cluster_id}.tfvars.json",
+          'state'    => "#{tempdir}/#{cluster_id}.tfstate",
+        )
+      expect_command("mkdir -p /dev/null")
+        .with_targets('localhost')
+      expect_task('kvm_automation_tooling::download_image')
+      expect_task('kvm_automation_tooling::import_libvirt_volume')
+      expect_task('kvm_automation_tooling::create_libvirt_image_pool')
+      expect_plan('facts')
+    end
+
+    context 'when domains do not refresh with ip addresses' do
+      it 'raises an error and gets debug state' do
+        params['wait_for_ip_timeout'] = 0
+
+        expect_plan('terraform::refresh')
+          .with_params(
+            'dir'           => './terraform',
+            'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
+            'state'         => "#{tempdir}/#{cluster_id}.tfstate",
+            'return_output' => true,
+          )
+          .always_return({
+            'vmdomain_details' => {
+              'value' => {
+                'spec-primary-1' => {
+                  'ip_addresses' => [],
+                },
+                'spec-agent-1' => {
+                  'ip_addresses' => [],
+                },
+              },
+            },
+          })
+        expect_plan('terraform::refresh')
+          .with_params(
+            'dir'           => './terraform',
+            'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
+            'state'         => "#{tempdir}/#{cluster_id}.tfstate",
+          )
+          .return { Bolt::PlanResult.new(['stdout' => 'terraform-result'], 'success') }
+        expect_plan('kvm_automation_tooling::subplans::debug_libvirt_state')
+          .with_params(
+            'cluster_id' => cluster_id,
+            'vm_hostnames' => ['spec-primary-1', 'spec-agent-1'],
+          )
+
+        result = run_plan('kvm_automation_tooling::standup_cluster', params)
+        expect(result.ok?).to eq(false)
+        expect(result.value.msg).to match(/Timed out waiting for VMs/)
+      end
+    end
+
+    context 'when unable to connect to domains' do
+      it 'raises an error and gets debug state' do
+        expect_plan('terraform::refresh')
+          .with_params(
+            'dir'           => './terraform',
+            'var_file'      => "#{tempdir}/#{cluster_id}.tfvars.json",
+            'state'         => "#{tempdir}/#{cluster_id}.tfstate",
+            'return_output' => true,
+          )
+          .always_return(apply_result)
+        expect(executor).to receive(:wait_until_available)
+          .and_return(Bolt::ResultSet.new([
+            Bolt::Result.new('spec-primary-1', error: { 'msg' => 'unreachable'}),
+            Bolt::Result.new('spec-agent-1', message: 'reachable'),
+          ]))
+        expect_plan('kvm_automation_tooling::subplans::debug_libvirt_state')
+          .with_params(
+            'cluster_id' => cluster_id,
+            'vm_hostnames' => ['spec-primary-1', 'spec-agent-1'],
+          )
+
+        result = run_plan('kvm_automation_tooling::standup_cluster', params)
+        expect(result.ok?).to eq(false)
+        expect(result.value.msg).to eq(<<~EOS)
+          wait_until_available failed for targets: [
+            "spec-primary-1"
+          ]
+        EOS
       end
     end
   end

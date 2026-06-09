@@ -13,6 +13,7 @@
 * [`kvm_automation_tooling::fill_vm_spec`](#kvm_automation_tooling--fill_vm_spec): Expand a VM specification hash by filling in defaults from a given Hash.
 * [`kvm_automation_tooling::generate_terraform_vm_spec_set`](#kvm_automation_tooling--generate_terraform_vm_spec_set): Transforms the array of vm specifications received by the plan into a map of terraform objects (hashes) keyed by a unique "$role.$hostname.$p
 * [`kvm_automation_tooling::get_image_url`](#kvm_automation_tooling--get_image_url): Returns the URL of the cloud image for the specified platform.  # NOTES  These are the structure of the URLs for the various platforms as of 
+* [`kvm_automation_tooling::get_normalized_libvirt_arch`](#kvm_automation_tooling--get_normalized_libvirt_arch): Return the expected architecture strings for libvirt. (x86_64, aarch64)
 * [`kvm_automation_tooling::get_normalized_os_arch`](#kvm_automation_tooling--get_normalized_os_arch): Return the expected architecture strings for the given os. (amd64, arm64 for debian/ubuntu, and x86_64, aarch64 for others)
 * [`kvm_automation_tooling::get_normalized_ubuntu_version`](#kvm_automation_tooling--get_normalized_ubuntu_version): Returns the Ubuntu version number without delimiters.
 * [`kvm_automation_tooling::platform`](#kvm_automation_tooling--platform): Generic function to produce a canonical descriptive platform string from a set of os, version and cpu arch values.  Examples:   kvm_automatio
@@ -26,6 +27,7 @@
 ### Data types
 
 * [`Kvm_automation_tooling::Architecture`](#Kvm_automation_tooling--Architecture): Enumeration of possible OS architectures. See docs/ARCHITECTURE.md for more information.
+* [`Kvm_automation_tooling::Cluster_id`](#Kvm_automation_tooling--Cluster_id): Constraint for the string identifier for a vm cluster.
 * [`Kvm_automation_tooling::Openvox_collection`](#Kvm_automation_tooling--Openvox_collection): Strings identifying an openvox collection (packages associated with a major version of OpenVox).
 * [`Kvm_automation_tooling::Openvox_install_params`](#Kvm_automation_tooling--Openvox_install_params): Parameters defining OpenVox agent version for the kvm_automation_tooling::subplans::install_openvox subplan.  Keys: - openvox_version: The ve
 * [`Kvm_automation_tooling::Openvox_version`](#Kvm_automation_tooling--Openvox_version): Matches an OpenVox x.y.z version, a version based off that with some trailing text (such as x.y.z-rc1 or a git describe like x.y.z-123-gabcde
@@ -54,6 +56,7 @@
 * [`kvm_automation_tooling::dev::prep_vm_for_module_testing`](#kvm_automation_tooling--dev--prep_vm_for_module_testing): This is a dev plan used to test kvm_automation_tooling in a clean environment. It goes one turtle down and nests libvirt within a VM, then se
 * [`kvm_automation_tooling::install_openvox`](#kvm_automation_tooling--install_openvox): Install OpenVox Puppet agents and primary services on the cluster without any attempts at configuration.  The openvox_* install parameters ar
 * [`kvm_automation_tooling::standup_cluster`](#kvm_automation_tooling--standup_cluster): Standup one cluster of KVM virtual machines based on a given Kvm_automation_tooling::Vm_spec structure.  Makes use of terraform under the hoo
+* [`kvm_automation_tooling::subplans::debug_libvirt_state`](#kvm_automation_tooling--subplans--debug_libvirt_state): Gathers and outputs libvirt state from localhost pertaining to vms identified by the given cluster_id.
 * [`kvm_automation_tooling::subplans::install_component`](#kvm_automation_tooling--subplans--install_component): Installs a single openvox component on behalf of the caller.  Uses puppet-openvox_bootstrap tasks.
 * [`kvm_automation_tooling::subplans::lookup_platform`](#kvm_automation_tooling--subplans--lookup_platform): Given a TargetSpec, for each Target that does not yet have a *platform* variable set, obtain platform details and set the *platform* variable
 * [`kvm_automation_tooling::subplans::manage_base_image_volume`](#kvm_automation_tooling--subplans--manage_base_image_volume): Ensure that the base image is downloaded for the given platform and imported into libvirt as a volume. Ensure that a libvirt pool for platfor
@@ -112,7 +115,7 @@ a concrete example.
 Missing values for cpus, mem_mb, disk_gb and cpu_mode are provided
 by terraform modules/vm defaults.
 
-#### `kvm_automation_tooling::generate_terraform_vm_spec_set(String $cluster_id, Array[Kvm_automation_tooling::Vm_spec] $vm_specs, Array[Hash] $image_results)`
+#### `kvm_automation_tooling::generate_terraform_vm_spec_set(Kvm_automation_tooling::Cluster_id $cluster_id, Array[Kvm_automation_tooling::Vm_spec] $vm_specs, Array[Hash] $image_results)`
 
 Transforms the array of vm specifications received by the plan into
 a map of terraform objects (hashes) keyed by a unique
@@ -133,7 +136,7 @@ hostname.
 
 ##### `cluster_id`
 
-Data type: `String`
+Data type: `Kvm_automation_tooling::Cluster_id`
 
 The identifier for the cluster.
 
@@ -358,6 +361,26 @@ set as well.
 To bypass url generation entirely, set
 *os_spec.image_url_override* to the complete URL of the desired
 image.
+
+### <a name="kvm_automation_tooling--get_normalized_libvirt_arch"></a>`kvm_automation_tooling::get_normalized_libvirt_arch`
+
+Type: Puppet Language
+
+Return the expected architecture strings for libvirt. (x86_64,
+aarch64)
+
+#### `kvm_automation_tooling::get_normalized_libvirt_arch(Optional[Kvm_automation_tooling::Os_arch] $arch)`
+
+Return the expected architecture strings for libvirt. (x86_64,
+aarch64)
+
+Returns: `Any` The normalized architecture string.
+
+##### `arch`
+
+Data type: `Optional[Kvm_automation_tooling::Os_arch]`
+
+The architecture to normalize.
 
 ### <a name="kvm_automation_tooling--get_normalized_os_arch"></a>`kvm_automation_tooling::get_normalized_os_arch`
 
@@ -664,6 +687,12 @@ more information.
 
 Alias of `Enum['singular', 'separated', 'dual']`
 
+### <a name="Kvm_automation_tooling--Cluster_id"></a>`Kvm_automation_tooling::Cluster_id`
+
+Constraint for the string identifier for a vm cluster.
+
+Alias of `Pattern[/\A[a-zA-Z0-9-]+\Z/]`
+
 ### <a name="Kvm_automation_tooling--Openvox_collection"></a>`Kvm_automation_tooling::Openvox_collection`
 
 Strings identifying an openvox collection (packages associated with
@@ -782,18 +811,24 @@ Keys:
 - disk_gb: The amount of disk space in GB to allocate to each vm.
 - cpu_mode: The CPU mode to use for the libvirt vm domains. Set this
   to 'host-passthrough' to enable nested virtualization.
+- domain_type: The libvirt domain type to use for the vm. Generally
+  this will be determined automatically based on whether host and
+  guest architectures match. When they match, 'kvm' will be chosen,
+  otherwise 'qemu', but this can be used to override that behavior,
+  if, for example the host does not support kvm.
 
 Alias of
 
 ```puppet
 Struct[{
   role => String[1],
-  Optional[count]      => Integer[1],
-  Optional[os]         => Kvm_automation_tooling::Os_spec,
-  Optional[cpus]       => Integer[1],
-  Optional[mem_mb]     => Integer[1],
-  Optional[disk_gb]    => Integer[1],
-  Optional[cpu_mode]   => String[1],
+  Optional[count]       => Integer[1],
+  Optional[os]          => Kvm_automation_tooling::Os_spec,
+  Optional[cpus]        => Integer[1],
+  Optional[mem_mb]      => Integer[1],
+  Optional[disk_gb]     => Integer[1],
+  Optional[cpu_mode]    => String[1],
+  Optional[domain_type] => String[1],
 }]
 ```
 
@@ -1359,10 +1394,13 @@ The following parameters are available in the `kvm_automation_tooling::standup_c
 * [`install_openvox_params`](#-kvm_automation_tooling--standup_cluster--install_openvox_params)
 * [`refresh_package_cache`](#-kvm_automation_tooling--standup_cluster--refresh_package_cache)
 * [`upgrade_packages`](#-kvm_automation_tooling--standup_cluster--upgrade_packages)
+* [`wait_for_ip_timeout`](#-kvm_automation_tooling--standup_cluster--wait_for_ip_timeout)
+* [`wait_until_available_timeout`](#-kvm_automation_tooling--standup_cluster--wait_until_available_timeout)
+* [`in_gha`](#-kvm_automation_tooling--standup_cluster--in_gha)
 
 ##### <a name="-kvm_automation_tooling--standup_cluster--cluster_id"></a>`cluster_id`
 
-Data type: `Pattern[/\A[a-zA-Z0-9-]+\Z/]`
+Data type: `Kvm_automation_tooling::Cluster_id`
 
 This should be a short, unique string per cluster.
 It must obey the character constraints for hostname as it is
@@ -1618,6 +1656,62 @@ refresh_package_cache, regardless of the value of that parameter.
 
 Default value: `false`
 
+##### <a name="-kvm_automation_tooling--standup_cluster--wait_for_ip_timeout"></a>`wait_for_ip_timeout`
+
+Data type: `Integer`
+
+The amount of time in seconds to wait for
+the vms to have valid ip addresses assigned after the terraform
+apply before timing out and failing.
+
+Default value: `900`
+
+##### <a name="-kvm_automation_tooling--standup_cluster--wait_until_available_timeout"></a>`wait_until_available_timeout`
+
+Data type: `Integer`
+
+The amount of time in seconds to
+wait for the vms to be available for ssh connections after they have
+ip addresses assigned before timing out and failing.
+
+Default value: `$wait_for_ip_timeout`
+
+##### <a name="-kvm_automation_tooling--standup_cluster--in_gha"></a>`in_gha`
+
+Data type: `Boolean`
+
+Whether this is being run in GitHub Actions. Used
+internally for some optimizations. Normally determined
+automatically.
+
+Default value: `(system::env('GITHUB_ACTIONS') == 'true'`
+
+### <a name="kvm_automation_tooling--subplans--debug_libvirt_state"></a>`kvm_automation_tooling::subplans::debug_libvirt_state`
+
+Gathers and outputs libvirt state from localhost pertaining to
+vms identified by the given cluster_id.
+
+#### Parameters
+
+The following parameters are available in the `kvm_automation_tooling::subplans::debug_libvirt_state` plan:
+
+* [`cluster_id`](#-kvm_automation_tooling--subplans--debug_libvirt_state--cluster_id)
+* [`vm_hostnames`](#-kvm_automation_tooling--subplans--debug_libvirt_state--vm_hostnames)
+
+##### <a name="-kvm_automation_tooling--subplans--debug_libvirt_state--cluster_id"></a>`cluster_id`
+
+Data type: `Kvm_automation_tooling::Cluster_id`
+
+The unique identifier for the cluster to gather
+state for.
+
+##### <a name="-kvm_automation_tooling--subplans--debug_libvirt_state--vm_hostnames"></a>`vm_hostnames`
+
+Data type: `Array[String,1]`
+
+The Array of hostnames in the cluster to
+gather state for.
+
 ### <a name="kvm_automation_tooling--subplans--install_component"></a>`kvm_automation_tooling::subplans::install_component`
 
 Installs a single openvox component on behalf of the caller.
@@ -1696,6 +1790,7 @@ The following parameters are available in the `kvm_automation_tooling::subplans:
 
 * [`os_spec`](#-kvm_automation_tooling--subplans--manage_base_image_volume--os_spec)
 * [`image_download_dir`](#-kvm_automation_tooling--subplans--manage_base_image_volume--image_download_dir)
+* [`in_gha`](#-kvm_automation_tooling--subplans--manage_base_image_volume--in_gha)
 
 ##### <a name="-kvm_automation_tooling--subplans--manage_base_image_volume--os_spec"></a>`os_spec`
 
@@ -1710,6 +1805,17 @@ Data type: `String`
 
 The directory where the base image will be
 downloaded and stored.
+
+##### <a name="-kvm_automation_tooling--subplans--manage_base_image_volume--in_gha"></a>`in_gha`
+
+Data type: `Boolean`
+
+Whether this is running in GitHub Actions.
+Controls whether to run virt-customize workarounds for platforms
+having issues running within in gha. Usually determined
+automatically.
+
+Default value: `(system::env('GITHUB_ACTIONS') == 'true'`
 
 ### <a name="kvm_automation_tooling--subplans--setup_cluster_ssh"></a>`kvm_automation_tooling::subplans::setup_cluster_ssh`
 
@@ -1800,7 +1906,7 @@ The following parameters are available in the `kvm_automation_tooling::teardown_
 
 ##### <a name="-kvm_automation_tooling--teardown_cluster--cluster_id"></a>`cluster_id`
 
-Data type: `String`
+Data type: `Kvm_automation_tooling::Cluster_id`
 
 The unique identifier for the cluster to destroy.
 

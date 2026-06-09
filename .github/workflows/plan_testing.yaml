@@ -19,19 +19,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        architecture:
+          - 'x86_64'
+          - 'aarch64'
         os:
-          - ['almalinux', '8', 'x86_64']
-          - ['almalinux', '9', 'x86_64']
-          - ['almalinux', '10', 'x86_64']
-          - ['debian', '11', 'x86_64']
-          - ['debian', '12', 'x86_64']
-          - ['debian', '13', 'x86_64']
-          - ['rocky', '8', 'x86_64']
-          - ['rocky', '9', 'x86_64']
-          - ['rocky', '10', 'x86_64']
-          - ['ubuntu', '22.04', 'x86_64']
-          - ['ubuntu', '24.04', 'x86_64']
-          - ['ubuntu', '26.04', 'x86_64']
+          # See jpartlow/nested_vms for details.
+          # ['os_name', 'os_version', <'image_version'>]
+          - ['almalinux', '8']
+          - ['almalinux', '9']
+          - ['almalinux', '10']
+          - ['debian', '11']
+          - ['debian', '12']
+          - ['debian', '13']
+          - ['rocky', '8']
+          - ['rocky', '9']
+          - ['rocky', '10']
+          - ['ubuntu', '22.04']
+          - ['ubuntu', '24.04']
+          - ['ubuntu', '26.04']
         install:
           - agent-version: 'latest'
             server-version: 'latest'
@@ -47,29 +52,37 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
+      # TODO: This step needs to move into nested_vms action.
+      - name: Install QEMU EFI firmware for arm64
+        if: ${{ matrix.architecture == 'aarch64' }}
+        run: |-
+          set -x
+          sudo apt-get update -y
+          # guestfs-tools is needed to provide virt-customize which is
+          # being used by kvm_automation_tools to increase the systemd
+          # device timeout for ubuntu 26.04 arm images in GHA.
+          sudo apt-get install -y qemu-system-arm qemu-efi-aarch64 guestfs-tools
       - id: vm-cluster
         uses: jpartlow/nested_vms@main
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
-          os-arch: ${{ matrix.os[2] }}
-          image_version: ${{ matrix.os[3] }}
-          debug: true
+          os-arch: ${{ matrix.architecture }}
+          image_version: ${{ matrix.os[2] }}
+          debug: false
           # Use our local branch instead
           checkout: false
-          # Setting cpu_mode to host-model is necessary for redhat9
-          # x86_64-v2 requirements (see README.md)
           vms: |-
             [
               {
                 "role": "primary",
                 "cpus": 2,
-                "mem_mb": 4096,
-                "cpu_mode": "host-model"
+                "mem_mb": 4096
               },
               {
                 "role": "agent",
-                "cpu_mode": "host-model"
+                "cpus": 2,
+                "mem_mb": 4096
               }
             ]
       - name: Display inventory details

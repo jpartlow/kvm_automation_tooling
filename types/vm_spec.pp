@@ -15,12 +15,18 @@
 # - disk_gb: The amount of disk space in GB to allocate to each vm.
 # - cpu_mode: The CPU mode to use for the libvirt vm domains. Set this
 #   to 'host-passthrough' to enable nested virtualization.
+# - domain_type: The libvirt domain type to use for the vm. Generally
+#   this will be determined automatically based on whether host and
+#   guest architectures match. When they match, 'kvm' will be chosen,
+#   otherwise 'qemu', but this can be used to override that behavior,
+#   if, for example the host does not support kvm.
 type Kvm_automation_tooling::Vm_spec = Struct[{
   role => String[1],
-  Optional[count]      => Integer[1],
-  Optional[os]         => Kvm_automation_tooling::Os_spec,
-  Optional[cpus]       => Integer[1],
-  Optional[mem_mb]     => Integer[1],
-  Optional[disk_gb]    => Integer[1],
-  Optional[cpu_mode]   => String[1],
+  Optional[count]       => Integer[1],
+  Optional[os]          => Kvm_automation_tooling::Os_spec,
+  Optional[cpus]        => Integer[1],
+  Optional[mem_mb]      => Integer[1],
+  Optional[disk_gb]     => Integer[1],
+  Optional[cpu_mode]    => String[1],
+  Optional[domain_type] => String[1],
 }]

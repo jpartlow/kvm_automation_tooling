@@ -101,8 +101,17 @@
 #   significantly out of date, or to ensure latest on the vms for
 #   security purposes. NOTE: setting this true implies
 #   refresh_package_cache, regardless of the value of that parameter.
+# @param wait_for_ip_timeout The amount of time in seconds to wait for
+#   the vms to have valid ip addresses assigned after the terraform
+#   apply before timing out and failing.
+# @param wait_until_available_timeout The amount of time in seconds to
+#   wait for the vms to be available for ssh connections after they have
+#   ip addresses assigned before timing out and failing.
+# @param in_gha Whether this is being run in GitHub Actions. Used
+#   internally for some optimizations. Normally determined
+#   automatically.
 plan kvm_automation_tooling::standup_cluster(
-  Pattern[/\A[a-zA-Z0-9-]+\Z/] $cluster_id,
+  Kvm_automation_tooling::Cluster_id $cluster_id,
   Optional[Kvm_automation_tooling::Operating_system] $os = undef,
   Optional[Kvm_automation_tooling::Version] $os_version = undef,
   Optional[Kvm_automation_tooling::Os_arch] $os_arch = undef,
@@ -131,6 +140,9 @@ plan kvm_automation_tooling::standup_cluster(
   $install_openvox_params = {},
   Boolean $refresh_package_cache = true,
   Boolean $upgrade_packages = false,
+  Integer $wait_for_ip_timeout = 900,
+  Integer $wait_until_available_timeout = $wait_for_ip_timeout,
+  Boolean $in_gha = (system::env('GITHUB_ACTIONS') == 'true'),
 ) {
   $terraform_dir = './terraform'
 
@@ -173,8 +185,17 @@ plan kvm_automation_tooling::standup_cluster(
       'kvm_automation_tooling::subplans::manage_base_image_volume',
       'os_spec' => $os_spec,
       'image_download_dir' => $image_download_dir,
+      'in_gha' => $in_gha,
     )
   }
+
+  # Get localhost facts for host architecture.
+  $localhost_target = get_target('localhost')
+  run_plan('facts', $localhost_target)
+  $host_arch = dig($localhost_target.facts(), 'os', 'architecture')
+  out::message("Host architecture: ${host_arch}")
+  $tf_vm_specs = kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results)
+  $vm_hostnames = $tf_vm_specs.keys().map |$k| { split($k, '\.')[1] }
 
   # Write cluster specific tfvars.json file to a separate directory to
   # keep different cluster instances separated.
@@ -185,22 +206,52 @@ plan kvm_automation_tooling::standup_cluster(
     'user_name'           => $user,
     'ssh_public_key_path' => $ssh_public_key_path,
     'user_password'       => $user_password,
-    'vm_specs'            => kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results),
+    'host_arch'           => kvm_automation_tooling::get_normalized_libvirt_arch($host_arch),
+    'vm_specs'            => $tf_vm_specs,
   }))
 
   # Ensure terraform dependencies are installed.
   run_task('terraform::initialize', 'localhost', 'dir' => $terraform_dir)
 
-  $apply_result = run_plan('terraform::apply',
+  run_plan('terraform::apply',
     'dir'      => $terraform_dir,
     'var_file' => $tfvars_file,
     'state'    => $tfstate_file,
-    'return_output' => true,
   )
-  if !kvm_automation_tooling::validate_vm_ip_addresses($apply_result) {
-    # NOTE: this is a marker. The plan will most likely fail below
-    # when attempting to resolve targets using ipv6 addresses.
-    log::error('Terraform apply did not return valid IPv4 addresses for all hosts.')
+  # We are not using the terraform provider's libvirt_domain resource
+  # wait_for_ip attribute, since if we fail to get an ip within the
+  # timeout, the provider/terraform seems to either destroy or stop
+  # the domains. So we have to do a separate refresh after apply to
+  # get the assigned ip addresses for the vms before we can proceed.
+  $interval = 10
+  $limit = max($wait_for_ip_timeout / $interval, 1)
+  $valid_ips = ctrl::do_until('limit' => $limit, 'interval' => $interval) || {
+    $apply_result = run_plan('terraform::refresh',
+      'dir'           => $terraform_dir,
+      'var_file'      => $tfvars_file,
+      'state'         => $tfstate_file,
+      'return_output' => true,
+    )
+    kvm_automation_tooling::validate_vm_ip_addresses($apply_result)
+  }
+  if !$valid_ips {
+    run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
+      'cluster_id'   => $cluster_id,
+      'vm_hostnames' => $vm_hostnames,
+    )
+    # Capture a final refresh result to display it's output so we have
+    # that for debugging as well.
+    $refresh_result = run_plan('terraform::refresh',
+      'dir'           => $terraform_dir,
+      'var_file'      => $tfvars_file,
+      'state'         => $tfstate_file,
+    )[0]
+    out::message("Terraform refresh result: ${refresh_result['stdout']}")
+    fail_plan(@("EOS"))
+      Timed out waiting for VMs to have valid IP addresses after
+      ${wait_for_ip_timeout} seconds. See above debug output for
+      libvirt state.
+      |- EOS
   }
 
   # Generate an inventory file for the cluster.
@@ -222,7 +273,15 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = $target_map.values().flatten()
 
-  wait_until_available($all_targets)
+  $wait_result = wait_until_available($all_targets, 'wait_time' => $wait_until_available_timeout, '_catch_errors' => true)
+  if (!$wait_result.ok()) {
+    run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
+      'cluster_id'   => $cluster_id,
+      'vm_hostnames' => $vm_hostnames,
+    )
+    $failed_targets = $wait_result.error_set().map |$r| { $r.target() }
+    fail_plan("wait_until_available failed for targets: ${stdlib::to_json_pretty($failed_targets)}")
+  }
 
   run_task('kvm_automation_tooling::package_init',
     $all_targets,
