@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.8.0 (2026-06-10)
+
+* (plans) Adds openvox9 as an available collection
+* (ci) Skip openvox install on arm plan_testing workflow
+* (plans) Calculate wait times based on arch/domain
+* (plans) Set systemd device timeout to 300s for ubuntu 26.04 arm in gha
+* (plans) Fix hostname loop in debug_libvirt_state plan
+* (tf) Provide sane cpu_mode/cpu_model defaults for all arch
+* (tf) Supply two defaults to terraform vm.variables
+* (gha) Correct lookup of image_version in plan_testing.yaml
+* (gha) Push wait_for_ip timeout to 900s
+* (plans) Set standup_cluster wait_until_available to wait_for_ip_timeout
+* (doc) Update REFERENCE.md for changes to generate_terraform_vm_spec_set
+* (tf) Use mac address for dhcp identifier in cloud-init
+* (tf) Skip UEFI secure-boot for certain arm64 platforms
+* (plans) Set a 10 min timeout to wait for ip
+* (plans) Only run debug_libvirt_state as root if we can
+* (plans) Capture debug_libvirt_state if wait_until_available fails
+* (plans,tf) Manage wait for ip in plan rather than terraform
+* (tf) Add a console log file for debugging domains
+* (plans) Add a plan to provide debug output for libvirt domains
+* (plans) Add a cluster_id type
+* (tf) Bump domain wait_for_ip timeout to 600 seconds
+* (doc) Add notes about arm in gha to README
+* (gha) Increase agent resources to match primary
+* (gha) Conditionally install qemu-efi-aarch64 on arm hosts
+* (plans,tf) Support arm64 vms
+* (arm) Add a script used to manually create vms with virt-install
+
 ## 2.7.1 (2026-05-21)
 
 * (bolt) Switch back to puppetlabs-terraform dependency
