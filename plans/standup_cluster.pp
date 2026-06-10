@@ -103,10 +103,19 @@
 #   refresh_package_cache, regardless of the value of that parameter.
 # @param wait_for_ip_timeout The amount of time in seconds to wait for
 #   the vms to have valid ip addresses assigned after the terraform
-#   apply before timing out and failing.
+#   apply before timing out and failing. This is calculated
+#   automatically based on the vm specs and host architecture, setting
+#   a higher timeout if any vm is using domain.type qemu or has an
+#   architecture that does not match the host architecture (which will
+#   also result in domain.type qemu). But it can be set explicitly
+#   here. The default for matching arch is 300s and for
+#   qemu/mismatching arch is 900s.
+#   (see ./functions/calculate_wait_for_ip_timeout.pp).
 # @param wait_until_available_timeout The amount of time in seconds to
 #   wait for the vms to be available for ssh connections after they have
-#   ip addresses assigned before timing out and failing.
+#   ip addresses assigned before timing out and failing. Will mirror
+#   either the explicitly set or calculated wait_for_ip_timeout unless
+#   specified here.
 # @param in_gha Whether this is being run in GitHub Actions. Used
 #   internally for some optimizations. Normally determined
 #   automatically.
@@ -140,8 +149,8 @@ plan kvm_automation_tooling::standup_cluster(
   $install_openvox_params = {},
   Boolean $refresh_package_cache = true,
   Boolean $upgrade_packages = false,
-  Integer $wait_for_ip_timeout = 900,
-  Integer $wait_until_available_timeout = $wait_for_ip_timeout,
+  Optional[Integer] $wait_for_ip_timeout = undef,
+  Optional[Integer] $wait_until_available_timeout = undef,
   Boolean $in_gha = (system::env('GITHUB_ACTIONS') == 'true'),
 ) {
   $terraform_dir = './terraform'
@@ -196,6 +205,11 @@ plan kvm_automation_tooling::standup_cluster(
   out::message("Host architecture: ${host_arch}")
   $tf_vm_specs = kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results)
   $vm_hostnames = $tf_vm_specs.keys().map |$k| { split($k, '\.')[1] }
+  $calculated_wait_for_ip_timeout = kvm_automation_tooling::calculate_wait_for_ip_timeout($host_arch, $vm_specs)
+  $final_wait_for_ip_timeout =
+    pick($wait_for_ip_timeout, $calculated_wait_for_ip_timeout)
+  $final_wait_until_available_timeout =
+    pick($wait_until_available_timeout, $final_wait_for_ip_timeout)
 
   # Write cluster specific tfvars.json file to a separate directory to
   # keep different cluster instances separated.
@@ -224,7 +238,11 @@ plan kvm_automation_tooling::standup_cluster(
   # the domains. So we have to do a separate refresh after apply to
   # get the assigned ip addresses for the vms before we can proceed.
   $interval = 10
-  $limit = max($wait_for_ip_timeout / $interval, 1)
+  $limit = max($final_wait_for_ip_timeout / $interval, 1)
+  out::message(@("EOS"))
+    Waiting for VMs to have valid IP addresses assigned
+    (timeout: ${final_wait_for_ip_timeout} seconds)...
+    |- EOS
   $valid_ips = ctrl::do_until('limit' => $limit, 'interval' => $interval) || {
     $apply_result = run_plan('terraform::refresh',
       'dir'           => $terraform_dir,
@@ -249,7 +267,7 @@ plan kvm_automation_tooling::standup_cluster(
     out::message("Terraform refresh result: ${refresh_result['stdout']}")
     fail_plan(@("EOS"))
       Timed out waiting for VMs to have valid IP addresses after
-      ${wait_for_ip_timeout} seconds. See above debug output for
+      ${final_wait_for_ip_timeout} seconds. See above debug output for
       libvirt state.
       |- EOS
   }
@@ -273,7 +291,14 @@ plan kvm_automation_tooling::standup_cluster(
 
   $all_targets = $target_map.values().flatten()
 
-  $wait_result = wait_until_available($all_targets, 'wait_time' => $wait_until_available_timeout, '_catch_errors' => true)
+  out::message(@("EOS"))
+    Waiting for VMs to be available for ssh connections
+    (timeout: ${final_wait_until_available_timeout} seconds)...
+    |- EOS
+  $wait_result = wait_until_available($all_targets,
+    'wait_time' => $final_wait_until_available_timeout,
+    '_catch_errors' => true
+  )
   if (!$wait_result.ok()) {
     run_plan('kvm_automation_tooling::subplans::debug_libvirt_state',
       'cluster_id'   => $cluster_id,
