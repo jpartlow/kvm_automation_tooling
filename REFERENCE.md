@@ -753,7 +753,7 @@ Alias of `Pattern[/\A[a-zA-Z0-9-]+\Z/]`
 Strings identifying an openvox collection (packages associated with
 a major version of OpenVox).
 
-Alias of `Enum['openvox7', 'openvox8']`
+Alias of `Enum['openvox7', 'openvox8', 'openvox9']`
 
 ### <a name="Kvm_automation_tooling--Openvox_install_params"></a>`Kvm_automation_tooling::Openvox_install_params`
 

@@ -3,4 +3,5 @@
 type Kvm_automation_tooling::Openvox_collection = Enum[
   'openvox7',
   'openvox8',
+  'openvox9',
 ]
