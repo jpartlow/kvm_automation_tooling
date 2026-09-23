@@ -29,8 +29,14 @@ class ResolveReference < TaskHelper
           false
         end || ip_addresses.first
 
+        domain = vm_info['domain']
+        hostname_is_fqdn = hostname.match?(%r{\.#{domain}\Z})
+        fqdn = (domain.nil? || hostname_is_fqdn) ?
+          hostname :
+          "#{hostname}.#{domain}"
+
         {
-          'name' => hostname,
+          'name' => fqdn,
           'uri'  => first_ip,
           'vars' => {
             'platform' => vm_info['platform'],

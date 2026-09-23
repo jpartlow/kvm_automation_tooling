@@ -55,7 +55,7 @@ jobs:
           res=$(bundle exec bolt command run \
                   '/opt/puppetlabs/bin/puppet --version' \
                   --inventory terraform/instances/inventory.test.yaml \
-                  --targets test-agent-1 \
+                  --targets test-agent-1.vm \
                   --format json)
           echo "${res}"
           echo "${res}" | jq .
@@ -104,7 +104,7 @@ jobs:
           res=$(bundle exec bolt command run \
                   '/opt/puppetlabs/bin/puppet --version' \
                   --inventory terraform/instances/inventory.test.yaml \
-                  --targets test-agent-1 \
+                  --targets test-agent-1.vm \
                   --format json)
           echo "${res}"
           echo "${res}" | jq .
@@ -157,7 +157,7 @@ jobs:
           res=$(bundle exec bolt command run \
                   '/opt/puppetlabs/bin/puppet --version' \
                   --inventory terraform/instances/inventory.test.yaml \
-                  --targets test-agent-1 \
+                  --targets test-agent-1.vm \
                   --format json)
           echo "${res}"
           echo "${res}" | jq .

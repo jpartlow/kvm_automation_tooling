@@ -7,7 +7,7 @@ describe 'plan: kvm_automation_tooling::dev::generate_beaker_hosts_file' do
     @ips ||= 0
     Bolt::Target.from_hash(
       {
-        'name' => name,
+        'name' => "#{name}.#{domain}",
         'uri'  => "#{ip}.#{@ips += 1}",
         'vars' => {
           'domain_name' => domain,
