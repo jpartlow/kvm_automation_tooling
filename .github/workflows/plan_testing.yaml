@@ -28,7 +28,6 @@ jobs:
           - ['almalinux', '8']
           - ['almalinux', '9']
           - ['almalinux', '10']
-          - ['debian', '11']
           - ['debian', '12']
           - ['debian', '13']
           - ['rocky', '8']
@@ -129,13 +128,13 @@ jobs:
         run: |-
           set -e
           # Validate the agent versions
-          jq -e '."test-agent-1"."openvox-agent" | test("^'${OPENVOX_AGENT_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
-          jq -e '."test-agent-1" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
+          jq -e '."test-agent-1.vm"."openvox-agent" | test("^'${OPENVOX_AGENT_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-agent-1.vm" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
           # Validate the server versions
-          jq -e '."test-primary-1"."openvox-agent" | test("^'${OPENVOX_AGENT_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
-          jq -e '."test-primary-1"."openvox-server" | test("^'${OPENVOX_SERVER_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
-          jq -e '."test-primary-1"."openvoxdb" | test("^'${OPENVOX_DB_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
-          jq -e '."test-primary-1"."openvoxdb-termini" | test("^'${OPENVOX_DB_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1.vm"."openvox-agent" | test("^'${OPENVOX_AGENT_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1.vm"."openvox-server" | test("^'${OPENVOX_SERVER_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1.vm"."openvoxdb" | test("^'${OPENVOX_DB_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1.vm"."openvoxdb-termini" | test("^'${OPENVOX_DB_VERSION//./\\\\.}'-")' /tmp/openvox_versions.test.json
       - name: Validate packages
         if: ${{ (matrix.install.released == true) && (matrix.architecture == 'x86_64') }}
         env:
@@ -145,9 +144,9 @@ jobs:
         run: |-
           set -e
           # Validate the agent packages present
-          jq -e '."test-agent-1" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
+          jq -e '."test-agent-1.vm" | keys == ["openvox-agent"]' /tmp/openvox_versions.test.json
           # Validate the server packages present
-          jq -e '."test-primary-1" | keys == ["openvox-agent", "openvox-server", "openvoxdb", "openvoxdb-termini"]' /tmp/openvox_versions.test.json
+          jq -e '."test-primary-1.vm" | keys == ["openvox-agent", "openvox-server", "openvoxdb", "openvoxdb-termini"]' /tmp/openvox_versions.test.json
       - name: Run teardown_cluster plan
         working-directory: kvm_automation_tooling
         run: |-
