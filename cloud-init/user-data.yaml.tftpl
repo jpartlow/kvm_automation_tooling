@@ -8,7 +8,7 @@ users:
   - name: ${user_name}
     ssh_authorized_keys:
       - ${ssh_authorized_key}
-    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
     groups: sudo
     shell: /bin/bash
 %{ if user_password != "" ~}
