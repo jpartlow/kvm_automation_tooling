@@ -13,4 +13,4 @@ modules:
   - name: puppetlabs/terraform
     version_requirement: '>= 0.7.2 < 1.0.0'
   - name: puppet/openvox_bootstrap
-    version_requirement: '>= 1.4.0 < 2.0.0'
+    version_requirement: '>= 1.7.0 < 2.0.0'
