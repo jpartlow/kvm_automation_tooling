@@ -10,17 +10,18 @@
 
 ### Functions
 
+* [`kvm_automation_tooling::build_artifact_path`](#kvm_automation_tooling--build_artifact_path): Returns the path of an openvox build artifact package for a platform.
 * [`kvm_automation_tooling::calculate_wait_for_ip_timeout`](#kvm_automation_tooling--calculate_wait_for_ip_timeout): Calculates the timeout for waiting for an IP address to be assigned to a VM.  If any of the VMs are using the qemu domain type or if any of t
 * [`kvm_automation_tooling::fill_vm_spec`](#kvm_automation_tooling--fill_vm_spec): Expand a VM specification hash by filling in defaults from a given Hash.
 * [`kvm_automation_tooling::generate_terraform_vm_spec_set`](#kvm_automation_tooling--generate_terraform_vm_spec_set): Transforms the array of vm specifications received by the plan into a map of terraform objects (hashes) keyed by a unique "$role.$hostname.$p
-* [`kvm_automation_tooling::get_image_url`](#kvm_automation_tooling--get_image_url): Returns the URL of the cloud image for the specified platform.  # NOTES  These are the structure of the URLs for the various platforms as of 
+* [`kvm_automation_tooling::get_image_url`](#kvm_automation_tooling--get_image_url): Returns the URL of the cloud image for the specified platform.  # NOTES  These are the structure of the URLs for the various platforms as of
 * [`kvm_automation_tooling::get_normalized_libvirt_arch`](#kvm_automation_tooling--get_normalized_libvirt_arch): Return the expected architecture strings for libvirt. (x86_64, aarch64)
 * [`kvm_automation_tooling::get_normalized_os_arch`](#kvm_automation_tooling--get_normalized_os_arch): Return the expected architecture strings for the given os. (amd64, arm64 for debian/ubuntu, and x86_64, aarch64 for others)
 * [`kvm_automation_tooling::get_normalized_ubuntu_version`](#kvm_automation_tooling--get_normalized_ubuntu_version): Returns the Ubuntu version number without delimiters.
 * [`kvm_automation_tooling::platform`](#kvm_automation_tooling--platform): Generic function to produce a canonical descriptive platform string from a set of os, version and cpu arch values.  Examples:   kvm_automatio
 * [`kvm_automation_tooling::resolve_terraform_targets`](#kvm_automation_tooling--resolve_terraform_targets): Manually resolve target references from the given *inventory_file* and return those from the given *group*.
 * [`kvm_automation_tooling::test_results`](#kvm_automation_tooling--test_results): This function is used in do_until loops to log errors from a result set while returning the overall status of the result for the loop. It's a
-* [`kvm_automation_tooling::transform_openvox_host_version_results`](#kvm_automation_tooling--transform_openvox_host_version_results): Transform the PlanResult ResultSet of package version hashes returned by the kvm_automation_tooling::subplans::install_component plan into a 
+* [`kvm_automation_tooling::transform_openvox_host_version_results`](#kvm_automation_tooling--transform_openvox_host_version_results): Transform the PlanResult ResultSet of package version hashes returned by the kvm_automation_tooling::subplans::install_component plan into a
 * [`kvm_automation_tooling::translate_os_version_codename`](#kvm_automation_tooling--translate_os_version_codename): Translates a Debian or Ubuntu version number to codename, or codename to version number, depending on what it is given.  Raises an error if u
 * [`kvm_automation_tooling::validate_openvox_version_parameters`](#kvm_automation_tooling--validate_openvox_version_parameters): Validates the given set of OpenVox install parameters and raises an error for any problems.  If we're installing a released version, then col
 * [`kvm_automation_tooling::validate_vm_ip_addresses`](#kvm_automation_tooling--validate_vm_ip_addresses): Check whether ip addresses returned by the terraform apply are all valid ipv4 addresses.  A Bolt::Target.uri needs an ipv4 address when we re
@@ -36,7 +37,7 @@
 * [`Kvm_automation_tooling::Os_arch`](#Kvm_automation_tooling--Os_arch): Enumeration of operating system chip architectures available when standing up vms.
 * [`Kvm_automation_tooling::Os_spec`](#Kvm_automation_tooling--Os_spec): Specification for a particular operating system.  Used to determine canonical platform strings and image urls.  Keys: - name: The name of the
 * [`Kvm_automation_tooling::Version`](#Kvm_automation_tooling--Version): General type constraint for version strings such as 2404, 24.04, 7, 7.2, 7_0, etc.
-* [`Kvm_automation_tooling::Vm_spec`](#Kvm_automation_tooling--Vm_spec): Specification for a set of vms of some count.  Only the base role key is required. The rest of the keys are optional so that a set of common 
+* [`Kvm_automation_tooling::Vm_spec`](#Kvm_automation_tooling--Vm_spec): Specification for a set of vms of some count.  Only the base role key is required. The rest of the keys are optional so that a set of common
 
 ### Tasks
 
@@ -61,7 +62,7 @@
 * [`kvm_automation_tooling::subplans::install_component`](#kvm_automation_tooling--subplans--install_component): Installs a single openvox component on behalf of the caller.  Uses puppet-openvox_bootstrap tasks.
 * [`kvm_automation_tooling::subplans::lookup_platform`](#kvm_automation_tooling--subplans--lookup_platform): Given a TargetSpec, for each Target that does not yet have a *platform* variable set, obtain platform details and set the *platform* variable
 * [`kvm_automation_tooling::subplans::manage_base_image_volume`](#kvm_automation_tooling--subplans--manage_base_image_volume): Ensure that the base image is downloaded for the given platform and imported into libvirt as a volume. Ensure that a libvirt pool for platfor
-* [`kvm_automation_tooling::subplans::setup_cluster_ssh`](#kvm_automation_tooling--subplans--setup_cluster_ssh): This plan manages two aspects of ssh access within the cluster.  1. SSH between *controller* and *destination* vms as *user*. 2. SSH between 
+* [`kvm_automation_tooling::subplans::setup_cluster_ssh`](#kvm_automation_tooling--subplans--setup_cluster_ssh): This plan manages two aspects of ssh access within the cluster.  1. SSH between *controller* and *destination* vms as *user*. 2. SSH between
 * [`kvm_automation_tooling::teardown_cluster`](#kvm_automation_tooling--teardown_cluster): This plan is just a wrapper around the terraform::destroy plan that automatically sets the dir, state and vars_file parameters based on the g
 
 ## Classes
@@ -72,6 +73,75 @@ ATM this is just a placeholder for the module so that rspec-puppet can
 get_module_name and setup the spec/fixtures/modules link correctly.
 
 ## Functions
+
+### <a name="kvm_automation_tooling--build_artifact_path"></a>`kvm_automation_tooling::build_artifact_path`
+
+Type: Puppet Language
+
+The path is relative to a directory laid out like the build artifacts
+server, as `<package directory>/<version>/<package file>`. The names
+follow set_artifacts_package_url() in openvox_bootstrap's
+files/common.sh.
+
+#### Examples
+
+##### An agent package for Ubuntu 24.04
+
+```puppet
+kvm_automation_tooling::build_artifact_path('openvox-agent', '8.29.0', 'ubuntu-2404-amd64')
+# => 'openvox-agent/8.29.0/openvox-agent_8.29.0-1+ubuntu24.04_amd64.deb'
+```
+
+##### A server package for Rocky 9
+
+```puppet
+kvm_automation_tooling::build_artifact_path('openvox-server', '8.17.0', 'rocky-9-x86_64')
+# => 'openvox-server/8.17.0/openvox-server-8.17.0-1.el9.noarch.rpm'
+```
+
+#### `kvm_automation_tooling::build_artifact_path(String[1] $package, String[1] $version, Pattern[/\A(almalinux|rocky|debian|ubuntu)-[0-9]+-(x86_64|amd64|aarch64|arm64)\z/] $platform)`
+
+The path is relative to a directory laid out like the build artifacts
+server, as `<package directory>/<version>/<package file>`. The names
+follow set_artifacts_package_url() in openvox_bootstrap's
+files/common.sh.
+
+Returns: `Any` The path of the package file within the artifacts directory.
+
+##### Examples
+
+###### An agent package for Ubuntu 24.04
+
+```puppet
+kvm_automation_tooling::build_artifact_path('openvox-agent', '8.29.0', 'ubuntu-2404-amd64')
+# => 'openvox-agent/8.29.0/openvox-agent_8.29.0-1+ubuntu24.04_amd64.deb'
+```
+
+###### A server package for Rocky 9
+
+```puppet
+kvm_automation_tooling::build_artifact_path('openvox-server', '8.17.0', 'rocky-9-x86_64')
+# => 'openvox-server/8.17.0/openvox-server-8.17.0-1.el9.noarch.rpm'
+```
+
+##### `package`
+
+Data type: `String[1]`
+
+The name of the package.
+
+##### `version`
+
+Data type: `String[1]`
+
+The version of the package.
+
+##### `platform`
+
+Data type: `Pattern[/\A(almalinux|rocky|debian|ubuntu)-[0-9]+-(x86_64|amd64|aarch64|arm64)\z/]`
+
+The platform string of the target, as returned by
+kvm_automation_tooling::platform().
 
 ### <a name="kvm_automation_tooling--calculate_wait_for_ip_timeout"></a>`kvm_automation_tooling::calculate_wait_for_ip_timeout`
 
@@ -772,6 +842,10 @@ Keys:
   or to download and install a pre-release openvox_version package
   from the openvox_artifacts_url for dev testing.
 - openvox_artifacts_url: The URL to the OpenVox artifacts server.
+- openvox_artifacts_dir: A directory on the controller laid out like
+  the OpenVox artifacts server. When set, a pre-release package found
+  there is uploaded to the targets instead of downloaded from the
+  openvox_artifacts_url. A package that isn't there is still downloaded.
 
 Alias of
 
@@ -781,6 +855,7 @@ Struct[{
   Optional[openvox_collection]    => Kvm_automation_tooling::Openvox_collection,
   Optional[openvox_released]      => Boolean,
   Optional[openvox_artifacts_url] => Optional[Stdlib::HTTPUrl],
+  Optional[openvox_artifacts_dir] => Optional[Stdlib::Absolutepath],
 }]
 ```
 
@@ -1983,4 +2058,3 @@ are stored. This should be an absolute or Puppet module relative
 path that the find_files function can locate.
 
 Default value: `'kvm_automation_tooling/../terraform/instances'`
-
