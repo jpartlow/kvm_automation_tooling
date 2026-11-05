@@ -186,6 +186,7 @@ data "libvirt_domain_interface_addresses" "domain_addresses" {
 output "vminfo" {
   value = {
     (local.hostname) = {
+      domain   = var.domain_name
       platform = local.platform
       role     = local.role
       ip_addresses = flatten([
