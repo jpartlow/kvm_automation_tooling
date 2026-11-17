@@ -29,7 +29,7 @@ describe KvmAutomationTooling::Command do
         expect(e.kind).to eq('bad-task/cli')
         expect(e.details[:command]).to eq(['ls', '--bad-option'])
         expect(e.details[:status]).to eq(2)
-        expect(e.details[:output]).to match(/ls: unrecognized option '--bad-option'/)
+        expect(e.details[:output]).to match(%r{(unrecognized option|unexpected argument)\s+'--bad-option'})
       end
     end
   end
@@ -55,7 +55,7 @@ describe KvmAutomationTooling::Command do
         expect(e.kind).to eq('bad-task/cli')
         expect(e.details[:command]).to eq(['ls', '--bad-option'])
         expect(e.details[:status]).to eq(2)
-        expect(e.details[:stderr]).to match(/ls: unrecognized option '--bad-option'/)
+        expect(e.details[:stderr]).to match(%r{(unrecognized option|unexpected argument)\s+'--bad-option'})
         expect(e.details[:output]).to be_empty
       end
     end
