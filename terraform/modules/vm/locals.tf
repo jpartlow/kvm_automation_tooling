@@ -112,7 +112,7 @@ locals {
     ]
   }
   firmware_info = (
-    local.is_arm64 &&
-    contains(local.platforms_without_secureboot, local.platform)
+    local.is_arm64 #&&
+    #    contains(local.platforms_without_secureboot, local.platform)
   ) ? local.arm64_no_secureboot_firmware_info : null
 }

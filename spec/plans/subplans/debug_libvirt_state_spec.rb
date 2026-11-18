@@ -19,7 +19,6 @@ describe 'plan: debug_libvirt_state' do
       'virsh net-list --all',
       "virsh net-dhcp-leases spec",
       "virsh net-dumpxml spec",
-      "brctl show",
       "nft list ruleset",
       "cat /var/lib/libvirt/dnsmasq/spec.conf",
       "cat /var/lib/libvirt/dnsmasq/spec.hostsfile",
