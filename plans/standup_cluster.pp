@@ -187,6 +187,14 @@ plan kvm_automation_tooling::standup_cluster(
   $tfstate_file = "${_terraform_state_dir}/${tfstate_file_name}"
   $inventory_file = "${_terraform_state_dir}/inventory.${cluster_id}.yaml"
 
+  # Get localhost facts for host architecture and platform string.
+  $localhost_target = get_target('localhost')
+  run_plan('kvm_automation_tooling::subplans::lookup_platform',
+    'targets' => $localhost_target
+  )
+  $host_arch = dig($localhost_target.facts(), 'os', 'architecture')
+  out::message("Host architecture: ${host_arch}")
+
   # Ensure base image volumes are present and a platform image pools
   # exist.
   $image_results = parallelize($os_specs) |$os_spec| {
@@ -194,15 +202,12 @@ plan kvm_automation_tooling::standup_cluster(
       'kvm_automation_tooling::subplans::manage_base_image_volume',
       'os_spec' => $os_spec,
       'image_download_dir' => $image_download_dir,
+      'runner_platform' => $localhost_target.vars['platform'],
       'in_gha' => $in_gha,
     )
   }
 
-  # Get localhost facts for host architecture.
-  $localhost_target = get_target('localhost')
-  run_plan('facts', $localhost_target)
-  $host_arch = dig($localhost_target.facts(), 'os', 'architecture')
-  out::message("Host architecture: ${host_arch}")
+  # Generate the vm specifications for our terraform vm module.
   $tf_vm_specs = kvm_automation_tooling::generate_terraform_vm_spec_set($cluster_id, $vm_specs, $image_results)
   $vm_hostnames = $tf_vm_specs.keys().map |$k| { split($k, '\.')[1] }
   $calculated_wait_for_ip_timeout = kvm_automation_tooling::calculate_wait_for_ip_timeout($host_arch, $vm_specs)

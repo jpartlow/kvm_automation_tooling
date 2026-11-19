@@ -1,7 +1,7 @@
 network:
   version: 2
-  ethernets:
 %{ if os == "ubuntu" || os == "debian" ~}
+  ethernets:
     # The primary network interface. The id0 identifier is purely internal
     # to cloud-init. The actual device name is matched by the match.name
     # key, since the virtio network device name can vary, but should be

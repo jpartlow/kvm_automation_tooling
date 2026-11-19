@@ -35,6 +35,7 @@ describe 'plan: kvm_automation_tooling::subplans::install_component' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         }
       )
