@@ -24,7 +24,6 @@ plan kvm_automation_tooling::subplans::debug_libvirt_state(
     'virsh net-list --all',
     "virsh net-dhcp-leases ${cluster_id}",
     "virsh net-dumpxml ${cluster_id}",
-    "brctl show",
     "nft list ruleset",
     "cat /var/lib/libvirt/dnsmasq/${cluster_id}.conf",
     "cat /var/lib/libvirt/dnsmasq/${cluster_id}.hostsfile",
