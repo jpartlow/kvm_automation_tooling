@@ -20,7 +20,7 @@ function kvm_automation_tooling::calculate_wait_for_ip_timeout(
   Optional[Kvm_automation_tooling::Os_arch] $host_arch,
   Array[Kvm_automation_tooling::Vm_spec] $vm_specs,
   Integer $default_timeout = 300,
-  Integer $qemu_timeout = 900,
+  Integer $qemu_timeout = 600,
 ) >> Integer {
   $domain_types = $vm_specs.map |$vm_spec| {
     $vm_spec['domain_type']
