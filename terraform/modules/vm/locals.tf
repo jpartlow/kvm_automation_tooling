@@ -90,29 +90,4 @@ locals {
   }
 
   features = local.is_arm64 ? local.base_features : merge(local.base_features, local.x86_features)
-
-  # Alma 9, 10 and Debian 11 arm64 images don't seem to have
-  # secureboot support, so we need to disable it for those platforms
-  # to avoid boot failures when trying to load the UEFI firmware.
-  platforms_without_secureboot = [
-    "almalinux-9-aarch64",
-    "almalinux-10-aarch64",
-    "debian-11-arm64",
-  ]
-  arm64_no_secureboot_firmware_info = {
-    features = [
-      {
-        name = "enrolled-keys"
-        enabled = "no"
-      },
-      {
-        name = "secure-boot"
-        enabled = "no"
-      },
-    ]
-  }
-  firmware_info = (
-    local.is_arm64 &&
-    contains(local.platforms_without_secureboot, local.platform)
-  ) ? local.arm64_no_secureboot_firmware_info : null
 }
