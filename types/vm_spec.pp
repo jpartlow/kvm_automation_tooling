@@ -5,7 +5,7 @@
 # function to supply any missing defaults.
 #
 # Keys:
-# - role: The role of the vms in set. Will be used as part of the
+# - role: The role of the vms in the set. Will be used as part of the
 #   hostname along with the cluster-id and the vm count. (Required)
 # - count: The number of vms in the set.
 # - os: Details of the operating system image to download and use

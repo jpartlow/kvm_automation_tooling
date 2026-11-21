@@ -67,8 +67,8 @@ describe 'kvm_automation_tooling::calculate_wait_for_ip_timeout' do
 
     it 'returns the given default_timeout' do
       is_expected.to(
-        run.with_params('amd64', matching_vms, 600)
-          .and_return(600)
+        run.with_params('amd64', matching_vms, 500)
+          .and_return(500)
       )
     end
   end
@@ -77,11 +77,11 @@ describe 'kvm_automation_tooling::calculate_wait_for_ip_timeout' do
     it 'returns the qemu timeout' do
       is_expected.to(
         run.with_params('amd64', non_matching_vms)
-          .and_return(900)
+          .and_return(600)
       )
       is_expected.to(
         run.with_params('arm64', matching_vms)
-          .and_return(900)
+          .and_return(600)
       )
     end
 
@@ -95,7 +95,7 @@ describe 'kvm_automation_tooling::calculate_wait_for_ip_timeout' do
     it 'returns the qemu timeout if host_arch is undef' do
       is_expected.to(
         run.with_params(nil, matching_vms)
-          .and_return(900)
+          .and_return(600)
       )
     end
 
@@ -103,17 +103,16 @@ describe 'kvm_automation_tooling::calculate_wait_for_ip_timeout' do
       matching_vms[0].delete('os')
       is_expected.to(
         run.with_params('amd64', matching_vms)
-          .and_return(900)
+          .and_return(600)
       )
     end
-
   end
 
   context 'qemu domain' do
     it 'returns the qemu timeout' do
       is_expected.to(
         run.with_params('amd64', qemu_domain)
-          .and_return(900)
+          .and_return(600)
       )
     end
   end

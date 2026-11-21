@@ -15,10 +15,12 @@ env:
 
 jobs:
   standup-cluster-and-install-openvox:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-latest
         architecture:
           - 'x86_64'
           - 'aarch64'
@@ -73,12 +75,15 @@ jobs:
               db-version: 9.1.0
               released: false
               collection: openvox9
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
-        uses: jpartlow/nested_vms@main
+#        uses: jpartlow/nested_vms@main
+#       XXX: Temporarily test with:
+        uses: jpartlow/nested_vms@pin_aarch64_firmware_based_on_platforms
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
