@@ -81,9 +81,9 @@ jobs:
         with:
           path: 'kvm_automation_tooling'
       - id: vm-cluster
-        uses: jpartlow/nested_vms@main
+#        uses: jpartlow/nested_vms@main
 #       XXX: Temporarily test with:
-#        uses: jpartlow/nested_vms@pin_aarch64_firmware_based_on_platforms
+        uses: jpartlow/nested_vms@pin_aarch64_firmware_based_on_platforms
         with:
           os: ${{ matrix.os[0] }}
           os-version: ${{ matrix.os[1] }}
