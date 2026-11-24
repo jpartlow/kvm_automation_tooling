@@ -32,6 +32,7 @@ describe 'plan: install_openvox' do
         'yum_source' => 'https://yum.voxpupuli.org',
         'stop_service' => false,
         'force_release_package' => true,
+        'manage_release_package' => true,
         '_catch_errors' => true,
       })
     expect_task('package')
@@ -67,6 +68,7 @@ describe 'plan: install_openvox' do
         'yum_source' => 'https://yum.voxpupuli.org',
         'stop_service' => false,
         'force_release_package' => true,
+        'manage_release_package' => true,
         '_catch_errors' => true,
       })
     expect_task('package')
@@ -139,6 +141,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
@@ -151,6 +154,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
@@ -163,6 +167,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
@@ -175,6 +180,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       expect_task('package')
@@ -247,6 +253,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       allow_apply
@@ -268,6 +275,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       expect_task('openvox_bootstrap::install')
@@ -280,6 +288,7 @@ describe 'plan: install_openvox' do
           'yum_source' => 'https://yum.voxpupuli.org',
           'stop_service' => false,
           'force_release_package' => true,
+          'manage_release_package' => true,
           '_catch_errors' => true,
         })
       expect_task('package').be_called_times(4)
@@ -313,6 +322,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
@@ -325,6 +335,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
@@ -337,6 +348,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('package').be_called_times(3)
@@ -374,6 +386,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
@@ -386,6 +399,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('package').be_called_times(2)
@@ -425,6 +439,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
@@ -437,6 +452,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
@@ -449,6 +465,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('openvox_bootstrap::install')
@@ -461,6 +478,7 @@ describe 'plan: install_openvox' do
             'yum_source' => 'https://yum.voxpupuli.org',
             'stop_service' => false,
             'force_release_package' => true,
+            'manage_release_package' => true,
             '_catch_errors' => true,
           })
         expect_task('package').be_called_times(4)

@@ -156,7 +156,7 @@ architecture, then the $qemu_timeout value is returned.
 
 Otherwise, the $default_timeout value is returned.
 
-#### `kvm_automation_tooling::calculate_wait_for_ip_timeout(Optional[Kvm_automation_tooling::Os_arch] $host_arch, Array[Kvm_automation_tooling::Vm_spec] $vm_specs, Integer $default_timeout = 300, Integer $qemu_timeout = 900)`
+#### `kvm_automation_tooling::calculate_wait_for_ip_timeout(Optional[Kvm_automation_tooling::Os_arch] $host_arch, Array[Kvm_automation_tooling::Vm_spec] $vm_specs, Integer $default_timeout = 300, Integer $qemu_timeout = 600)`
 
 Calculates the timeout for waiting for an IP address to be assigned
 to a VM.
@@ -931,7 +931,7 @@ so that a set of common parameters can be used with the fill_vm_spec()
 function to supply any missing defaults.
 
 Keys:
-- role: The role of the vms in set. Will be used as part of the
+- role: The role of the vms in the set. Will be used as part of the
   hostname along with the cluster-id and the vm count. (Required)
 - count: The number of vms in the set.
 - os: Details of the operating system image to download and use
