@@ -14,8 +14,8 @@ HOSTS:
     # /opt/puppetlabs/bin to that environment PATH variable.
     # It's all a bit rediculous.
 <%- $agents.each |$agent| {-%>
-  <%= $agent.name %>:
-    vmhostname: '<%= "${agent.name}.${agent.vars['domain_name']}" %>'
+  <%= regsubst($agent.name, "\\.${agent.vars['domain_name']}$", '') %>:
+    vmhostname: '<%= "${agent.name}" %>'
     ip: '<%= $agent.uri %>'
     roles:
     <%- $agent.vars['beaker_roles'].each |$role| { -%>
